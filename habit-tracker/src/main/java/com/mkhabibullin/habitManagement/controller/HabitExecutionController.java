@@ -6,7 +6,9 @@ import com.mkhabibullin.habitManagement.service.HabitExecutionService;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
-
+/**
+ * Controller class for processing requests, calling the corresponding methods of service classes
+ */
 public class HabitExecutionController {
   private HabitExecutionService executionService;
   

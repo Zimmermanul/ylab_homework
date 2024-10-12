@@ -11,7 +11,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
-
+/**
+ * A service that encapsulates the application's business logic related to habit executions
+ */
 public class HabitExecutionService {
   private HabitExecutionRepository executionRepository;
   private HabitRepository habitRepository;
@@ -39,7 +41,6 @@ public class HabitExecutionService {
     if (filteredExecutions.isEmpty()) {
       return 0.0;
     }
-    
     long completedCount = filteredExecutions.stream().filter(HabitExecution::isCompleted).count();
     return (double) completedCount / filteredExecutions.size();
   }
@@ -47,10 +48,8 @@ public class HabitExecutionService {
   public int getCurrentStreak(String habitId) throws IOException {
     List<HabitExecution> executions = executionRepository.getByHabitId(habitId);
     executions.sort(Comparator.comparing(HabitExecution::getDate).reversed());
-    
     int streak = 0;
     LocalDate currentDate = LocalDate.now();
-    
     for (HabitExecution execution : executions) {
       if (execution.getDate().isEqual(currentDate) && execution.isCompleted()) {
         streak++;
@@ -61,7 +60,6 @@ public class HabitExecutionService {
         break;
       }
     }
-    
     return streak;
   }
   
@@ -71,7 +69,6 @@ public class HabitExecutionService {
     long completedDays = executions.stream()
       .filter(e -> !e.getDate().isBefore(startDate) && !e.getDate().isAfter(endDate) && e.isCompleted())
       .count();
-    
     return (double) completedDays / totalDays * 100;
   }
   
@@ -80,24 +77,20 @@ public class HabitExecutionService {
     if (habit == null) {
       throw new IllegalArgumentException("Habit not found");
     }
-    
     int currentStreak = getCurrentStreak(habitId);
     double successPercentage = getSuccessPercentage(habitId, startDate, endDate);
     List<HabitExecution> executions = executionRepository.getByHabitId(habitId);
-    
     StringBuilder report = new StringBuilder();
     report.append("Progress Report for: ").append(habit.getName()).append("\n");
     report.append("Period: ").append(startDate).append(" to ").append(endDate).append("\n");
     report.append("Current Streak: ").append(currentStreak).append(" days\n");
     report.append("Success Rate: ").append(String.format("%.2f%%", successPercentage)).append("\n");
     report.append("Execution History:\n");
-    
     executions.stream()
       .filter(e -> !e.getDate().isBefore(startDate) && !e.getDate().isAfter(endDate))
       .sorted(Comparator.comparing(HabitExecution::getDate))
       .forEach(e -> report.append(e.getDate()).append(": ")
         .append(e.isCompleted() ? "Completed" : "Not completed").append("\n"));
-    
     return report.toString();
   }
 }

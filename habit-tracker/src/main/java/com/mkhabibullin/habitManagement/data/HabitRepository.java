@@ -11,14 +11,13 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
 /**
- * Класс отвечающий за создание, чтение, обновление, удаление данных пользователей
+ * Class responsible for creating, reading, updating, deleting habits data
  */
 public class HabitRepository {
-  private static final Path HABIT_FILE = Paths.get("./src/main/java/com/mkhabibullin/habitManagement/data/habits/habits.txt");
+  private static final Path HABIT_FILE = Paths.get("habits.txt");
   
-  public void save(Habit habit) throws IOException {
+  public void create(Habit habit) throws IOException {
     List<Habit> habits = readAllHabits();
     habits.add(habit);
     writeHabits(habits);
@@ -41,7 +40,7 @@ public class HabitRepository {
     writeHabits(habits);
   }
   
-  public List<Habit> getAll() throws IOException {
+  public List<Habit> readAll() throws IOException {
     return readAllHabits();
   }
   

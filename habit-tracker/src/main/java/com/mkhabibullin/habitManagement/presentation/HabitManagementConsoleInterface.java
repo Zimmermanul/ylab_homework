@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Scanner;
 
 /**
- * Интерфейсный класс, отвечающий за отображение вывода и обработку логики пользовательского интерфейса
+ * An interface class responsible for displaying output and handling habit management interface logic.
  */
 public class HabitManagementConsoleInterface {
   private HabitController habitController;
@@ -31,7 +31,6 @@ public class HabitManagementConsoleInterface {
       showMainMenu();
       System.out.print("Choose an option: ");
       int choice = Integer.parseInt(scanner.nextLine());
-      
       try {
         switch (choice) {
           case 1:
@@ -83,9 +82,15 @@ public class HabitManagementConsoleInterface {
     String name = scanner.nextLine();
     System.out.print("Enter habit description: ");
     String description = scanner.nextLine();
-    System.out.print("Enter frequency (DAILY/WEEKLY): ");
-    Habit.Frequency frequency = Habit.Frequency.valueOf(scanner.nextLine().toUpperCase());
-    
+    Habit.Frequency frequency = null;
+    do {
+      try {
+        System.out.print("Enter frequency (DAILY/WEEKLY): ");
+        frequency = Habit.Frequency.valueOf(scanner.nextLine().toUpperCase());
+      } catch (IllegalArgumentException e) {
+        System.out.println("Incorrect frequency, please try again");
+      }
+    } while (frequency == null);
     habitController.createHabit(user.getEmail(), name, description, frequency);
     System.out.println("Habit created successfully.");
   }
@@ -97,9 +102,21 @@ public class HabitManagementConsoleInterface {
     String name = scanner.nextLine();
     System.out.print("Enter new description: ");
     String description = scanner.nextLine();
-    System.out.print("Enter new frequency (DAILY/WEEKLY): ");
-    Habit.Frequency frequency = Habit.Frequency.valueOf(scanner.nextLine().toUpperCase());
-    habitController.editHabit(id, name, description, frequency);
+    Habit.Frequency frequency = null;
+    do {
+      try {
+        System.out.print("Enter new frequency (DAILY/WEEKLY): ");
+        frequency = Habit.Frequency.valueOf(scanner.nextLine().toUpperCase());
+      } catch (IllegalArgumentException e) {
+        System.out.println("Incorrect frequency, please try again");
+      }
+    } while (frequency == null);
+    try {
+      habitController.editHabit(id, name, description, frequency);
+    } catch (IllegalArgumentException e) {
+      System.out.println("Habit with this ID not found, please try again");
+      return;
+    }
     System.out.println("Habit edited successfully.");
   }
   
@@ -107,18 +124,16 @@ public class HabitManagementConsoleInterface {
     System.out.print("Enter habit ID to delete: ");
     String id = scanner.nextLine();
     habitController.deleteHabit(id);
-    System.out.println("Habit deleted successfully.");
+    System.out.println("Habit deleted successfully (if exists)");
   }
   
   private void viewHabits(User user) throws IOException {
     System.out.print("Enter filter date (YYYY-MM-DD) or press enter to skip: ");
     String dateStr = scanner.nextLine();
     LocalDate filterDate = dateStr.isEmpty() ? null : LocalDate.parse(dateStr);
-    
     System.out.print("Filter by active status (true/false) or press enter to skip: ");
     String activeStr = scanner.nextLine();
     Boolean active = activeStr.isEmpty() ? null : Boolean.parseBoolean(activeStr);
-    
     List<Habit> habits = habitController.viewHabits(user.getEmail(), filterDate, active);
     for (Habit habit : habits) {
       System.out.println(habit);
@@ -131,19 +146,53 @@ public class HabitManagementConsoleInterface {
     for (int i = 0; i < habits.size(); i++) {
       System.out.println((i + 1) + ". " + habits.get(i).getName());
     }
-    System.out.print("Choose a habit to mark (enter number): ");
-    int habitIndex = Integer.parseInt(scanner.nextLine()) - 1;
+    Habit selectedHabit = null;
+    do {
+      try {
+        System.out.print("Choose a habit to track (enter number): ");
+        int habitIndex = Integer.parseInt(scanner.nextLine()) - 1;
+        selectedHabit = habits.get(habitIndex);
+      } catch (IndexOutOfBoundsException e) {
+        System.out.println("Incorrect index, please try again");
+      }
+    } while (selectedHabit == null);
+    LocalDate date = null;
+    do {
+      try {
+        System.out.print("Enter date (YYYY-MM-DD) or press enter for today: ");
+        String dateStr = scanner.nextLine();
+        date = dateStr.isEmpty() ? LocalDate.now() : LocalDate.parse(dateStr);
+      } catch (DateTimeParseException e) {
+        System.out.println("Incorrect format, please try again");
+      }
+    } while (date == null);
+    boolean completed = false;
+    boolean validInput = false;
     
-    Habit selectedHabit = habits.get(habitIndex);
-    System.out.print("Enter date (YYYY-MM-DD) or press enter for today: ");
-    String dateStr = scanner.nextLine();
-    LocalDate date = dateStr.isEmpty() ? LocalDate.now() : LocalDate.parse(dateStr);
-    
-    System.out.print("Did you complete this habit? (y/n): ");
-    boolean completed = scanner.nextLine().toLowerCase().startsWith("y");
-    
-    executionController.markHabitExecution(selectedHabit.getId(), date, completed);
-    System.out.println("Habit execution recorded successfully.");
+    while (!validInput) {
+      System.out.print("Did you complete this habit? (y/n): ");
+      String input = scanner.nextLine().trim().toLowerCase();
+      switch (input) {
+        case "y":
+        case "yes":
+          completed = true;
+          validInput = true;
+          break;
+        case "n":
+        case "no":
+          completed = false;
+          validInput = true;
+          break;
+        default:
+          System.out.println("Invalid input. Please enter 'y' for yes or 'n' for no.");
+      }
+    }
+    try {
+      executionController.markHabitExecution(selectedHabit.getId(), date, completed);
+      System.out.println("Habit execution recorded successfully.");
+    } catch (IOException e) {
+      System.out.println("Error recording habit execution: " + e.getMessage());
+    }
   }
   
   private void viewStatistics(User user) throws IOException {
@@ -162,8 +211,6 @@ public class HabitManagementConsoleInterface {
         System.out.println("Incorrect index, please try again");
       }
     } while (selectedHabit == null);
-    
-    
     LocalDate startDate = null;
     do {
       try {
@@ -184,11 +231,9 @@ public class HabitManagementConsoleInterface {
     } while (endDate == null);
     int currentStreak = executionController.getCurrentStreak(selectedHabit.getId());
     double successPercentage = executionController.getSuccessPercentage(selectedHabit.getId(), startDate, endDate);
-    
     System.out.println("\nStatistics for: " + selectedHabit.getName());
     System.out.println("Current Streak: " + currentStreak + " days");
     System.out.printf("Success Rate: %.2f%%\n", successPercentage);
-    
     List<HabitExecution> history = executionController.getHabitExecutionHistory(selectedHabit.getId());
     System.out.println("Execution history:");
     for (HabitExecution execution : history) {
@@ -205,9 +250,16 @@ public class HabitManagementConsoleInterface {
       System.out.println((i + 1) + ". " + habits.get(i).getName());
     }
     System.out.print("Choose a habit to generate a progress report (enter number): ");
-    int habitIndex = Integer.parseInt(scanner.nextLine()) - 1;
-    
-    Habit selectedHabit = habits.get(habitIndex);
+    Habit selectedHabit = null;
+    do {
+      try {
+        System.out.print("Choose a habit to view statistics (enter number): ");
+        int habitIndex = Integer.parseInt(scanner.nextLine()) - 1;
+        selectedHabit = habits.get(habitIndex);
+      } catch (IndexOutOfBoundsException e) {
+        System.out.println("Incorrect index, please try again");
+      }
+    } while (selectedHabit == null);
     LocalDate startDate = null;
     do {
       try {

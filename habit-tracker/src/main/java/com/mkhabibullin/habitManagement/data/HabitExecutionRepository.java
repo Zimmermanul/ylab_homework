@@ -11,7 +11,9 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
+/**
+ * Class responsible for creating, reading, updating, deleting habits execution data
+ */
 public class HabitExecutionRepository {
   private static final Path EXECUTION_FILE = Paths.get("habit_executions.txt");
   

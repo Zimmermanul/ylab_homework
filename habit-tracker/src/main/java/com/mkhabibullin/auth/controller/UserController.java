@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * Класс-контроллер для обработки запросов, вызовов соответствующих методов сервис-классов
+ * Controller class for processing requests, calling the corresponding methods of service classes
  */
 public class UserController {
   private final UserService userService;

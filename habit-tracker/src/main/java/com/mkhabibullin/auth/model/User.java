@@ -6,11 +6,10 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Objects;
-
+/**
+ * A model class that describes a user.
+ */
 public class User implements Serializable {
-  /**
-   * Класс-модель, описывающая пользователя.
-   */
   private String email;
   private String passwordHash;
   private String salt;

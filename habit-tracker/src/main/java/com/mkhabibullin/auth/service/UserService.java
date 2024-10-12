@@ -9,10 +9,9 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.List;
 import java.util.regex.Pattern;
-
 /**
- * Сервис, инкапсулирующий бизнес-логику приложения, связанную с пользователями (регистрация, аутентификация,
- * обновление, удаление аккаунтов)
+ * A service that encapsulates the application's business logic related to users (registration, authentication,
+ * updating, deleting accounts)
  */
 public class UserService {
   private final UserRepository userRepository;

@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.util.Scanner;
 
 /**
- * Входная точка в приложение. Запустить App.main() для работы
+ * Entry point to the application. Run App.main() to run
  */
 public class App {
   private UserRepository userRepository;
@@ -48,12 +48,11 @@ public class App {
     
     this.userInterface = new UserConsoleInterface(userController);
     this.habitInterface = new HabitManagementConsoleInterface(habitController, executionController);
-    // Create admin account if it doesn't exist
-    try {
-      habitRepository.cleanupCorruptedData();
-    } catch (IOException e) {
-      System.out.println("An error occurred while trying to clean up corrupted data (please clean file manually): " + e.getMessage());
-    }
+//    try {
+//      habitRepository.cleanupCorruptedData();
+//    } catch (IOException e) {
+//      System.out.println("An error occurred while trying to clean up corrupted data (please clean file manually): " + e.getMessage());
+//    }
     try {
       if (userController.getUser("admin@example.com") == null) {
         User adminUser = new User("admin@example.com", "Admin");

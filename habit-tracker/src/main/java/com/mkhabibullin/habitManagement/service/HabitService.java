@@ -9,10 +9,8 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
-
 /**
- * Сервис, инкапсулирующий бизнес-логику приложения, связанную с пользователями (регистрация, аутентификация,
- * обновление, удаление аккаунтов)
+ * A service that encapsulates the application's business logic related to habits (CRUD)
  */
 public class HabitService {
   private HabitRepository habitRepository;
@@ -30,19 +28,17 @@ public class HabitService {
     habit.setName(name);
     habit.setDescription(description);
     habit.setFrequency(frequency);
-    habitRepository.save(habit);
+    habitRepository.create(habit);
   }
   
   public void editHabit(String id, String name, String description, Habit.Frequency frequency) throws IOException {
-    Habit habit = habitRepository.getAll().stream()
+    Habit habit = habitRepository.readAll().stream()
       .filter(h -> h.getId().equals(id))
       .findFirst()
       .orElseThrow(() -> new IllegalArgumentException("Habit not found"));
-    
     habit.setName(name);
     habit.setDescription(description);
     habit.setFrequency(frequency);
-    
     habitRepository.update(habit);
   }
   

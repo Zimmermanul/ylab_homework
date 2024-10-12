@@ -1,7 +1,9 @@
 package com.mkhabibullin.habitManagement.model;
 
 import java.time.LocalDate;
-
+/**
+ * A model class that describes a habit execution.
+ */
 public class HabitExecution {
   private String id;
   private String habitId;

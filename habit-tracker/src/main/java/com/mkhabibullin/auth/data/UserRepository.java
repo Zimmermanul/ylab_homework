@@ -12,10 +12,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Класс отвечающий за создание, чтение, обновление, удаление данных пользователей
+ * Class responsible for creating, reading, updating, deleting user data
  */
 public class UserRepository {
-  private static final Path USER_FILE = Paths.get("./src/main/java/com/mkhabibullin/auth/data/users/users.txt");
+  private static final Path USER_FILE = Paths.get("users.txt");
   
   public List<User> getAllUsers() throws IOException {
     return readAllUsers();

@@ -6,14 +6,12 @@ import com.mkhabibullin.auth.model.User;
 import java.io.IOException;
 import java.util.List;
 import java.util.Scanner;
-
 /**
- * Интерфейсный класс, отвечающий за отображение вывода и обработку логики пользовательского интерфейса
+ * An interface class responsible for displaying output and handling user interface logic.
  */
 public class UserConsoleInterface {
   private final UserController userController;
   private final Scanner scanner;
-//  private String currentUserEmail;
   
   public UserConsoleInterface(UserController userController) {
     this.userController = userController;
@@ -178,68 +176,6 @@ public class UserConsoleInterface {
       }
     }
   }
-
-//  private void showLoggedInMenu() {
-//    while (!currentUserEmail.isEmpty()) {
-//      System.out.println("\n--- Main Menu ---");
-//      System.out.println("1. Update Profile");
-//      System.out.println("2. Delete Profile");
-//      System.out.println("3. Logout");
-//      System.out.print("Enter your choice (1-3): ");
-//
-//      String choice = scanner.nextLine().trim();
-//
-//      switch (choice) {
-//        case "1":
-//          updateProfile();
-//          break;
-//        case "2":
-//          if (deleteProfile()) {
-//            return; // Exit to main menu if profile is deleted
-//          }
-//          break;
-//        case "3":
-//          System.out.println("Logging out...");
-//          logout();
-//          return;
-//        default:
-//          System.out.println("Invalid choice. Please try again.");
-//      }
-//    }
-//  }
-
-//  private void updateProfile() {
-//    while (!currentUserEmail.isEmpty()) {
-//      System.out.println("\n--- Update Profile ---");
-//      System.out.println("1. Update your email");
-//      System.out.println("2. Update your name");
-//      System.out.println("3. Update your password");
-//      System.out.println("4. Back to main menu");
-//      System.out.print("Enter your choice (1-4): ");
-//
-//      String choice = scanner.nextLine().trim();
-//
-//      try {
-//        switch (choice) {
-//          case "1":
-//            updateEmail();
-//            break;
-//          case "2":
-//            updateName();
-//            break;
-//          case "3":
-//            updatePassword();
-//            break;
-//          case "4":
-//            return;
-//          default:
-//            System.out.println("Invalid choice. Please try again.");
-//        }
-//      } catch (IOException e) {
-//        System.out.println("An error occurred: " + e.getMessage());
-//      }
-//    }
-//  }
   
   private void updateEmail(User user) throws IOException {
     System.out.print("Enter new email: ");
@@ -264,60 +200,6 @@ public class UserConsoleInterface {
       System.out.println("Failed to update name: " + e.getMessage());
     }
   }
-
-//  private void updateEmail() throws IOException {
-//    System.out.print("Enter new email: ");
-//    String newEmail = getValidEmail();
-//    try {
-//      userController.updateUserEmail(currentUserEmail, newEmail);
-//      System.out.println("Email updated successfully.");
-//      currentUserEmail = newEmail;
-//    } catch (IllegalArgumentException e) {
-//      System.out.println("Failed to update email: " + e.getMessage());
-//    }
-//  }
-//
-//  private void updateName() throws IOException {
-//    System.out.print("Enter new name: ");
-//    String newName = scanner.nextLine().trim();
-//    try {
-//      userController.updateUserName(currentUserEmail, newName);
-//      System.out.println("Name updated successfully.");
-//    } catch (IllegalArgumentException e) {
-//      System.out.println("Failed to update name: " + e.getMessage());
-//    }
-//  }
-
-//  private void updatePassword() throws IOException {
-//    System.out.print("Enter new password: ");
-//    String newPassword = scanner.nextLine().trim();
-//    try {
-//      userController.updateUserPassword(currentUserEmail, newPassword);
-//      System.out.println("Password updated successfully.");
-//    } catch (IllegalArgumentException e) {
-//      System.out.println("Failed to update password: " + e.getMessage());
-//    }
-//  }
-//
-//  private boolean deleteProfile() {
-//    System.out.println("\nAre you sure you want to delete your profile? This action cannot be undone.");
-//    System.out.print("Type 'YES' to confirm: ");
-//    String confirmation = scanner.nextLine().trim();
-//
-//    if (confirmation.equals("YES")) {
-//      try {
-//        userController.deleteUserAccount(currentUserEmail);
-//        System.out.println("Your profile has been deleted. Goodbye!");
-//        logout();
-//        return true;
-//      } catch (IOException e) {
-//        System.out.println("An error occurred while deleting your profile: " + e.getMessage());
-//      }
-//    } else {
-//      System.out.println("Profile deletion cancelled.");
-//    }
-//    return false;
-//  }
   
   private void updatePassword(User user) throws IOException {
     System.out.print("Enter new password: ");
@@ -346,12 +228,8 @@ public class UserConsoleInterface {
     } else {
       System.out.println("Profile deletion cancelled.");
     }
-    return false; // Profile not deleted, stay in the current menu
+    return false;
   }
-
-//  private void logout() {
-//    currentUserEmail = "";
-//  }
   
   private String getValidEmail() {
     while (true) {
@@ -362,16 +240,4 @@ public class UserConsoleInterface {
       System.out.println("Invalid email format. Please try again.");
     }
   }
-
-//  private String getValidEmail() {
-//    while (true) {
-//      String email = scanner.nextLine().trim();
-//      try {
-//        userController.validateEmail(email);
-//        return email;
-//      } catch (IllegalArgumentException e) {
-//        System.out.println("Invalid email format. Please try again.");
-//      }
-//    }
-//  }
 }
