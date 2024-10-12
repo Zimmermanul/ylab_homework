@@ -1,4 +1,4 @@
 Основной README файл.
 
 
-[ДЗ №1](https://github.com/Zimmermanul/Allure-GitLab-API-Integration-for-Auto-closing-Defects)
+[ДЗ №1](https://github.com/Zimmermanul/ylab_homework/pull/1)
