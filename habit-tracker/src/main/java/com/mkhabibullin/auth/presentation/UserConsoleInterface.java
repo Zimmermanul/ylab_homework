@@ -183,7 +183,7 @@ public class UserConsoleInterface {
     try {
       userController.updateUserEmail(user.getEmail(), newEmail);
       System.out.println("Email updated successfully.");
-      user.setEmail(newEmail); // Update the user object
+      user.setEmail(newEmail);
     } catch (IllegalArgumentException e) {
       System.out.println("Failed to update email: " + e.getMessage());
     }
@@ -195,7 +195,7 @@ public class UserConsoleInterface {
     try {
       userController.updateUserName(user.getEmail(), newName);
       System.out.println("Name updated successfully.");
-      user.setName(newName); // Update the user object
+      user.setName(newName);
     } catch (IllegalArgumentException e) {
       System.out.println("Failed to update name: " + e.getMessage());
     }
@@ -221,7 +221,7 @@ public class UserConsoleInterface {
       try {
         userController.deleteUserAccount(user.getEmail());
         System.out.println("Your profile has been deleted. Goodbye!");
-        return true; // Profile deleted, return to main menu
+        return true;
       } catch (IOException e) {
         System.out.println("An error occurred while deleting your profile: " + e.getMessage());
       }
