@@ -65,11 +65,14 @@ public class HabitExecutionService {
   
   public double getSuccessPercentage(String habitId, LocalDate startDate, LocalDate endDate) throws IOException {
     List<HabitExecution> executions = executionRepository.getByHabitId(habitId);
-    long totalDays = ChronoUnit.DAYS.between(startDate, endDate) + 1;
-    long completedDays = executions.stream()
-      .filter(e -> !e.getDate().isBefore(startDate) && !e.getDate().isAfter(endDate) && e.isCompleted())
-      .count();
-    return (double) completedDays / totalDays * 100;
+    List<HabitExecution> filteredExecutions = executions.stream()
+      .filter(e -> !e.getDate().isBefore(startDate) && !e.getDate().isAfter(endDate))
+      .collect(Collectors.toList());
+    if (filteredExecutions.isEmpty()) {
+      return 0.0;
+    }
+    long completedCount = filteredExecutions.stream().filter(HabitExecution::isCompleted).count();
+    return (double) completedCount / filteredExecutions.size() * 100;
   }
   
   public String generateProgressReport(String habitId, LocalDate startDate, LocalDate endDate) throws IOException {

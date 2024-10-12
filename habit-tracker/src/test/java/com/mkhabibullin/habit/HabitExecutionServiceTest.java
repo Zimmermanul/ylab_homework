@@ -57,12 +57,12 @@ public class HabitExecutionServiceTest {
     assertNotNull(report);
     assertTrue(report.contains("Progress Report for: Test Habit"));
     assertTrue(report.contains("Current Streak: 0 days"));
-    assertTrue(report.contains("Success Rate: 6.45%"));
+    assertTrue(report.contains("Success Rate: 66,67%"));
     assertTrue(report.contains("2023-01-01: Completed"));
     assertTrue(report.contains("2023-01-02: Not completed"));
     assertTrue(report.contains("2023-01-03: Completed"));
     verify(habitRepository).getById(habitId);
-    verify(executionRepository).getByHabitId(habitId);
+    verify(executionRepository, times(3)).getByHabitId(habitId);
   }
   
   @Test
@@ -107,7 +107,7 @@ public class HabitExecutionServiceTest {
     );
     when(executionRepository.getByHabitId(habitId)).thenReturn(executions);
     double percentage = habitExecutionService.getSuccessPercentage(habitId, startDate, endDate);
-    assertEquals(50.0, percentage, 0.01);
+    assertEquals(80.0, percentage, 0.01);
     verify(executionRepository).getByHabitId(habitId);
   }
 }
