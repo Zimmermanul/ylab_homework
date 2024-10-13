@@ -52,7 +52,7 @@ public class UserServiceTest {
     String password = "password123";
     User user = new User(email, "Test User");
     user.setPassword(password);
-    when(userRepository.readUser(email)).thenReturn(user);
+    when(userRepository.readUserByEmail(email)).thenReturn(user);
     boolean result = userService.authenticateUser(email, password);
     assertThat(result).isTrue();
   }
@@ -64,7 +64,7 @@ public class UserServiceTest {
     String wrongPassword = "wrongPassword";
     User user = new User(email, "Test User");
     user.setPassword(password);
-    when(userRepository.readUser(email)).thenReturn(user);
+    when(userRepository.readUserByEmail(email)).thenReturn(user);
     boolean result = userService.authenticateUser(email, wrongPassword);
     assertThat(result).isFalse();
   }

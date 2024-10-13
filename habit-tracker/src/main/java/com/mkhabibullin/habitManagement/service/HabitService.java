@@ -22,9 +22,9 @@ public class HabitService {
   }
   
   public void createHabit(String userEmail, String name, String description, Habit.Frequency frequency) throws IOException {
-    User user = userRepository.readUser(userEmail);
+    User user = userRepository.readUserByEmail(userEmail);
     Habit habit = new Habit();
-    habit.setUserId(user.getEmail());
+    habit.setUserId(user.getId());
     habit.setName(name);
     habit.setDescription(description);
     habit.setFrequency(frequency);
@@ -46,8 +46,8 @@ public class HabitService {
     habitRepository.delete(id);
   }
   
-  public List<Habit> viewHabits(String userEmail, LocalDate filterDate, Boolean active) throws IOException {
-    return habitRepository.getByUserId(userEmail).stream()
+  public List<Habit> viewHabits(String userId, LocalDate filterDate, Boolean active) throws IOException {
+    return habitRepository.getByUserId(userId).stream()
       .filter(h -> filterDate == null || !h.getCreationDate().isBefore(filterDate))
       .filter(h -> active == null || h.isActive() == active)
       .collect(Collectors.toList());

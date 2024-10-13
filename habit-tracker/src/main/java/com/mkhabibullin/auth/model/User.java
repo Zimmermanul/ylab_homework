@@ -6,10 +6,13 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Objects;
+import java.util.UUID;
+
 /**
  * A model class that describes a user.
  */
 public class User implements Serializable {
+  private final String id;
   private String email;
   private String passwordHash;
   private String salt;
@@ -18,12 +21,18 @@ public class User implements Serializable {
   private boolean isBlocked;
   
   public User(String email, String name) {
+    this(UUID.randomUUID().toString(), email, name);
+  }
+  public User(String id, String email, String name) {
+    this.id = id;
     this.email = email;
     this.name = name;
     this.isAdmin = false;
     this.isBlocked = false;
   }
-  
+  public String getId() {
+    return id;
+  }
   public String getEmail() {
     return email;
   }
@@ -100,11 +109,11 @@ public class User implements Serializable {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     User user = (User) o;
-    return email.equals(user.email);
+    return Objects.equals(id, user.id);
   }
   
   @Override
   public int hashCode() {
-    return Objects.hash(email);
+    return Objects.hash(id);
   }
 }

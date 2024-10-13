@@ -29,7 +29,7 @@ public class HabitController {
     habitService.deleteHabit(id);
   }
   
-  public List<Habit> viewHabits(String userEmail, LocalDate filterDate, Boolean active) throws IOException {
-    return habitService.viewHabits(userEmail, filterDate, active);
+  public List<Habit> viewHabits(String userId, LocalDate filterDate, Boolean active) throws IOException {
+    return habitService.viewHabits(userId, filterDate, active);
   }
 }

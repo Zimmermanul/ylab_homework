@@ -40,7 +40,7 @@ public class HabitManagementConsoleInterface {
             editHabit();
             break;
           case 3:
-            deleteHabit();
+            deleteHabit(currentUser);
             break;
           case 4:
             viewHabits(currentUser);
@@ -120,11 +120,54 @@ public class HabitManagementConsoleInterface {
     System.out.println("Habit edited successfully.");
   }
   
-  private void deleteHabit() throws IOException {
-    System.out.print("Enter habit ID to delete: ");
-    String id = scanner.nextLine();
-    habitController.deleteHabit(id);
-    System.out.println("Habit deleted successfully (if exists)");
+  private void deleteHabit(User user) throws IOException {
+    List<Habit> habits = habitController.viewHabits(user.getId(), null, null);
+    if (habits.isEmpty()){
+      System.out.println("You haven't created any habits yet");
+      return;
+    }
+    System.out.println("Your habits:");
+    for (int i = 0; i < habits.size(); i++) {
+      System.out.println((i + 1) + ". " + habits.get(i).getName());
+    }
+    Habit selectedHabit = null;
+    do {
+      try {
+        System.out.print("Choose a habit to delete (enter number): ");
+        int habitIndex = Integer.parseInt(scanner.nextLine()) - 1;
+        selectedHabit = habits.get(habitIndex);
+      } catch (IndexOutOfBoundsException e) {
+        System.out.println("Incorrect index, please try again");
+      }
+    } while (selectedHabit == null);
+    boolean validInput = false;
+    boolean delete = false;
+    while (!validInput) {
+      System.out.print("Are you sure you want to delete this habit? (y/n): ");
+      System.out.println(selectedHabit);
+      String input = scanner.nextLine().trim().toLowerCase();
+      switch (input) {
+        case "y":
+        case "yes":
+          validInput = true;
+          delete = true;
+          break;
+        case "n":
+        case "no":
+          validInput = true;
+          break;
+        default:
+          System.out.println("Invalid input. Please enter 'y' for yes or 'n' for no.");
+      }
+    }
+    if(delete){
+      try {
+        habitController.deleteHabit(selectedHabit.getId());
+        System.out.println("Habit deleted successfully");
+      } catch (IOException e) {
+        System.out.println("Error deleting habit: " + e.getMessage());
+      }
+    }
   }
   
   private void viewHabits(User user) throws IOException {
@@ -134,14 +177,23 @@ public class HabitManagementConsoleInterface {
     System.out.print("Filter by active status (true/false) or press enter to skip: ");
     String activeStr = scanner.nextLine();
     Boolean active = activeStr.isEmpty() ? null : Boolean.parseBoolean(activeStr);
-    List<Habit> habits = habitController.viewHabits(user.getEmail(), filterDate, active);
-    for (Habit habit : habits) {
-      System.out.println(habit);
+    List<Habit> habits = habitController.viewHabits(user.getId(), filterDate, active);
+    if (habits.isEmpty()){
+      System.out.println("You haven't created any habits yet");
+    }
+    else {
+      for (Habit habit : habits) {
+        System.out.println(habit);
+      }
     }
   }
   
   private void trackHabitExecution(User user) throws IOException {
-    List<Habit> habits = habitController.viewHabits(user.getEmail(), null, null);
+    List<Habit> habits = habitController.viewHabits(user.getId(), null, null);
+    if (habits.isEmpty()){
+      System.out.println("You haven't created any habits yet");
+      return;
+    }
     System.out.println("Your habits:");
     for (int i = 0; i < habits.size(); i++) {
       System.out.println((i + 1) + ". " + habits.get(i).getName());
@@ -196,7 +248,11 @@ public class HabitManagementConsoleInterface {
   }
   
   private void viewStatistics(User user) throws IOException {
-    List<Habit> habits = habitController.viewHabits(user.getEmail(), null, null);
+    List<Habit> habits = habitController.viewHabits(user.getId(), null, null);
+    if (habits.isEmpty()){
+      System.out.println("You haven't created any habits yet");
+      return;
+    }
     System.out.println("Your habits:");
     for (int i = 0; i < habits.size(); i++) {
       System.out.println((i + 1) + ". " + habits.get(i).getName());
@@ -244,7 +300,11 @@ public class HabitManagementConsoleInterface {
   }
   
   private void generateProgressReport(User user) throws IOException {
-    List<Habit> habits = habitController.viewHabits(user.getEmail(), null, null);
+    List<Habit> habits = habitController.viewHabits(user.getId(), null, null);
+    if (habits.isEmpty()){
+      System.out.println("You haven't created any habits yet");
+      return;
+    }
     System.out.println("Your habits:");
     for (int i = 0; i < habits.size(); i++) {
       System.out.println((i + 1) + ". " + habits.get(i).getName());

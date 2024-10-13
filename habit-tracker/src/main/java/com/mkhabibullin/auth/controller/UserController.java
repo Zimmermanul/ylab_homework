@@ -16,7 +16,11 @@ public class UserController {
     this.userService = userService;
   }
   
-  public User getUser(String email) throws IOException {
+  public User getUserById(String id) throws IOException {
+    return userService.getUserById(id);
+  }
+  
+  public User getUserByEmail(String email) throws IOException {
     return userService.getUserByEmail(email);
   }
   
@@ -30,7 +34,7 @@ public class UserController {
   
   public User loginUser(String email, String password) throws IOException {
     if (userService.authenticateUser(email, password)) {
-      return getUser(email);
+      return getUserByEmail(email);
     } else return null;
   }
   
@@ -38,16 +42,16 @@ public class UserController {
     return email != null && UserService.EMAIL_PATTERN.matcher(email).matches();
   }
   
-  public void updateUserEmail(String currentEmail, String newEmail) throws IOException {
-    userService.updateUserEmail(currentEmail, newEmail);
+  public void updateUserEmail(String userId, String newEmail) throws IOException {
+    userService.updateUserEmail(userId, newEmail);
   }
   
-  public void updateUserName(String email, String newName) throws IOException {
-    userService.updateUserName(email, newName);
+  public void updateUserName(String userId, String newName) throws IOException {
+    userService.updateUserName(userId, newName);
   }
   
-  public void updateUserPassword(String email, String newPassword) throws IOException {
-    userService.updateUserPassword(email, newPassword);
+  public void updateUserPassword(String userId, String newPassword) throws IOException {
+    userService.updateUserPassword(userId, newPassword);
   }
   
   public void deleteUserAccount(String email) throws IOException {

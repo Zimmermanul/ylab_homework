@@ -27,17 +27,24 @@ public class UserRepository {
     writeUsers(users);
   }
   
-  public User readUser(String email) throws IOException {
+  public User readUserById(String id) throws IOException {
+    return readAllUsers().stream()
+      .filter(u -> u.getId().equals(id))
+      .findFirst()
+      .orElse(null);
+  }
+  
+  public User readUserByEmail(String email) throws IOException {
     return readAllUsers().stream()
       .filter(u -> u.getEmail().equals(email))
       .findFirst()
       .orElse(null);
   }
   
-  public void updateUser(String currentEmail, User updatedUser) throws IOException {
+  public void updateUser(User updatedUser) throws IOException {
     List<User> users = readAllUsers();
     List<User> updatedUsers = users.stream()
-      .map(u -> u.getEmail().equals(currentEmail) ? updatedUser : u)
+      .map(u -> u.getId().equals(updatedUser.getId()) ? updatedUser : u)
       .collect(Collectors.toList());
     writeUsers(updatedUsers);
   }
@@ -67,18 +74,19 @@ public class UserRepository {
     Files.write(USER_FILE, lines, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
   }
   
+  
   private User parseUser(String line) {
     String[] parts = line.split(",");
-    User user = new User(parts[0], parts[2]);
-    user.setPasswordHash(parts[1]);
-    user.setSalt(parts[3]);
-    user.setAdmin(Boolean.parseBoolean(parts[4]));
-    user.setBlocked(Boolean.parseBoolean(parts[5]));
+    User user = new User(parts[0], parts[1], parts[3]);
+    user.setPasswordHash(parts[2]);
+    user.setSalt(parts[4]);
+    user.setAdmin(Boolean.parseBoolean(parts[5]));
+    user.setBlocked(Boolean.parseBoolean(parts[6]));
     return user;
   }
   
   private String formatUser(User user) {
-    return String.join(",", user.getEmail(), user.getPasswordHash(), user.getName(), user.getSalt(),
+    return String.join(",", user.getId(), user.getEmail(), user.getPasswordHash(), user.getName(), user.getSalt(),
       String.valueOf(user.isAdmin()), String.valueOf(user.isBlocked()));
   }
 }

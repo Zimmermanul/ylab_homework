@@ -50,7 +50,6 @@ public class UserConsoleInterface {
     String email = scanner.nextLine().trim();
     System.out.print("Enter password: ");
     String password = scanner.nextLine().trim();
-    
     User user = userController.loginUser(email, password);
     if (user != null) {
       if (user.isBlocked()) {
@@ -110,21 +109,18 @@ public class UserConsoleInterface {
     System.out.print("Enter user email to block: ");
     String email = scanner.nextLine().trim();
     userController.blockUser(email);
-    System.out.println("User blocked successfully.");
   }
   
   private void unblockUser() throws IOException {
     System.out.print("Enter user email to unblock: ");
     String email = scanner.nextLine().trim();
     userController.unblockUser(email);
-    System.out.println("User unblocked successfully.");
   }
   
   private void deleteUser() throws IOException {
     System.out.print("Enter user email to delete: ");
     String email = scanner.nextLine().trim();
     userController.deleteUserAccount(email);
-    System.out.println("User deleted successfully.");
   }
   
   private void register() throws IOException {
@@ -151,9 +147,7 @@ public class UserConsoleInterface {
       System.out.println("4. Delete Profile");
       System.out.println("5. Back to Main Menu");
       System.out.print("Enter your choice (1-5): ");
-      
       String choice = scanner.nextLine().trim();
-      
       switch (choice) {
         case "1":
           updateEmail(user);
@@ -176,14 +170,12 @@ public class UserConsoleInterface {
       }
     }
   }
-  
   private void updateEmail(User user) throws IOException {
     System.out.print("Enter new email: ");
     String newEmail = getValidEmail();
     try {
-      userController.updateUserEmail(user.getEmail(), newEmail);
+      userController.updateUserEmail(user.getId(), newEmail);
       System.out.println("Email updated successfully.");
-      user.setEmail(newEmail);
     } catch (IllegalArgumentException e) {
       System.out.println("Failed to update email: " + e.getMessage());
     }
@@ -193,7 +185,7 @@ public class UserConsoleInterface {
     System.out.print("Enter new name: ");
     String newName = scanner.nextLine().trim();
     try {
-      userController.updateUserName(user.getEmail(), newName);
+      userController.updateUserName(user.getId(), newName);
       System.out.println("Name updated successfully.");
       user.setName(newName);
     } catch (IllegalArgumentException e) {
@@ -205,19 +197,18 @@ public class UserConsoleInterface {
     System.out.print("Enter new password: ");
     String newPassword = scanner.nextLine().trim();
     try {
-      userController.updateUserPassword(user.getEmail(), newPassword);
+      userController.updateUserPassword(user.getId(), newPassword);
       System.out.println("Password updated successfully.");
     } catch (IllegalArgumentException e) {
       System.out.println("Failed to update password: " + e.getMessage());
     }
   }
   
-  private boolean deleteProfile(User user) throws IOException {
+  private boolean deleteProfile(User user) {
     System.out.println("\nAre you sure you want to delete your profile? This action cannot be undone.");
-    System.out.print("Type 'YES' to confirm: ");
+    System.out.print("Type 'YES' to confirm or any other symbol to cancel: ");
     String confirmation = scanner.nextLine().trim();
-    
-    if (confirmation.equals("YES")) {
+    if (confirmation.equalsIgnoreCase("YES")) {
       try {
         userController.deleteUserAccount(user.getEmail());
         System.out.println("Your profile has been deleted. Goodbye!");

@@ -54,7 +54,7 @@ public class App {
 //      System.out.println("An error occurred while trying to clean up corrupted data (please clean file manually): " + e.getMessage());
 //    }
     try {
-      if (userController.getUser("admin@example.com") == null) {
+      if (userController.getUserByEmail("admin@example.com") == null) {
         User adminUser = new User("admin@example.com", "Admin");
         adminUser.setPassword("adminpassword");
         adminUser.setAdmin(true);

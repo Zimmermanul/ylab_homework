@@ -23,16 +23,18 @@ public class UserService {
     this.userRepository = userRepository;
     
   }
-  
+  public User getUserById(String id) throws IOException {
+    return userRepository.readUserById(id);
+  }
   public User getUserByEmail(String email) throws IOException {
-    return userRepository.readUser(email);
+    return userRepository.readUserByEmail(email);
   }
   
   public void createUser(User user) throws IOException {
     if (!isValidEmail(user.getEmail())) {
       throw new IllegalArgumentException("Invalid email format");
     }
-    if (userRepository.readUser(user.getEmail()) != null) {
+    if (userRepository.readUserByEmail(user.getEmail()) != null) {
       throw new IllegalArgumentException("User with this email already exists");
     }
     userRepository.createUser(user);
@@ -43,21 +45,41 @@ public class UserService {
   }
   
   public void blockUser(String email) throws IOException {
-    User user = userRepository.readUser(email);
+    if (!isValidEmail(email)) {
+      System.out.println("Invalid email format");
+      return;
+    }
+    User user = userRepository.readUserByEmail(email);
     if (user == null) {
-      throw new IllegalArgumentException("User not found");
+      System.out.println("User not found");
+      return;
+    }
+    if (user.isAdmin()) {
+      System.out.println("Admin user can not be blocked");
+      return;
     }
     user.setBlocked(true);
-    userRepository.updateUser(email, user);
+    userRepository.updateUser(user);
+    System.out.println("User blocked successfully.");
   }
   
   public void unblockUser(String email) throws IOException {
-    User user = userRepository.readUser(email);
+    if (!isValidEmail(email)) {
+      System.out.println("Invalid email format");
+      return;
+    }
+    User user = userRepository.readUserByEmail(email);
     if (user == null) {
-      throw new IllegalArgumentException("User not found");
+      System.out.println("User not found");
+      return;
+    }
+    if (user.isAdmin()) {
+      System.out.println("Admin user can not be clocked");
+      return;
     }
     user.setBlocked(false);
-    userRepository.updateUser(email, user);
+    userRepository.updateUser(user);
+    System.out.println("User unblocked successfully.");
   }
   
   public void registerUser(String email, String password, String name) throws IOException {
@@ -70,15 +92,26 @@ public class UserService {
     if (!isValidEmail(email)) {
       return false;
     }
-    User user = userRepository.readUser(email);
+    User user = userRepository.readUserByEmail(email);
     return user != null && verifyPassword(password, user);
   }
   
   public void deleteUserAccount(String email) throws IOException {
     if (!isValidEmail(email)) {
-      throw new IllegalArgumentException("Invalid email format");
+      System.out.println("Invalid email format");
+      return;
+    }
+    User user = userRepository.readUserByEmail(email);
+    if (user == null) {
+      System.out.println("User not found");
+      return;
+    }
+    if (user.isAdmin()) {
+      System.out.println("Admin user can not be deleted");
+      return;
     }
     userRepository.deleteUser(email);
+    System.out.println("User deleted successfully.");
   }
   
   private boolean isValidEmail(String email) {
@@ -101,36 +134,36 @@ public class UserService {
     }
   }
   
-  public void updateUserEmail(String currentEmail, String newEmail) throws IOException {
+  public void updateUserEmail(String userId, String newEmail) throws IOException {
     if (!isValidEmail(newEmail)) {
       throw new IllegalArgumentException("Invalid email format");
     }
-    User user = userRepository.readUser(currentEmail);
+    User user = userRepository.readUserById(userId);
     if (user == null) {
       throw new IllegalArgumentException("User not found");
     }
-    if (userRepository.readUser(newEmail) != null) {
+    if (userRepository.readUserByEmail(newEmail) != null) {
       throw new IllegalArgumentException("Email already in use");
     }
     user.setEmail(newEmail);
-    userRepository.updateUser(currentEmail, user);
+    userRepository.updateUser(user);
   }
   
-  public void updateUserName(String email, String newName) throws IOException {
-    User user = userRepository.readUser(email);
+  public void updateUserName(String userId, String newName) throws IOException {
+    User user = userRepository.readUserById(userId);
     if (user == null) {
       throw new IllegalArgumentException("User not found");
     }
     user.setName(newName);
-    userRepository.updateUser(email, user);
+    userRepository.updateUser(user);
   }
   
-  public void updateUserPassword(String email, String newPassword) throws IOException {
-    User user = userRepository.readUser(email);
+  public void updateUserPassword(String userId, String newPassword) throws IOException {
+    User user = userRepository.readUserById(userId);
     if (user == null) {
       throw new IllegalArgumentException("User not found");
     }
     user.setPassword(newPassword);
-    userRepository.updateUser(email, user);
+    userRepository.updateUser(user);
   }
 }
