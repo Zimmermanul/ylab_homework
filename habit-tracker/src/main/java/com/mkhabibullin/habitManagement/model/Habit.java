@@ -106,7 +106,8 @@ public class Habit implements Serializable {
   @Override
   public String toString() {
     return "Habit{" +
-           "name='" + name + '\'' +
+           "id='" + id + '\'' +
+           ", name='" + name + '\'' +
            ", description='" + description + '\'' +
            ", frequency=" + frequency +
            ", creationDate=" + creationDate +

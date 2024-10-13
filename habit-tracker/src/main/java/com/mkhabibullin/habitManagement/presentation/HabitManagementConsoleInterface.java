@@ -30,31 +30,31 @@ public class HabitManagementConsoleInterface {
     while (true) {
       showMainMenu();
       System.out.print("Choose an option: ");
-      int choice = Integer.parseInt(scanner.nextLine());
+      String choice = scanner.nextLine().trim();
       try {
         switch (choice) {
-          case 1:
+          case "1":
             createHabit(currentUser);
             break;
-          case 2:
-            editHabit();
+          case "2":
+            editHabit(currentUser);
             break;
-          case 3:
+          case "3":
             deleteHabit(currentUser);
             break;
-          case 4:
+          case "4":
             viewHabits(currentUser);
             break;
-          case 5:
+          case "5":
             trackHabitExecution(currentUser);
             break;
-          case 6:
+          case "6":
             viewStatistics(currentUser);
             break;
-          case 7:
+          case "7":
             generateProgressReport(currentUser);
             break;
-          case 8:
+          case "8":
             return;
           default:
             System.out.println("Invalid option. Please try again.");
@@ -95,7 +95,17 @@ public class HabitManagementConsoleInterface {
     System.out.println("Habit created successfully.");
   }
   
-  private void editHabit() throws IOException {
+  private void editHabit(User user) throws IOException {
+    List<Habit> habits = habitController.viewHabits(user.getId(), null, null);
+    if (habits.isEmpty()){
+      System.out.println("You haven't created any habits yet");
+    }
+    else {
+      System.out.print("Your habits: \n");
+      for (Habit habit : habits) {
+        System.out.println(habit);
+      }
+    }
     System.out.print("Enter habit ID to edit: ");
     String id = scanner.nextLine();
     System.out.print("Enter new name: ");
@@ -136,7 +146,7 @@ public class HabitManagementConsoleInterface {
         System.out.print("Choose a habit to delete (enter number): ");
         int habitIndex = Integer.parseInt(scanner.nextLine()) - 1;
         selectedHabit = habits.get(habitIndex);
-      } catch (IndexOutOfBoundsException e) {
+      } catch (IndexOutOfBoundsException | NumberFormatException e) {
         System.out.println("Incorrect index, please try again");
       }
     } while (selectedHabit == null);
@@ -204,7 +214,7 @@ public class HabitManagementConsoleInterface {
         System.out.print("Choose a habit to track (enter number): ");
         int habitIndex = Integer.parseInt(scanner.nextLine()) - 1;
         selectedHabit = habits.get(habitIndex);
-      } catch (IndexOutOfBoundsException e) {
+      } catch (IndexOutOfBoundsException | NumberFormatException e) {
         System.out.println("Incorrect index, please try again");
       }
     } while (selectedHabit == null);
@@ -263,7 +273,7 @@ public class HabitManagementConsoleInterface {
         System.out.print("Choose a habit to view statistics (enter number): ");
         int habitIndex = Integer.parseInt(scanner.nextLine()) - 1;
         selectedHabit = habits.get(habitIndex);
-      } catch (IndexOutOfBoundsException e) {
+      } catch (IndexOutOfBoundsException | NumberFormatException e) {
         System.out.println("Incorrect index, please try again");
       }
     } while (selectedHabit == null);
@@ -316,7 +326,7 @@ public class HabitManagementConsoleInterface {
         System.out.print("Choose a habit to view statistics (enter number): ");
         int habitIndex = Integer.parseInt(scanner.nextLine()) - 1;
         selectedHabit = habits.get(habitIndex);
-      } catch (IndexOutOfBoundsException e) {
+      } catch (IndexOutOfBoundsException | NumberFormatException e) {
         System.out.println("Incorrect index, please try again");
       }
     } while (selectedHabit == null);

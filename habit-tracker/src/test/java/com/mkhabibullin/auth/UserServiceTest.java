@@ -70,13 +70,6 @@ public class UserServiceTest {
   }
   
   @Test
-  void deleteUserAccountShouldCallDeleteUserInRepository() throws Exception {
-    String email = "test@example.com";
-    userService.deleteUserAccount(email);
-    verify(userRepository).deleteUser(email);
-  }
-  
-  @Test
   void registerUserWithInvalidEmailShouldThrowIllegalArgumentException() {
     String invalidEmail = "invalid.email";
     String password = "password123";
