@@ -4,13 +4,11 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Objects;
 import java.util.UUID;
+
 /**
  * A model class that describes a habit.
  */
 public class Habit implements Serializable {
-  /**
-   * Класс-модель, описывающая пользователя.
-   */
   private String id;
   private String userId;
   private String name;
