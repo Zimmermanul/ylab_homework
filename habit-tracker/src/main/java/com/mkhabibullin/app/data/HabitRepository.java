@@ -1,6 +1,6 @@
-package com.mkhabibullin.habitManagement.data;
+package com.mkhabibullin.app.data;
 
-import com.mkhabibullin.habitManagement.model.Habit;
+import com.mkhabibullin.app.model.Habit;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,14 +16,30 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
 /**
- * Class responsible for creating, reading, updating, deleting habits data data with in-memory storage and periodic persistence
+ * Repository class for managing Habit entities.
+ * This class provides in-memory storage with periodic persistence to a file.
  */
 public class HabitRepository {
+  /**
+   * The path to the file where habit data is persisted.
+   */
   private static final Path HABIT_FILE = Paths.get("habits.txt");
+  /**
+   * Map of habits with habit ID as the key.
+   */
   private final Map<String, Habit> habitsMap = new ConcurrentHashMap<>();
+  /**
+   * Scheduler for periodic data persistence.
+   */
   private final ScheduledExecutorService scheduler;
   
+  /**
+   * Constructs a new HabitRepository.
+   * Initializes the repository by loading existing habits, scheduling periodic saves,
+   * and setting up a shutdown hook.
+   */
   public HabitRepository() {
     this.scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
       Thread t = Executors.defaultThreadFactory().newThread(r);
@@ -35,30 +51,79 @@ public class HabitRepository {
     setupShutdownHook();
   }
   
+  /**
+   * Creates a new habit in the repository.
+   *
+   * @param habit The Habit object to be created.
+   */
   public void create(Habit habit) {
     habitsMap.put(habit.getId(), habit);
   }
   
+  /**
+   * Updates an existing habit in the repository.
+   *
+   * @param habit The Habit object with updated information.
+   */
   public void update(Habit habit) {
     habitsMap.put(habit.getId(), habit);
   }
   
+  /**
+   * Deletes a habit from the repository by its ID.
+   *
+   * @param id The ID of the habit to delete.
+   */
   public void delete(String id) {
     habitsMap.remove(id);
   }
   
+  /**
+   * Retrieves all habits in the repository.
+   *
+   * @return A list of all Habit objects.
+   */
   public List<Habit> readAll() {
     return new ArrayList<>(habitsMap.values());
   }
   
+  /**
+   * Retrieves all habits for a given user ID.
+   *
+   * @param userId The ID of the user to retrieve habits for.
+   * @return A list of Habit objects for the given user ID.
+   */
   public List<Habit> getByUserId(String userId) {
     return habitsMap.values().stream()
       .filter(h -> h.getUserId().equals(userId))
       .collect(Collectors.toList());
   }
   
+  /**
+   * Retrieves a habit by its ID.
+   *
+   * @param id The ID of the habit to retrieve.
+   * @return The Habit object if found, null otherwise.
+   */
   public Habit getById(String id) {
     return habitsMap.get(id);
+  }
+  
+  /**
+   * Shuts down the repository, ensuring all data is persisted.
+   * This method should be called when the application is closing.
+   */
+  public void shutdown() {
+    scheduler.shutdown();
+    try {
+      if (!scheduler.awaitTermination(60, TimeUnit.SECONDS)) {
+        scheduler.shutdownNow();
+      }
+    } catch (InterruptedException e) {
+      scheduler.shutdownNow();
+      Thread.currentThread().interrupt();
+    }
+    persistHabits();
   }
   
   private void loadHabits() {
@@ -85,19 +150,6 @@ public class HabitRepository {
   
   private void setupShutdownHook() {
     Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));
-  }
-  
-  public void shutdown() {
-    scheduler.shutdown();
-    try {
-      if (!scheduler.awaitTermination(60, TimeUnit.SECONDS)) {
-        scheduler.shutdownNow();
-      }
-    } catch (InterruptedException e) {
-      scheduler.shutdownNow();
-      Thread.currentThread().interrupt();
-    }
-    persistHabits();
   }
   
   private void persistHabits() {

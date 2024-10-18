@@ -1,11 +1,12 @@
-package com.mkhabibullin.habit;
-import com.mkhabibullin.habitManagement.data.HabitExecutionRepository;
-import com.mkhabibullin.habitManagement.data.HabitRepository;
-import com.mkhabibullin.habitManagement.model.Habit;
-import com.mkhabibullin.habitManagement.model.HabitExecution;
-import com.mkhabibullin.habitManagement.service.HabitExecutionService;
+package com.mkhabibullin.app;
+import com.mkhabibullin.app.data.HabitExecutionRepository;
+import com.mkhabibullin.app.data.HabitRepository;
+import com.mkhabibullin.app.model.Habit;
+import com.mkhabibullin.app.model.HabitExecution;
+import com.mkhabibullin.app.service.HabitExecutionService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -15,6 +16,7 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -39,6 +41,7 @@ public class HabitExecutionServiceTest {
   }
   
   @Test
+  @DisplayName("generateProgressReport should return correct report for valid habit")
   void generateProgressReportShouldReturnCorrectReportForValidHabit() throws IOException {
     String habitId = "123";
     LocalDate startDate = LocalDate.of(2023, 1, 1);
@@ -54,31 +57,32 @@ public class HabitExecutionServiceTest {
     when(habitRepository.getById(habitId)).thenReturn(habit);
     when(executionRepository.getByHabitId(habitId)).thenReturn(executions);
     String report = habitExecutionService.generateProgressReport(habitId, startDate, endDate);
-    assertNotNull(report);
-    assertTrue(report.contains("Progress Report for: Test Habit"));
-    assertTrue(report.contains("Current Streak: 0 days"));
-    assertTrue(report.contains("Success Rate: 66,67%"));
-    assertTrue(report.contains("2023-01-01: Completed"));
-    assertTrue(report.contains("2023-01-02: Not completed"));
-    assertTrue(report.contains("2023-01-03: Completed"));
+    assertThat(report).isNotNull()
+      .contains("Progress Report for: Test Habit")
+      .contains("Current Streak: 0 days")
+      .contains("Success Rate: 66,67%")
+      .contains("2023-01-01: Completed")
+      .contains("2023-01-02: Not completed")
+      .contains("2023-01-03: Completed");
     verify(habitRepository).getById(habitId);
     verify(executionRepository, times(3)).getByHabitId(habitId);
   }
   
   @Test
+  @DisplayName("generateProgressReport should throw exception for nonexistent habit")
   void generateProgressReportShouldThrowExceptionForNonexistentHabit() throws IOException {
     String habitId = "nonexistent";
     LocalDate startDate = LocalDate.of(2023, 1, 1);
     LocalDate endDate = LocalDate.of(2023, 1, 31);
     when(habitRepository.getById(habitId)).thenReturn(null);
-    assertThrows(IllegalArgumentException.class, () ->
-      habitExecutionService.generateProgressReport(habitId, startDate, endDate)
-    );
+    assertThatThrownBy(() -> habitExecutionService.generateProgressReport(habitId, startDate, endDate))
+      .isInstanceOf(IllegalArgumentException.class);
     verify(habitRepository).getById(habitId);
     verifyNoInteractions(executionRepository);
   }
   
   @Test
+  @DisplayName("getCurrentStreak should return correct streak for valid habit")
   void getCurrentStreakShouldReturnCorrectStreakForValidHabit() throws IOException {
     String habitId = "123";
     List<HabitExecution> executions = Arrays.asList(
@@ -89,11 +93,12 @@ public class HabitExecutionServiceTest {
     );
     when(executionRepository.getByHabitId(habitId)).thenReturn(executions);
     int streak = habitExecutionService.getCurrentStreak(habitId);
-    assertEquals(3, streak);
+    assertThat(streak).isEqualTo(3);
     verify(executionRepository).getByHabitId(habitId);
   }
   
   @Test
+  @DisplayName("getSuccessPercentage should return correct percentage for valid habit")
   void getSuccessPercentageShouldReturnCorrectPercentageForValidHabit() throws IOException {
     String habitId = "123";
     LocalDate startDate = LocalDate.of(2023, 1, 1);
@@ -107,7 +112,7 @@ public class HabitExecutionServiceTest {
     );
     when(executionRepository.getByHabitId(habitId)).thenReturn(executions);
     double percentage = habitExecutionService.getSuccessPercentage(habitId, startDate, endDate);
-    assertEquals(80.0, percentage, 0.01);
+    assertThat(percentage).isCloseTo(80.0, within(0.01));
     verify(executionRepository).getByHabitId(habitId);
   }
 }

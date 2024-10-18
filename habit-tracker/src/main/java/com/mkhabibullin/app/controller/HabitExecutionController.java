@@ -1,7 +1,7 @@
-package com.mkhabibullin.habitManagement.controller;
+package com.mkhabibullin.app.controller;
 
-import com.mkhabibullin.habitManagement.model.HabitExecution;
-import com.mkhabibullin.habitManagement.service.HabitExecutionService;
+import com.mkhabibullin.app.model.HabitExecution;
+import com.mkhabibullin.app.service.HabitExecutionService;
 
 import java.io.IOException;
 import java.time.LocalDate;

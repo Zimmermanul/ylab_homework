@@ -1,7 +1,7 @@
-package com.mkhabibullin.auth.presentation;
+package com.mkhabibullin.app.presentation;
 
-import com.mkhabibullin.auth.controller.UserController;
-import com.mkhabibullin.auth.model.User;
+import com.mkhabibullin.app.controller.UserController;
+import com.mkhabibullin.app.model.User;
 
 import java.io.IOException;
 import java.util.List;

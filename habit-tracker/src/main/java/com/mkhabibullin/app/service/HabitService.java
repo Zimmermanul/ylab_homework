@@ -1,9 +1,9 @@
-package com.mkhabibullin.habitManagement.service;
+package com.mkhabibullin.app.service;
 
-import com.mkhabibullin.auth.data.UserRepository;
-import com.mkhabibullin.auth.model.User;
-import com.mkhabibullin.habitManagement.data.HabitRepository;
-import com.mkhabibullin.habitManagement.model.Habit;
+import com.mkhabibullin.app.data.UserRepository;
+import com.mkhabibullin.app.model.User;
+import com.mkhabibullin.app.data.HabitRepository;
+import com.mkhabibullin.app.model.Habit;
 
 import java.io.IOException;
 import java.time.LocalDate;

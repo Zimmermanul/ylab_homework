@@ -1,9 +1,10 @@
-package com.mkhabibullin.auth;
+package com.mkhabibullin.app;
 
-import com.mkhabibullin.auth.controller.UserController;
-import com.mkhabibullin.auth.service.UserService;
+import com.mkhabibullin.app.controller.UserController;
+import com.mkhabibullin.app.service.UserService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -30,6 +31,7 @@ public class UserControllerTest {
   }
   
   @Test
+  @DisplayName("registerUser should call UserService")
   void registerUserShouldCallUserService() throws Exception {
     String email = "test@example.com";
     String password = "password123";
@@ -39,6 +41,7 @@ public class UserControllerTest {
   }
   
   @Test
+  @DisplayName("registerUser should throw IllegalArgumentException when UserService throws exception")
   void registerUserWhenUserServiceThrowsExceptionShouldThrowIllegalArgumentException() throws Exception {
     String email = "test@example.com";
     String password = "password123";

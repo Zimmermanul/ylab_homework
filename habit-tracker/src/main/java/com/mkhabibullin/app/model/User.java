@@ -1,4 +1,4 @@
-package com.mkhabibullin.auth.model;
+package com.mkhabibullin.app.model;
 
 import java.io.Serializable;
 import java.security.MessageDigest;

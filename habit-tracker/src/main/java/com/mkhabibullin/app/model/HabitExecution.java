@@ -1,4 +1,4 @@
-package com.mkhabibullin.habitManagement.model;
+package com.mkhabibullin.app.model;
 
 import java.time.LocalDate;
 /**

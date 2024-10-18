@@ -1,10 +1,10 @@
-package com.mkhabibullin.habitManagement.presentation;
+package com.mkhabibullin.app.presentation;
 
-import com.mkhabibullin.auth.model.User;
-import com.mkhabibullin.habitManagement.controller.HabitController;
-import com.mkhabibullin.habitManagement.controller.HabitExecutionController;
-import com.mkhabibullin.habitManagement.model.Habit;
-import com.mkhabibullin.habitManagement.model.HabitExecution;
+import com.mkhabibullin.app.model.User;
+import com.mkhabibullin.app.controller.HabitController;
+import com.mkhabibullin.app.controller.HabitExecutionController;
+import com.mkhabibullin.app.model.Habit;
+import com.mkhabibullin.app.model.HabitExecution;
 
 import java.io.IOException;
 import java.time.LocalDate;

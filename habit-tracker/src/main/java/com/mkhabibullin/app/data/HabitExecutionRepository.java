@@ -1,6 +1,6 @@
-package com.mkhabibullin.habitManagement.data;
+package com.mkhabibullin.app.data;
 
-import com.mkhabibullin.habitManagement.model.HabitExecution;
+import com.mkhabibullin.app.model.HabitExecution;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -18,14 +18,23 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * Class responsible for managing habit execution data with in-memory storage and periodic persistence
+ * Repository class for managing HabitExecution entities.
+ * This class provides in-memory storage with periodic persistence to a file.
  */
 public class HabitExecutionRepository {
+  /** The path to the file where habit execution data is persisted. */
   private static final Path EXECUTION_FILE = Paths.get("habit_executions.txt");
+  /** Map of habit executions with habit ID as the key and a list of executions as the value. */
   private final Map<String, List<HabitExecution>> executionsMap = new ConcurrentHashMap<>();
+  /** Scheduler for periodic data persistence. */
   private final ScheduledExecutorService scheduler;
   
   
+  /**
+   * Constructs a new HabitExecutionRepository.
+   * Initializes the repository by loading existing executions, scheduling periodic saves,
+   * and setting up a shutdown hook.
+   */
   public HabitExecutionRepository() {
     this.scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
       Thread t = Executors.defaultThreadFactory().newThread(r);
@@ -37,12 +46,56 @@ public class HabitExecutionRepository {
     setupShutdownHook();
   }
   
+  /**
+   * Saves a new habit execution to the repository.
+   *
+   * @param execution The HabitExecution object to be saved.
+   */
   public void save(HabitExecution execution) {
     executionsMap.computeIfAbsent(execution.getHabitId(), k -> new ArrayList<>()).add(execution);
   }
   
+  /**
+   * Retrieves all executions for a given habit ID.
+   *
+   * @param habitId The ID of the habit to retrieve executions for.
+   * @return A list of HabitExecution objects for the given habit ID.
+   */
   public List<HabitExecution> getByHabitId(String habitId) {
     return executionsMap.getOrDefault(habitId, new ArrayList<>());
+  }
+  
+  /**
+   * Shuts down the repository, ensuring all data is persisted.
+   * This method should be called when the application is closing.
+   */
+  public void shutdown() {
+    scheduler.shutdown();
+    try {
+      if (!scheduler.awaitTermination(60, TimeUnit.SECONDS)) {
+        scheduler.shutdownNow();
+      }
+    } catch (InterruptedException e) {
+      scheduler.shutdownNow();
+      Thread.currentThread().interrupt();
+    }
+    persistExecutions();
+  }
+  
+  /**
+   * Manually triggers persistence of all habit executions to the file.
+   * This method can be called to force an immediate save operation.
+   */
+  public void persistExecutions() {
+    try {
+      List<String> lines = executionsMap.values().stream()
+        .flatMap(List::stream)
+        .map(this::formatExecution)
+        .collect(Collectors.toList());
+      Files.write(EXECUTION_FILE, lines, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+    } catch (IOException e) {
+      System.err.println("Error persisting executions: " + e.getMessage());
+    }
   }
   
   private void loadExecutions() {
@@ -65,31 +118,6 @@ public class HabitExecutionRepository {
   
   private void setupShutdownHook() {
     Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));
-  }
-  
-  public void shutdown() {
-    scheduler.shutdown();
-    try {
-      if (!scheduler.awaitTermination(60, TimeUnit.SECONDS)) {
-        scheduler.shutdownNow();
-      }
-    } catch (InterruptedException e) {
-      scheduler.shutdownNow();
-      Thread.currentThread().interrupt();
-    }
-    persistExecutions();
-  }
-  
-  public void persistExecutions() {
-    try {
-      List<String> lines = executionsMap.values().stream()
-        .flatMap(List::stream)
-        .map(this::formatExecution)
-        .collect(Collectors.toList());
-      Files.write(EXECUTION_FILE, lines, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-    } catch (IOException e) {
-      System.err.println("Error persisting executions: " + e.getMessage());
-    }
   }
   
   private HabitExecution parseExecution(String line) {

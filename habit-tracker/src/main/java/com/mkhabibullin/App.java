@@ -1,17 +1,17 @@
 package com.mkhabibullin;
 
-import com.mkhabibullin.auth.controller.UserController;
-import com.mkhabibullin.auth.data.UserRepository;
-import com.mkhabibullin.auth.model.User;
-import com.mkhabibullin.auth.presentation.UserConsoleInterface;
-import com.mkhabibullin.auth.service.UserService;
-import com.mkhabibullin.habitManagement.controller.HabitController;
-import com.mkhabibullin.habitManagement.controller.HabitExecutionController;
-import com.mkhabibullin.habitManagement.data.HabitExecutionRepository;
-import com.mkhabibullin.habitManagement.data.HabitRepository;
-import com.mkhabibullin.habitManagement.presentation.HabitManagementConsoleInterface;
-import com.mkhabibullin.habitManagement.service.HabitExecutionService;
-import com.mkhabibullin.habitManagement.service.HabitService;
+import com.mkhabibullin.app.controller.UserController;
+import com.mkhabibullin.app.data.UserRepository;
+import com.mkhabibullin.app.model.User;
+import com.mkhabibullin.app.presentation.UserConsoleInterface;
+import com.mkhabibullin.app.service.UserService;
+import com.mkhabibullin.app.controller.HabitController;
+import com.mkhabibullin.app.controller.HabitExecutionController;
+import com.mkhabibullin.app.data.HabitExecutionRepository;
+import com.mkhabibullin.app.data.HabitRepository;
+import com.mkhabibullin.app.presentation.HabitManagementConsoleInterface;
+import com.mkhabibullin.app.service.HabitExecutionService;
+import com.mkhabibullin.app.service.HabitService;
 
 import java.io.IOException;
 import java.util.Scanner;

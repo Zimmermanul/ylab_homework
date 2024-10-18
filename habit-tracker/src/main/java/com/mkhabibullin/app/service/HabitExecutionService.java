@@ -1,13 +1,12 @@
-package com.mkhabibullin.habitManagement.service;
+package com.mkhabibullin.app.service;
 
-import com.mkhabibullin.habitManagement.data.HabitExecutionRepository;
-import com.mkhabibullin.habitManagement.data.HabitRepository;
-import com.mkhabibullin.habitManagement.model.Habit;
-import com.mkhabibullin.habitManagement.model.HabitExecution;
+import com.mkhabibullin.app.data.HabitExecutionRepository;
+import com.mkhabibullin.app.data.HabitRepository;
+import com.mkhabibullin.app.model.Habit;
+import com.mkhabibullin.app.model.HabitExecution;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
