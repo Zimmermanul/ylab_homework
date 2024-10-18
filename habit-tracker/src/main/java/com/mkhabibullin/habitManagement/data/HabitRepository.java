@@ -112,20 +112,4 @@ public class HabitRepository {
       String.valueOf(habit.isActive())
     );
   }
-  
-  public void cleanupCorruptedData() throws IOException {
-    List<String> lines = Files.readAllLines(HABIT_FILE);
-    List<String> validLines = lines.stream()
-      .filter(line -> {
-        try {
-          parseHabit(line);
-          return true;
-        } catch (IllegalArgumentException e) {
-          System.err.println("Skipping corrupted data: " + line);
-          return false;
-        }
-      })
-      .collect(Collectors.toList());
-    Files.write(HABIT_FILE, validLines, StandardOpenOption.TRUNCATE_EXISTING);
-  }
 }

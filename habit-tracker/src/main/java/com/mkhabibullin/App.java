@@ -48,11 +48,6 @@ public class App {
     
     this.userInterface = new UserConsoleInterface(userController);
     this.habitInterface = new HabitManagementConsoleInterface(habitController, executionController);
-//    try {
-//      habitRepository.cleanupCorruptedData();
-//    } catch (IOException e) {
-//      System.out.println("An error occurred while trying to clean up corrupted data (please clean file manually): " + e.getMessage());
-//    }
     try {
       if (userController.getUserByEmail("admin@example.com") == null) {
         User adminUser = new User("admin@example.com", "Admin");
@@ -96,20 +91,12 @@ public class App {
       System.out.println("2. Habit Management");
       System.out.println("3. Logout");
       System.out.print("Enter your choice (1-3): ");
-      
       String choice = scanner.nextLine().trim();
-      
       switch (choice) {
-        case "1":
-          userInterface.showAdminMenu();
-          break;
-        case "2":
-          habitInterface.start(admin);
-          break;
-        case "3":
-          return;
-        default:
-          System.out.println("Invalid choice. Please try again.");
+        case "1" -> userInterface.showAdminMenu();
+        case "2" -> habitInterface.start(admin);
+        case "3" -> { return; }
+        default -> System.out.println("Invalid choice. Please try again.");
       }
     }
   }
@@ -122,20 +109,14 @@ public class App {
       System.out.println("2. Manage Habits");
       System.out.println("3. Logout");
       System.out.print("Enter your choice (1-3): ");
-      
       String choice = scanner.nextLine().trim();
-      
       switch (choice) {
-        case "1":
-          userWasDeleted = userInterface.showLoggedInMenu(user);
-          break;
-        case "2":
-          habitInterface.start(user);
-          break;
-        case "3":
+        case "1" -> userWasDeleted = userInterface.showLoggedInMenu(user);
+        case "2" -> habitInterface.start(user);
+        case "3" -> {
           return;
-        default:
-          System.out.println("Invalid choice. Please try again.");
+        }
+        default -> System.out.println("Invalid choice. Please try again.");
       }
     }
   }

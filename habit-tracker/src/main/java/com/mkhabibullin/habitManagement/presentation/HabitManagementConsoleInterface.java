@@ -33,31 +33,15 @@ public class HabitManagementConsoleInterface {
       String choice = scanner.nextLine().trim();
       try {
         switch (choice) {
-          case "1":
-            createHabit(currentUser);
-            break;
-          case "2":
-            editHabit(currentUser);
-            break;
-          case "3":
-            deleteHabit(currentUser);
-            break;
-          case "4":
-            viewHabits(currentUser);
-            break;
-          case "5":
-            trackHabitExecution(currentUser);
-            break;
-          case "6":
-            viewStatistics(currentUser);
-            break;
-          case "7":
-            generateProgressReport(currentUser);
-            break;
-          case "8":
-            return;
-          default:
-            System.out.println("Invalid option. Please try again.");
+          case "1" -> createHabit(currentUser);
+          case "2" -> editHabit(currentUser);
+          case "3" -> deleteHabit(currentUser);
+          case "4" -> viewHabits(currentUser);
+          case "5" -> trackHabitExecution(currentUser);
+          case "6" -> viewStatistics(currentUser);
+          case "7" -> generateProgressReport(currentUser);
+          case "8" -> { return; }
+          default -> System.out.println("Invalid option. Please try again.");
         }
       } catch (IOException e) {
         System.out.println("An error occurred: " + e.getMessage());
@@ -156,18 +140,13 @@ public class HabitManagementConsoleInterface {
       System.out.print("Are you sure you want to delete this habit? (y/n): ");
       System.out.println(selectedHabit);
       String input = scanner.nextLine().trim().toLowerCase();
-      switch (input) {
-        case "y":
-        case "yes":
+      switch (input.toLowerCase()) {
+        case "y", "yes" -> {
           validInput = true;
           delete = true;
-          break;
-        case "n":
-        case "no":
-          validInput = true;
-          break;
-        default:
-          System.out.println("Invalid input. Please enter 'y' for yes or 'n' for no.");
+        }
+        case "n", "no" -> validInput = true;
+        default -> System.out.println("Invalid input. Please enter 'y' for yes or 'n' for no.");
       }
     }
     if(delete){
@@ -234,19 +213,15 @@ public class HabitManagementConsoleInterface {
     while (!validInput) {
       System.out.print("Did you complete this habit? (y/n): ");
       String input = scanner.nextLine().trim().toLowerCase();
-      switch (input) {
-        case "y":
-        case "yes":
+      switch (input.toLowerCase()) {
+        case "y", "yes" -> {
           completed = true;
           validInput = true;
-          break;
-        case "n":
-        case "no":
-          completed = false;
+        }
+        case "n", "no" -> {
           validInput = true;
-          break;
-        default:
-          System.out.println("Invalid input. Please enter 'y' for yes or 'n' for no.");
+        }
+        default -> System.out.println("Invalid input. Please enter 'y' for yes or 'n' for no.");
       }
     }
     try {

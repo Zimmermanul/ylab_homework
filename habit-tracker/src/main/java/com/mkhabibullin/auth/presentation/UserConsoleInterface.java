@@ -28,19 +28,17 @@ public class UserConsoleInterface {
       
       String choice = scanner.nextLine().trim();
       switch (choice) {
-        case "1":
+        case "1" -> {
           User user = login();
           if (user != null) {
             return user;
           }
-          break;
-        case "2":
-          register();
-          break;
-        case "3":
+        }
+        case "2" -> register();
+        case "3" -> {
           return null;
-        default:
-          System.out.println("Invalid choice. Please try again.");
+        }
+        default -> System.out.println("Invalid choice. Please try again.");
       }
     }
   }
@@ -77,22 +75,12 @@ public class UserConsoleInterface {
       String choice = scanner.nextLine().trim();
       
       switch (choice) {
-        case "1":
-          listAllUsers();
-          break;
-        case "2":
-          blockUser();
-          break;
-        case "3":
-          unblockUser();
-          break;
-        case "4":
-          deleteUser();
-          break;
-        case "5":
-          return;
-        default:
-          System.out.println("Invalid choice. Please try again.");
+        case "1" -> listAllUsers();
+        case "2" -> blockUser();
+        case "3" -> unblockUser();
+        case "4" -> deleteUser();
+        case "5" -> { return; }
+        default -> System.out.println("Invalid choice. Please try again.");
       }
     }
   }
@@ -149,24 +137,18 @@ public class UserConsoleInterface {
       System.out.print("Enter your choice (1-5): ");
       String choice = scanner.nextLine().trim();
       switch (choice) {
-        case "1":
-          updateEmail(user);
-          break;
-        case "2":
-          updateName(user);
-          break;
-        case "3":
-          updatePassword(user);
-          break;
-        case "4":
+        case "1" -> updateEmail(user);
+        case "2" -> updateName(user);
+        case "3" -> updatePassword(user);
+        case "4" -> {
           if (deleteProfile(user)) {
             return true;
           }
-          break;
-        case "5":
+        }
+        case "5" -> {
           return false;
-        default:
-          System.out.println("Invalid choice. Please try again.");
+        }
+        default -> System.out.println("Invalid choice. Please try again.");
       }
     }
   }
