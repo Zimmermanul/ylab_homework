@@ -26,10 +26,22 @@ public class HabitManagementConsoleInterface {
     this.scanner = new Scanner(System.in);
   }
   
-  public void start(User currentUser) {
+  public void showHabitManagementMenu(User currentUser) {
     while (true) {
-      showMainMenu();
-      System.out.print("Choose an option: ");
+      String habitManagementMenu = """
+      
+      --- Habit Management ---
+      1. Create Habit
+      2. Edit Habit
+      3. Delete Habit
+      4. View Habits
+      5. Track Habit Execution
+      6. View Statistics
+      7. Generate Progress Report
+      8. Back to Main Menu
+      Enter your choice (1-8):
+      Choose an option:\s""";
+      System.out.print(habitManagementMenu);
       String choice = scanner.nextLine().trim();
       try {
         switch (choice) {
@@ -49,23 +61,6 @@ public class HabitManagementConsoleInterface {
         System.out.println("An error occurred: " + e.getMessage());
       }
     }
-  }
-  
-  private void showMainMenu() {
-    String habitManagementMenu = """
-      
-      --- Habit Management ---
-      1. Create Habit
-      2. Edit Habit
-      3. Delete Habit
-      4. View Habits
-      5. Track Habit Execution
-      6. View Statistics
-      7. Generate Progress Report
-      8. Back to Main Menu
-      Enter your choice (1-8):\s""";
-    
-    System.out.print(habitManagementMenu);
   }
   
   private void createHabit(User user) throws IOException {

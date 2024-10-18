@@ -10,16 +10,16 @@ import java.util.Scanner;
 /**
  * An interface class responsible for displaying output and handling user interface logic.
  */
-public class UserConsoleInterface {
+public class UserManagementConsoleInterface {
   private final UserController userController;
   private final Scanner scanner;
   
-  public UserConsoleInterface(UserController userController) {
+  public UserManagementConsoleInterface(UserController userController) {
     this.userController = userController;
     this.scanner = new Scanner(System.in);
   }
   
-  public User start() throws IOException {
+  public User registerOrLoginUser() throws IOException {
     while (true) {
       String menu = """
         
@@ -67,7 +67,7 @@ public class UserConsoleInterface {
     }
   }
   
-  public void showAdminMenu() throws IOException {
+  public void showUserManagementAdminMenu() throws IOException {
     while (true) {
       String adminMenu = """
         
@@ -88,6 +88,37 @@ public class UserConsoleInterface {
         case "4" -> deleteUser();
         case "5" -> {
           return;
+        }
+        default -> System.out.println("Invalid choice. Please try again.");
+      }
+    }
+  }
+  
+  public boolean showProfileManagementUserMenu(User user) throws IOException {
+    while (true) {
+      String profileManagementMenu = """
+        
+        --- Profile Management ---
+        1. Update Email
+        2. Update Name
+        3. Update Password
+        4. Delete Profile
+        5. Back to Main Menu
+        Enter your choice (1-5):\s""";
+      
+      System.out.print(profileManagementMenu);
+      String choice = scanner.nextLine().trim();
+      switch (choice) {
+        case "1" -> updateEmail(user);
+        case "2" -> updateName(user);
+        case "3" -> updatePassword(user);
+        case "4" -> {
+          if (deleteProfile(user)) {
+            return true;
+          }
+        }
+        case "5" -> {
+          return false;
         }
         default -> System.out.println("Invalid choice. Please try again.");
       }
@@ -133,37 +164,6 @@ public class UserConsoleInterface {
       System.out.println("Registration successful! You can now login.");
     } catch (IllegalArgumentException e) {
       System.out.println("Registration failed: " + e.getMessage());
-    }
-  }
-  
-  public boolean showLoggedInMenu(User user) throws IOException {
-    while (true) {
-      String profileManagementMenu = """
-        
-        --- Profile Management ---
-        1. Update Email
-        2. Update Name
-        3. Update Password
-        4. Delete Profile
-        5. Back to Main Menu
-        Enter your choice (1-5):\s""";
-      
-      System.out.print(profileManagementMenu);
-      String choice = scanner.nextLine().trim();
-      switch (choice) {
-        case "1" -> updateEmail(user);
-        case "2" -> updateName(user);
-        case "3" -> updatePassword(user);
-        case "4" -> {
-          if (deleteProfile(user)) {
-            return true;
-          }
-        }
-        case "5" -> {
-          return false;
-        }
-        default -> System.out.println("Invalid choice. Please try again.");
-      }
     }
   }
   
