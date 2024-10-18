@@ -6,6 +6,7 @@ import com.mkhabibullin.auth.model.User;
 import java.io.IOException;
 import java.util.List;
 import java.util.Scanner;
+
 /**
  * An interface class responsible for displaying output and handling user interface logic.
  */
@@ -20,11 +21,15 @@ public class UserConsoleInterface {
   
   public User start() throws IOException {
     while (true) {
-      System.out.println("\nWelcome to the Habit Tracker!");
-      System.out.println("1. Login");
-      System.out.println("2. Register");
-      System.out.println("3. Exit");
-      System.out.print("Enter your choice (1-3): ");
+      String menu = """
+        
+        Welcome to the Habit Tracker!
+        1. Login
+        2. Register
+        3. Exit
+        Enter your choice (1-3):\s""";
+      
+      System.out.print(menu);
       
       String choice = scanner.nextLine().trim();
       switch (choice) {
@@ -64,26 +69,31 @@ public class UserConsoleInterface {
   
   public void showAdminMenu() throws IOException {
     while (true) {
-      System.out.println("\n--- Admin Menu ---");
-      System.out.println("1. List All Users");
-      System.out.println("2. Block User");
-      System.out.println("3. Unblock User");
-      System.out.println("4. Delete User");
-      System.out.println("5. Back to Main Menu");
-      System.out.print("Enter your choice (1-5): ");
+      String adminMenu = """
+        
+        --- Admin Menu ---
+        1. List All Users
+        2. Block User
+        3. Unblock User
+        4. Delete User
+        5. Back to Main Menu
+        Enter your choice (1-5):\s""";
       
+      System.out.print(adminMenu);
       String choice = scanner.nextLine().trim();
-      
       switch (choice) {
         case "1" -> listAllUsers();
         case "2" -> blockUser();
         case "3" -> unblockUser();
         case "4" -> deleteUser();
-        case "5" -> { return; }
+        case "5" -> {
+          return;
+        }
         default -> System.out.println("Invalid choice. Please try again.");
       }
     }
   }
+  
   private void listAllUsers() throws IOException {
     List<User> users = userController.getAllUsers();
     System.out.println("\n--- All Users ---");
@@ -128,13 +138,17 @@ public class UserConsoleInterface {
   
   public boolean showLoggedInMenu(User user) throws IOException {
     while (true) {
-      System.out.println("\n--- Profile Management ---");
-      System.out.println("1. Update Email");
-      System.out.println("2. Update Name");
-      System.out.println("3. Update Password");
-      System.out.println("4. Delete Profile");
-      System.out.println("5. Back to Main Menu");
-      System.out.print("Enter your choice (1-5): ");
+      String profileManagementMenu = """
+        
+        --- Profile Management ---
+        1. Update Email
+        2. Update Name
+        3. Update Password
+        4. Delete Profile
+        5. Back to Main Menu
+        Enter your choice (1-5):\s""";
+      
+      System.out.print(profileManagementMenu);
       String choice = scanner.nextLine().trim();
       switch (choice) {
         case "1" -> updateEmail(user);
@@ -152,6 +166,7 @@ public class UserConsoleInterface {
       }
     }
   }
+  
   private void updateEmail(User user) throws IOException {
     System.out.print("Enter new email: ");
     String newEmail = getValidEmail();
@@ -187,8 +202,12 @@ public class UserConsoleInterface {
   }
   
   private boolean deleteProfile(User user) {
-    System.out.println("\nAre you sure you want to delete your profile? This action cannot be undone.");
-    System.out.print("Type 'YES' to confirm or any other symbol to cancel: ");
+    String deleteProfile = """
+      
+      Are you sure you want to delete your profile? This action cannot be undone.
+      Type 'YES' to confirm or any other symbol to cancel:\s""";
+    
+    System.out.print(deleteProfile);
     String confirmation = scanner.nextLine().trim();
     if (confirmation.equalsIgnoreCase("YES")) {
       try {

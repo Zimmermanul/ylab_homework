@@ -86,16 +86,22 @@ public class App {
   
   private void handleAdminMenu(User admin) throws IOException {
     while (true) {
-      System.out.println("\n--- Admin Menu ---");
-      System.out.println("1. User Management");
-      System.out.println("2. Habit Management");
-      System.out.println("3. Logout");
-      System.out.print("Enter your choice (1-3): ");
+      String adminMenu = """
+        
+        --- Admin Menu ---
+        1. User Management
+        2. Habit Management
+        3. Logout
+        Enter your choice (1-3):\s""";
+      
+      System.out.print(adminMenu);
       String choice = scanner.nextLine().trim();
       switch (choice) {
         case "1" -> userInterface.showAdminMenu();
         case "2" -> habitInterface.start(admin);
-        case "3" -> { return; }
+        case "3" -> {
+          return;
+        }
         default -> System.out.println("Invalid choice. Please try again.");
       }
     }
@@ -104,11 +110,15 @@ public class App {
   private void handleUserMenu(User user) throws IOException {
     boolean userWasDeleted = false;
     while (!userWasDeleted) {
-      System.out.println("\n--- User Menu ---");
-      System.out.println("1. Manage Profile");
-      System.out.println("2. Manage Habits");
-      System.out.println("3. Logout");
-      System.out.print("Enter your choice (1-3): ");
+      String userMenu = """
+        
+        --- User Menu ---
+        1. Manage Profile
+        2. Manage Habits
+        3. Logout
+        Enter your choice (1-3):\s""";
+      
+      System.out.print(userMenu);
       String choice = scanner.nextLine().trim();
       switch (choice) {
         case "1" -> userWasDeleted = userInterface.showLoggedInMenu(user);

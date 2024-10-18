@@ -40,7 +40,9 @@ public class HabitManagementConsoleInterface {
           case "5" -> trackHabitExecution(currentUser);
           case "6" -> viewStatistics(currentUser);
           case "7" -> generateProgressReport(currentUser);
-          case "8" -> { return; }
+          case "8" -> {
+            return;
+          }
           default -> System.out.println("Invalid option. Please try again.");
         }
       } catch (IOException e) {
@@ -50,15 +52,20 @@ public class HabitManagementConsoleInterface {
   }
   
   private void showMainMenu() {
-    System.out.println("\n--- Habit Management ---");
-    System.out.println("1. Create Habit");
-    System.out.println("2. Edit Habit");
-    System.out.println("3. Delete Habit");
-    System.out.println("4. View Habits");
-    System.out.println("5. Track Habit Execution");
-    System.out.println("6. View Statistics");
-    System.out.println("7. Generate Progress Report");
-    System.out.println("8. Back to Main Menu");
+    String habitManagementMenu = """
+      
+      --- Habit Management ---
+      1. Create Habit
+      2. Edit Habit
+      3. Delete Habit
+      4. View Habits
+      5. Track Habit Execution
+      6. View Statistics
+      7. Generate Progress Report
+      8. Back to Main Menu
+      Enter your choice (1-8):\s""";
+    
+    System.out.print(habitManagementMenu);
   }
   
   private void createHabit(User user) throws IOException {
@@ -81,10 +88,9 @@ public class HabitManagementConsoleInterface {
   
   private void editHabit(User user) throws IOException {
     List<Habit> habits = habitController.viewHabits(user.getId(), null, null);
-    if (habits.isEmpty()){
+    if (habits.isEmpty()) {
       System.out.println("You haven't created any habits yet");
-    }
-    else {
+    } else {
       System.out.print("Your habits: \n");
       for (Habit habit : habits) {
         System.out.println(habit);
@@ -116,7 +122,7 @@ public class HabitManagementConsoleInterface {
   
   private void deleteHabit(User user) throws IOException {
     List<Habit> habits = habitController.viewHabits(user.getId(), null, null);
-    if (habits.isEmpty()){
+    if (habits.isEmpty()) {
       System.out.println("You haven't created any habits yet");
       return;
     }
@@ -149,7 +155,7 @@ public class HabitManagementConsoleInterface {
         default -> System.out.println("Invalid input. Please enter 'y' for yes or 'n' for no.");
       }
     }
-    if(delete){
+    if (delete) {
       try {
         habitController.deleteHabit(selectedHabit.getId());
         System.out.println("Habit deleted successfully");
@@ -167,10 +173,9 @@ public class HabitManagementConsoleInterface {
     String activeStr = scanner.nextLine();
     Boolean active = activeStr.isEmpty() ? null : Boolean.parseBoolean(activeStr);
     List<Habit> habits = habitController.viewHabits(user.getId(), filterDate, active);
-    if (habits.isEmpty()){
+    if (habits.isEmpty()) {
       System.out.println("You haven't created any habits yet");
-    }
-    else {
+    } else {
       for (Habit habit : habits) {
         System.out.println(habit);
       }
@@ -179,7 +184,7 @@ public class HabitManagementConsoleInterface {
   
   private void trackHabitExecution(User user) throws IOException {
     List<Habit> habits = habitController.viewHabits(user.getId(), null, null);
-    if (habits.isEmpty()){
+    if (habits.isEmpty()) {
       System.out.println("You haven't created any habits yet");
       return;
     }
@@ -234,7 +239,7 @@ public class HabitManagementConsoleInterface {
   
   private void viewStatistics(User user) throws IOException {
     List<Habit> habits = habitController.viewHabits(user.getId(), null, null);
-    if (habits.isEmpty()){
+    if (habits.isEmpty()) {
       System.out.println("You haven't created any habits yet");
       return;
     }
@@ -286,7 +291,7 @@ public class HabitManagementConsoleInterface {
   
   private void generateProgressReport(User user) throws IOException {
     List<Habit> habits = habitController.viewHabits(user.getId(), null, null);
-    if (habits.isEmpty()){
+    if (habits.isEmpty()) {
       System.out.println("You haven't created any habits yet");
       return;
     }
