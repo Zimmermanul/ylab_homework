@@ -14,6 +14,11 @@ import com.mkhabibullin.app.service.UserService;
 import java.io.IOException;
 import java.util.Scanner;
 
+/**
+ * Represents the main console interface for a habit tracking application.
+ * This class initializes all necessary components and provides the main menu
+ * for both admin and regular users.
+ */
 public class MainMenuConsoleInterface {
   private UserRepository userRepository;
   private HabitRepository habitRepository;
@@ -28,6 +33,10 @@ public class MainMenuConsoleInterface {
   private HabitManagementConsoleInterface habitManagementInterface;
   private Scanner scanner;
   
+  /**
+   * Constructs a new MainMenuConsoleInterface.
+   * Initializes all repositories, services, controllers, and sub-interfaces.
+   */
   public MainMenuConsoleInterface() {
     this.userRepository = new UserRepository();
     this.habitRepository = new HabitRepository();
@@ -45,6 +54,12 @@ public class MainMenuConsoleInterface {
     this.habitManagementInterface = new HabitManagementConsoleInterface(habitController, executionController);
     this.scanner = new Scanner(System.in);
   }
+  
+  /**
+   * Starts the main application loop.
+   * Handles user login/registration and directs to appropriate menus based on user type.
+   * Continues running until the user chooses to exit.
+   */
   public void start() {
     try {
       while (true) {

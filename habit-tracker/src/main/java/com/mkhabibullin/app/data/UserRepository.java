@@ -21,21 +21,9 @@ import java.util.stream.Collectors;
  * This class provides in-memory storage with periodic persistence to a file.
  */
 public class UserRepository {
-  /**
-   * The path to the file where user data is persisted.
-   */
   private static final Path USER_FILE = Paths.get("users.txt");
-  /**
-   * Map of users with user ID as the key.
-   */
   private final Map<String, User> usersById = new ConcurrentHashMap<>();
-  /**
-   * Map of users with user email as the key.
-   */
   private final Map<String, User> usersByEmail = new ConcurrentHashMap<>();
-  /**
-   * Scheduler for periodic data persistence.
-   */
   private final ScheduledExecutorService scheduler;
   
   /**

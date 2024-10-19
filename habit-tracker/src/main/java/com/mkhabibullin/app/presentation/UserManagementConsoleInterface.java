@@ -8,17 +8,31 @@ import java.util.List;
 import java.util.Scanner;
 
 /**
- * An interface class responsible for displaying output and handling user interface logic.
+ * Provides a console-based user interface for user management in a habit tracking application.
+ * This class interacts with UserController to perform various operations related to
+ * user registration, login, profile management, and administrative functions.
  */
 public class UserManagementConsoleInterface {
   private final UserController userController;
   private final Scanner scanner;
   
+  /**
+   * Constructs a new UserManagementConsoleInterface with the specified UserController.
+   *
+   * @param userController the controller for user-related operations
+   */
   public UserManagementConsoleInterface(UserController userController) {
     this.userController = userController;
     this.scanner = new Scanner(System.in);
   }
   
+  /**
+   * Displays the main login/register menu and handles user interactions.
+   * This method runs in a loop until the user successfully logs in, registers, or chooses to exit.
+   *
+   * @return the logged-in User object, or null if the user chooses to exit
+   * @throws IOException if there's an error during the login or registration process
+   */
   public User registerOrLoginUser() throws IOException {
     while (true) {
       String menu = """
@@ -67,6 +81,12 @@ public class UserManagementConsoleInterface {
     }
   }
   
+  /**
+   * Displays the user management menu for administrators and handles related operations.
+   * This method runs in a loop until the admin chooses to return to the main menu.
+   *
+   * @throws IOException if there's an error during any of the admin operations
+   */
   public void showUserManagementAdminMenu() throws IOException {
     while (true) {
       String adminMenu = """
@@ -94,6 +114,14 @@ public class UserManagementConsoleInterface {
     }
   }
   
+  /**
+   * Displays the profile management menu for a user and handles related operations.
+   * This method runs in a loop until the user chooses to return to the main menu or deletes their profile.
+   *
+   * @param user the current user whose profile is being managed
+   * @return true if the user deletes their profile, false otherwise
+   * @throws IOException if there's an error during any of the profile management operations
+   */
   public boolean showProfileManagementUserMenu(User user) throws IOException {
     while (true) {
       String profileManagementMenu = """

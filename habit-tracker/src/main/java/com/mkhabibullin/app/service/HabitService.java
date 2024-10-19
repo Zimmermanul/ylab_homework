@@ -9,19 +9,37 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
+
 /**
- * A service that encapsulates the application's business logic related to habits (CRUD)
+ * Service class for managing habits in a habit tracking application.
+ * This class provides methods for creating, editing, deleting, and viewing habits.
+ * It interacts with HabitRepository for habit data persistence and UserRepository for user information.
  */
 public class HabitService {
   private HabitRepository habitRepository;
   private UserRepository userRepository;
   
+  /**
+   * Constructs a new HabitService with the specified repositories.
+   *
+   * @param habitRepository the repository for habit data
+   * @param userRepository  the repository for user data
+   */
   public HabitService(HabitRepository habitRepository, UserRepository userRepository) {
     this.habitRepository = habitRepository;
     this.userRepository = userRepository;
   }
   
-  public void createHabit(String userEmail, String name, String description, Habit.Frequency frequency) throws IOException {
+  /**
+   * Creates a new habit for a user.
+   *
+   * @param userEmail   the email of the user creating the habit
+   * @param name        the name of the habit
+   * @param description the description of the habit
+   * @param frequency   the frequency of the habit
+   * @throws IllegalArgumentException if the user is not found
+   */
+  public void createHabit(String userEmail, String name, String description, Habit.Frequency frequency) {
     User user = userRepository.readUserByEmail(userEmail);
     Habit habit = new Habit();
     habit.setUserId(user.getId());
@@ -31,7 +49,16 @@ public class HabitService {
     habitRepository.create(habit);
   }
   
-  public void editHabit(String id, String name, String description, Habit.Frequency frequency) throws IOException {
+  /**
+   * Edits an existing habit.
+   *
+   * @param id          the ID of the habit to edit
+   * @param name        the new name of the habit
+   * @param description the new description of the habit
+   * @param frequency   the new frequency of the habit
+   * @throws IllegalArgumentException if the habit is not found
+   */
+  public void editHabit(String id, String name, String description, Habit.Frequency frequency) {
     Habit habit = habitRepository.readAll().stream()
       .filter(h -> h.getId().equals(id))
       .findFirst()
@@ -42,11 +69,24 @@ public class HabitService {
     habitRepository.update(habit);
   }
   
-  public void deleteHabit(String id) throws IOException {
+  /**
+   * Deletes a habit.
+   *
+   * @param id the ID of the habit to delete
+   */
+  public void deleteHabit(String id) {
     habitRepository.delete(id);
   }
   
-  public List<Habit> viewHabits(String userId, LocalDate filterDate, Boolean active) throws IOException {
+  /**
+   * Retrieves a list of habits for a user, optionally filtered by date and active status.
+   *
+   * @param userId     the ID of the user whose habits to retrieve
+   * @param filterDate the date to filter habits by (habits created on or after this date will be included), can be null
+   * @param active     whether to retrieve only active habits, can be null to retrieve all habits
+   * @return a list of habits matching the specified criteria
+   */
+  public List<Habit> viewHabits(String userId, LocalDate filterDate, Boolean active) {
     return habitRepository.getByUserId(userId).stream()
       .filter(h -> filterDate == null || !h.getCreationDate().isBefore(filterDate))
       .filter(h -> active == null || h.isActive() == active)

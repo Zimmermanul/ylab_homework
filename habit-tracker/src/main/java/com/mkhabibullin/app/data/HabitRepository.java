@@ -22,17 +22,8 @@ import java.util.stream.Collectors;
  * This class provides in-memory storage with periodic persistence to a file.
  */
 public class HabitRepository {
-  /**
-   * The path to the file where habit data is persisted.
-   */
   private static final Path HABIT_FILE = Paths.get("habits.txt");
-  /**
-   * Map of habits with habit ID as the key.
-   */
   private final Map<String, Habit> habitsMap = new ConcurrentHashMap<>();
-  /**
-   * Scheduler for periodic data persistence.
-   */
   private final ScheduledExecutorService scheduler;
   
   /**

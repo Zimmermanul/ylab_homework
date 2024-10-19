@@ -1,4 +1,5 @@
 package com.mkhabibullin.app;
+
 import com.mkhabibullin.app.data.HabitExecutionRepository;
 import com.mkhabibullin.app.data.HabitRepository;
 import com.mkhabibullin.app.model.Habit;
@@ -41,8 +42,103 @@ public class HabitExecutionServiceTest {
   }
   
   @Test
+  @DisplayName("isImprovingTrend should return true when trend is improving")
+  void isImprovingTrendShouldReturnTrueWhenTrendIsImproving() {
+    String habitId = "123";
+    List<HabitExecution> executions = Arrays.asList(
+      new HabitExecution(habitId, LocalDate.of(2024, 1, 1), false),
+      new HabitExecution(habitId, LocalDate.of(2024, 1, 2), false),
+      new HabitExecution(habitId, LocalDate.of(2024, 1, 3), true),
+      new HabitExecution(habitId, LocalDate.of(2024, 1, 4), true)
+    );
+    boolean improving = habitExecutionService.isImprovingTrend(executions);
+    assertThat(improving).isTrue();
+  }
+  
+  @Test
+  @DisplayName("isImprovingTrend should return false when trend is not improving")
+  void isImprovingTrendShouldReturnFalseWhenTrendIsNotImproving() {
+    String habitId = "123";
+    List<HabitExecution> executions = Arrays.asList(
+      new HabitExecution(habitId, LocalDate.of(2023, 1, 1), true),
+      new HabitExecution(habitId, LocalDate.of(2023, 1, 2), true),
+      new HabitExecution(habitId, LocalDate.of(2023, 1, 3), false),
+      new HabitExecution(habitId, LocalDate.of(2023, 1, 4), false)
+    );
+    boolean improving = habitExecutionService.isImprovingTrend(executions);
+    assertThat(improving).isFalse();
+  }
+  
+  @Test
+  @DisplayName("calculateLongestStreak should return correct longest streak")
+  void calculateLongestStreakShouldReturnCorrectLongestStreak() {
+    String habitId = "123";
+    List<HabitExecution> executions = Arrays.asList(
+      new HabitExecution(habitId, LocalDate.of(2023, 1, 1), true),
+      new HabitExecution(habitId, LocalDate.of(2023, 1, 2), true),
+      new HabitExecution(habitId, LocalDate.of(2023, 1, 3), true),
+      new HabitExecution(habitId, LocalDate.of(2023, 1, 4), false),
+      new HabitExecution(habitId, LocalDate.of(2023, 1, 5), true),
+      new HabitExecution(habitId, LocalDate.of(2023, 1, 6), true)
+    );
+    int longestStreak = habitExecutionService.calculateLongestStreak(executions);
+    assertThat(longestStreak).isEqualTo(3);
+  }
+  
+  @Test
+  @DisplayName("generateSuggestions should return appropriate suggestions for low completion rate")
+  void generateSuggestionsShouldReturnAppropriateForLowCompletionRate() {
+    String habitId = "123";
+    Habit habit = new Habit();
+    habit.setId(habitId);
+    habit.setName("Daily Exercise");
+    habit.setDescription("30 minutes of exercise");
+    habit.setFrequency(Habit.Frequency.DAILY);
+    habit.setCreationDate(LocalDate.now().minusDays(15));
+    List<HabitExecution> executions = Arrays.asList(
+      new HabitExecution(habitId, LocalDate.now().minusDays(2), false),
+      new HabitExecution(habitId, LocalDate.now().minusDays(1), false),
+      new HabitExecution(habitId, LocalDate.now(), true)
+    );
+    List<String> suggestions = habitExecutionService.generateSuggestions(habit, executions);
+    assertThat(suggestions)
+      .contains("Suggestions for improving your 'Daily Exercise' habit:")
+      .contains("- Your completion rate is below 50%. Let's work on improving that!")
+      .contains("- Consider breaking down 'Daily Exercise' into smaller, more manageable tasks.")
+      .contains("- For daily habits like this, try linking it to an existing daily routine.")
+      .contains("- For exercise habits, remember to vary your routine to stay engaged and work different muscle groups.")
+      .contains("- This habit is still relatively new. Be patient and consistent, and you'll see results over time.");
+  }
+  
+  @Test
+  @DisplayName("generateSuggestions should return appropriate suggestions for high completion rate")
+  void generateSuggestionsShouldReturnAppropriateForHighCompletionRate() {
+    String habitId = "123";
+    Habit habit = new Habit();
+    habit.setId(habitId);
+    habit.setName("Weekly Reading");
+    habit.setDescription("Read a book chapter");
+    habit.setFrequency(Habit.Frequency.WEEKLY);
+    habit.setCreationDate(LocalDate.now().minusDays(60));
+    List<HabitExecution> executions = Arrays.asList(
+      new HabitExecution(habitId, LocalDate.now().minusDays(14), true),
+      new HabitExecution(habitId, LocalDate.now().minusDays(7), true),
+      new HabitExecution(habitId, LocalDate.now(), true)
+    );
+    List<String> suggestions = habitExecutionService.generateSuggestions(habit, executions);
+    assertThat(suggestions)
+      .contains("Suggestions for improving your 'Weekly Reading' habit:")
+      .contains("- Excellent work! You're consistently keeping up with 'Weekly Reading'.")
+      .contains("- Consider increasing the challenge. Can you extend the duration or intensity of 'Weekly Reading'?")
+      .contains("- Share your success with friends or family to stay motivated and inspire others.")
+      .contains("- For reading or studying habits, try the Pomodoro Technique: 25 minutes of focused work followed by a 5-minute break.")
+      .contains("- Keep a log of what you've read or learned to see your progress and stay motivated.")
+      .contains("- You've been working on this habit for over a month. Take a moment to reflect on how far you've come!");
+  }
+  
+  @Test
   @DisplayName("generateProgressReport should return correct report for valid habit")
-  void generateProgressReportShouldReturnCorrectReportForValidHabit() throws IOException {
+  void generateProgressReportShouldReturnCorrectReportForValidHabit() {
     String habitId = "123";
     LocalDate startDate = LocalDate.of(2023, 1, 1);
     LocalDate endDate = LocalDate.of(2023, 1, 31);
@@ -70,7 +166,7 @@ public class HabitExecutionServiceTest {
   
   @Test
   @DisplayName("generateProgressReport should throw exception for nonexistent habit")
-  void generateProgressReportShouldThrowExceptionForNonexistentHabit() throws IOException {
+  void generateProgressReportShouldThrowExceptionForNonexistentHabit() {
     String habitId = "nonexistent";
     LocalDate startDate = LocalDate.of(2023, 1, 1);
     LocalDate endDate = LocalDate.of(2023, 1, 31);
@@ -83,7 +179,7 @@ public class HabitExecutionServiceTest {
   
   @Test
   @DisplayName("getCurrentStreak should return correct streak for valid habit")
-  void getCurrentStreakShouldReturnCorrectStreakForValidHabit() throws IOException {
+  void getCurrentStreakShouldReturnCorrectStreakForValidHabit() {
     String habitId = "123";
     List<HabitExecution> executions = Arrays.asList(
       new HabitExecution(habitId, LocalDate.now(), true),
@@ -99,7 +195,7 @@ public class HabitExecutionServiceTest {
   
   @Test
   @DisplayName("getSuccessPercentage should return correct percentage for valid habit")
-  void getSuccessPercentageShouldReturnCorrectPercentageForValidHabit() throws IOException {
+  void getSuccessPercentageShouldReturnCorrectPercentageForValidHabit() {
     String habitId = "123";
     LocalDate startDate = LocalDate.of(2023, 1, 1);
     LocalDate endDate = LocalDate.of(2023, 1, 10);

@@ -7,40 +7,59 @@ import com.mkhabibullin.app.model.Habit;
 import com.mkhabibullin.app.model.HabitExecution;
 
 import java.io.IOException;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 /**
- * An interface class responsible for displaying output and handling habit management interface logic.
+ * Provides a console-based user interface for managing habits in a habit tracking application.
+ * This class interacts with HabitController and HabitExecutionController to perform
+ * various operations related to habits.
  */
 public class HabitManagementConsoleInterface {
   private HabitController habitController;
   private HabitExecutionController executionController;
   private Scanner scanner;
   
+  /**
+   * Constructs a new HabitManagementConsoleInterface with the specified controllers.
+   *
+   * @param habitController     the controller for habit-related operations
+   * @param executionController the controller for habit execution-related operations
+   */
   public HabitManagementConsoleInterface(HabitController habitController, HabitExecutionController executionController) {
     this.habitController = habitController;
     this.executionController = executionController;
     this.scanner = new Scanner(System.in);
   }
   
+  /**
+   * Displays the main habit management menu and handles user interactions.
+   * This method runs in a loop until the user chooses to return to the main menu.
+   *
+   * @param currentUser the currently logged-in user
+   */
   public void showHabitManagementMenu(User currentUser) {
     while (true) {
       String habitManagementMenu = """
-      
-      --- Habit Management ---
-      1. Create Habit
-      2. Edit Habit
-      3. Delete Habit
-      4. View Habits
-      5. Track Habit Execution
-      6. View Statistics
-      7. Generate Progress Report
-      8. Back to Main Menu
-      Enter your choice (1-8):
-      Choose an option:\s""";
+        
+        --- Habit Management ---
+        1. Create Habit
+        2. Edit Habit
+        3. Delete Habit
+        4. View Habits
+        5. Track Habit Execution
+        6. View Statistics
+        7. Generate Progress Report
+        8. Back to Main Menu
+        Enter your choice (1-8):
+        Choose an option:\s""";
       System.out.print(habitManagementMenu);
       String choice = scanner.nextLine().trim();
       try {
@@ -238,49 +257,31 @@ public class HabitManagementConsoleInterface {
       System.out.println("You haven't created any habits yet");
       return;
     }
-    System.out.println("Your habits:");
-    for (int i = 0; i < habits.size(); i++) {
-      System.out.println((i + 1) + ". " + habits.get(i).getName());
-    }
-    Habit selectedHabit = null;
-    do {
-      try {
-        System.out.print("Choose a habit to view statistics (enter number): ");
-        int habitIndex = Integer.parseInt(scanner.nextLine()) - 1;
-        selectedHabit = habits.get(habitIndex);
-      } catch (IndexOutOfBoundsException | NumberFormatException e) {
-        System.out.println("Incorrect index, please try again");
-      }
-    } while (selectedHabit == null);
-    LocalDate startDate = null;
-    do {
-      try {
-        System.out.print("Enter start date (YYYY-MM-DD): ");
-        startDate = LocalDate.parse(scanner.nextLine());
-      } catch (DateTimeParseException e) {
-        System.out.println("Incorrect format, please try again");
-      }
-    } while (startDate == null);
-    LocalDate endDate = null;
-    do {
-      try {
-        System.out.print("Enter end date (YYYY-MM-DD): ");
-        endDate = LocalDate.parse(scanner.nextLine());
-      } catch (DateTimeParseException e) {
-        System.out.println("Incorrect format, please try again");
-      }
-    } while (endDate == null);
+    Habit selectedHabit = selectHabit(habits, "Choose a habit to view statistics");
+    LocalDate startDate = inputDate("Enter start date (YYYY-MM-DD): ");
+    LocalDate endDate = inputDate("Enter end date (YYYY-MM-DD): ");
     int currentStreak = executionController.getCurrentStreak(selectedHabit.getId());
     double successPercentage = executionController.getSuccessPercentage(selectedHabit.getId(), startDate, endDate);
-    System.out.println("\nStatistics for: " + selectedHabit.getName());
+    List<HabitExecution> history = executionController.getHabitExecutionHistory(selectedHabit.getId());
+    System.out.println("\nDetailed Statistics for: " + selectedHabit.getName());
+    System.out.println("Period: " + startDate + " to " + endDate);
     System.out.println("Current Streak: " + currentStreak + " days");
     System.out.printf("Success Rate: %.2f%%\n", successPercentage);
-    List<HabitExecution> history = executionController.getHabitExecutionHistory(selectedHabit.getId());
-    System.out.println("Execution history:");
-    for (HabitExecution execution : history) {
-      if (!execution.getDate().isBefore(startDate) && !execution.getDate().isAfter(endDate)) {
-        System.out.printf("%s: %s\n", execution.getDate(), execution.isCompleted() ? "Completed" : "Not completed");
-      }
+    long totalExecutions = history.stream()
+      .filter(e -> !e.getDate().isBefore(startDate) && !e.getDate().isAfter(endDate))
+      .count();
+    long completedExecutions = history.stream()
+      .filter(e -> !e.getDate().isBefore(startDate) && !e.getDate().isAfter(endDate) && e.isCompleted())
+      .count();
+    System.out.println("Total Executions: " + totalExecutions);
+    System.out.println("Completed Executions: " + completedExecutions);
+    System.out.println("Missed Executions: " + (totalExecutions - completedExecutions));
+    Map<DayOfWeek, Long> completionsByDay = history.stream()
+      .filter(e -> !e.getDate().isBefore(startDate) && !e.getDate().isAfter(endDate) && e.isCompleted())
+      .collect(Collectors.groupingBy(e -> e.getDate().getDayOfWeek(), Collectors.counting()));
+    System.out.println("\nCompletions by Day of Week:");
+    for (DayOfWeek day : DayOfWeek.values()) {
+      System.out.printf("%s: %d\n", day, completionsByDay.getOrDefault(day, 0L));
     }
   }
   
@@ -290,41 +291,60 @@ public class HabitManagementConsoleInterface {
       System.out.println("You haven't created any habits yet");
       return;
     }
+    Habit selectedHabit = selectHabit(habits, "Choose a habit to generate a progress report");
+    LocalDate startDate = inputDate("Enter start date (YYYY-MM-DD): ");
+    LocalDate endDate = inputDate("Enter end date (YYYY-MM-DD): ");
+    String report = executionController.generateProgressReport(selectedHabit.getId(), startDate, endDate);
+    System.out.println("\nProgress Report:");
+    System.out.println(report);
+    List<HabitExecution> history = executionController.getHabitExecutionHistory(selectedHabit.getId());
+    List<HabitExecution> filteredHistory = history.stream()
+      .filter(e -> !e.getDate().isBefore(startDate) && !e.getDate().isAfter(endDate))
+      .sorted(Comparator.comparing(HabitExecution::getDate))
+      .collect(Collectors.toList());
+    System.out.println("Trend Analysis:");
+    if (filteredHistory.size() >= 2) {
+      boolean improving = executionController.isImprovingTrend(filteredHistory);
+      System.out.println(improving ? "Your habit execution is improving over time." : "There's room for improvement in your habit execution.");
+    } else {
+      System.out.println("Not enough data for trend analysis.");
+    }
+    System.out.println("\nLongest Streak:");
+    int longestStreak = executionController.calculateLongestStreak(filteredHistory);
+    System.out.println("Your longest streak during this period was " + longestStreak + " days.");
+    System.out.println("\nSuggestions:");
+    executionController.generateSuggestions(selectedHabit, filteredHistory)
+      .forEach(System.out::println);
+  }
+  
+  private Habit selectHabit(List<Habit> habits, String prompt) {
     System.out.println("Your habits:");
     for (int i = 0; i < habits.size(); i++) {
       System.out.println((i + 1) + ". " + habits.get(i).getName());
     }
-    System.out.print("Choose a habit to generate a progress report (enter number): ");
     Habit selectedHabit = null;
     do {
       try {
-        System.out.print("Choose a habit to view statistics (enter number): ");
+        System.out.print(prompt + " (enter number): ");
         int habitIndex = Integer.parseInt(scanner.nextLine()) - 1;
         selectedHabit = habits.get(habitIndex);
       } catch (IndexOutOfBoundsException | NumberFormatException e) {
         System.out.println("Incorrect index, please try again");
       }
     } while (selectedHabit == null);
-    LocalDate startDate = null;
+    return selectedHabit;
+  }
+  
+  private LocalDate inputDate(String prompt) {
+    LocalDate date = null;
     do {
       try {
-        System.out.print("Enter start date (YYYY-MM-DD): ");
-        startDate = LocalDate.parse(scanner.nextLine());
+        System.out.print(prompt);
+        date = LocalDate.parse(scanner.nextLine());
       } catch (DateTimeParseException e) {
         System.out.println("Incorrect format, please try again");
       }
-    } while (startDate == null);
-    LocalDate endDate = null;
-    do {
-      try {
-        System.out.print("Enter end date (YYYY-MM-DD): ");
-        endDate = LocalDate.parse(scanner.nextLine());
-      } catch (DateTimeParseException e) {
-        System.out.println("Incorrect format, please try again");
-      }
-    } while (endDate == null);
-    String report = executionController.generateProgressReport(selectedHabit.getId(), startDate, endDate);
-    System.out.println("\nProgress Report:");
-    System.out.println(report);
+    } while (date == null);
+    return date;
   }
 }

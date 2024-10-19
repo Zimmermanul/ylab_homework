@@ -9,27 +9,59 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.List;
 import java.util.regex.Pattern;
+
 /**
- * A service that encapsulates the application's business logic related to users (registration, authentication,
- * updating, deleting accounts)
+ * Service class for managing users in an application.
+ * This class provides methods for user registration, authentication, profile management,
+ * and administrative tasks such as blocking/unblocking users.
  */
 public class UserService {
   private final UserRepository userRepository;
+  /**
+   * Regular expression pattern for validating email addresses.
+   */
   public static final Pattern EMAIL_PATTERN = Pattern.compile(
     "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$"
   );
   
+  /**
+   * Constructs a new UserService with the specified UserRepository.
+   *
+   * @param userRepository the repository for user data
+   */
   public UserService(UserRepository userRepository) {
     this.userRepository = userRepository;
     
   }
-  public User getUserById(String id) throws IOException {
+  
+  /**
+   * Retrieves a user by their ID.
+   *
+   * @param id the ID of the user
+   * @return the User object if found, null otherwise
+   */
+  public User getUserById(String id) {
     return userRepository.readUserById(id);
   }
+  
+  /**
+   * Retrieves a user by their email address.
+   *
+   * @param email the email address of the user
+   * @return the User object if found, null otherwise
+   * @throws IOException if there's an error reading from the repository
+   */
   public User getUserByEmail(String email) throws IOException {
     return userRepository.readUserByEmail(email);
   }
   
+  /**
+   * Creates a new user in the system.
+   *
+   * @param user the User object to be created
+   * @throws IOException              if there's an error writing to the repository
+   * @throws IllegalArgumentException if the email is invalid or already exists
+   */
   public void createUser(User user) throws IOException {
     if (!isValidEmail(user.getEmail())) {
       throw new IllegalArgumentException("Invalid email format");
@@ -40,11 +72,21 @@ public class UserService {
     userRepository.createUser(user);
   }
   
-  public List<User> getAllUsers() throws IOException {
+  /**
+   * Retrieves a list of all users in the system.
+   *
+   * @return a List of all User objects
+   */
+  public List<User> getAllUsers() {
     return userRepository.getAllUsers();
   }
   
-  public void blockUser(String email) throws IOException {
+  /**
+   * Blocks a user account.
+   *
+   * @param email the email address of the user to be blocked
+   */
+  public void blockUser(String email) {
     if (!isValidEmail(email)) {
       System.out.println("Invalid email format");
       return;
@@ -63,7 +105,12 @@ public class UserService {
     System.out.println("User blocked successfully.");
   }
   
-  public void unblockUser(String email) throws IOException {
+  /**
+   * Unblocks a user account.
+   *
+   * @param email the email address of the user to be unblocked
+   */
+  public void unblockUser(String email) {
     if (!isValidEmail(email)) {
       System.out.println("Invalid email format");
       return;
@@ -82,13 +129,28 @@ public class UserService {
     System.out.println("User unblocked successfully.");
   }
   
+  /**
+   * Registers a new user in the system.
+   *
+   * @param email    the email address of the new user
+   * @param password the password for the new user
+   * @param name     the name of the new user
+   * @throws IOException if there's an error during the registration process
+   */
   public void registerUser(String email, String password, String name) throws IOException {
     User newUser = new User(email, name);
     newUser.setPassword(password);
     createUser(newUser);
   }
   
-  public boolean authenticateUser(String email, String password) throws IOException {
+  /**
+   * Authenticates a user.
+   *
+   * @param email    the email address of the user
+   * @param password the password to verify
+   * @return true if authentication is successful, false otherwise
+   */
+  public boolean authenticateUser(String email, String password) {
     if (!isValidEmail(email)) {
       return false;
     }
@@ -96,7 +158,12 @@ public class UserService {
     return user != null && verifyPassword(password, user);
   }
   
-  public void deleteUserAccount(String email) throws IOException {
+  /**
+   * Deletes a user account from the system.
+   *
+   * @param email the email address of the user to be deleted
+   */
+  public void deleteUserAccount(String email) {
     if (!isValidEmail(email)) {
       System.out.println("Invalid email format");
       return;
@@ -134,7 +201,14 @@ public class UserService {
     }
   }
   
-  public void updateUserEmail(String userId, String newEmail) throws IOException {
+  /**
+   * Updates the email address of a user.
+   *
+   * @param userId   the ID of the user
+   * @param newEmail the new email address
+   * @throws IllegalArgumentException if the new email is invalid, already in use, or the user is not found
+   */
+  public void updateUserEmail(String userId, String newEmail) {
     if (!isValidEmail(newEmail)) {
       throw new IllegalArgumentException("Invalid email format");
     }
@@ -149,7 +223,14 @@ public class UserService {
     userRepository.updateUser(user);
   }
   
-  public void updateUserName(String userId, String newName) throws IOException {
+  /**
+   * Updates the name of a user.
+   *
+   * @param userId  the ID of the user
+   * @param newName the new name
+   * @throws IllegalArgumentException if the user is not found
+   */
+  public void updateUserName(String userId, String newName) {
     User user = userRepository.readUserById(userId);
     if (user == null) {
       throw new IllegalArgumentException("User not found");
@@ -158,12 +239,36 @@ public class UserService {
     userRepository.updateUser(user);
   }
   
-  public void updateUserPassword(String userId, String newPassword) throws IOException {
+  /**
+   * Updates the password of a user.
+   *
+   * @param userId      the ID of the user
+   * @param newPassword the new password
+   * @throws IllegalArgumentException if the user is not found
+   */
+  public void updateUserPassword(String userId, String newPassword) {
     User user = userRepository.readUserById(userId);
     if (user == null) {
       throw new IllegalArgumentException("User not found");
     }
     user.setPassword(newPassword);
     userRepository.updateUser(user);
+  }
+  
+  /**
+   * Creates an admin user if it doesn't already exist in the system.
+   * This method is typically used for initializing the system with a default admin account.
+   */
+  public void createAdminUserIfNotExists() {
+    try {
+      if (getUserByEmail("admin@example.com") == null) {
+        User adminUser = new User("admin@example.com", "Admin");
+        adminUser.setPassword("adminpassword");
+        adminUser.setAdmin(true);
+        createUser(adminUser);
+      }
+    } catch (IOException e) {
+      System.out.println("An error occurred while creating admin user: " + e.getMessage());
+    }
   }
 }
