@@ -1,17 +1,15 @@
 package com.mkhabibullin.app.service;
 
-import com.mkhabibullin.app.data.HabitExecutionRepository;
-import com.mkhabibullin.app.data.HabitRepository;
+import com.mkhabibullin.app.data.HabitDbRepository;
+import com.mkhabibullin.app.data.HabitExecutionDbRepository;
 import com.mkhabibullin.app.model.Habit;
 import com.mkhabibullin.app.model.HabitExecution;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Service class for managing habit executions in a habit tracking application.
@@ -19,8 +17,8 @@ import java.util.stream.Collectors;
  * calculating statistics, and generating progress reports.
  */
 public class HabitExecutionService {
-  private HabitExecutionRepository executionRepository;
-  private HabitRepository habitRepository;
+  private HabitExecutionDbRepository executionRepository;
+  private HabitDbRepository habitRepository;
   
   /**
    * Constructs a new HabitExecutionService with the specified repositories.
@@ -28,7 +26,7 @@ public class HabitExecutionService {
    * @param executionRepository the repository for habit execution data
    * @param habitRepository     the repository for habit data
    */
-  public HabitExecutionService(HabitExecutionRepository executionRepository, HabitRepository habitRepository) {
+  public HabitExecutionService(HabitExecutionDbRepository executionRepository, HabitDbRepository habitRepository) {
     this.executionRepository = executionRepository;
     this.habitRepository = habitRepository;
   }
@@ -40,7 +38,7 @@ public class HabitExecutionService {
    * @param date      the date of execution
    * @param completed whether the habit was completed
    */
-  public void markHabitExecution(String habitId, LocalDate date, boolean completed) {
+  public void markHabitExecution(Long habitId, LocalDate date, boolean completed) {
     HabitExecution execution = new HabitExecution(habitId, date, completed);
     executionRepository.save(execution);
   }
@@ -51,7 +49,7 @@ public class HabitExecutionService {
    * @param habitId the ID of the habit
    * @return a list of HabitExecution objects representing the execution history
    */
-  public List<HabitExecution> getHabitExecutionHistory(String habitId) {
+  public List<HabitExecution> getHabitExecutionHistory(Long habitId) {
     return executionRepository.getByHabitId(habitId);
   }
   
@@ -61,7 +59,7 @@ public class HabitExecutionService {
    * @param habitId the ID of the habit
    * @return the current streak as an integer
    */
-  public int getCurrentStreak(String habitId) {
+  public int getCurrentStreak(Long habitId) {
     List<HabitExecution> executions = executionRepository.getByHabitId(habitId);
     executions.sort(Comparator.comparing(HabitExecution::getDate).reversed());
     int streak = 0;
@@ -87,7 +85,7 @@ public class HabitExecutionService {
    * @param endDate   the end date of the range
    * @return the success percentage as a double between 0.0 and 100.0
    */
-  public double getSuccessPercentage(String habitId, LocalDate startDate, LocalDate endDate) {
+  public double getSuccessPercentage(Long habitId, LocalDate startDate, LocalDate endDate) {
     List<HabitExecution> executions = executionRepository.getByHabitId(habitId);
     List<HabitExecution> filteredExecutions = executions.stream()
       .filter(e -> !e.getDate().isBefore(startDate) && !e.getDate().isAfter(endDate))
@@ -108,7 +106,7 @@ public class HabitExecutionService {
    * @return a string containing the progress report
    * @throws IllegalArgumentException if the habit is not found
    */
-  public String generateProgressReport(String habitId, LocalDate startDate, LocalDate endDate) {
+  public String generateProgressReport(Long habitId, LocalDate startDate, LocalDate endDate) {
     Habit habit = habitRepository.getById(habitId);
     if (habit == null) {
       throw new IllegalArgumentException("Habit not found");

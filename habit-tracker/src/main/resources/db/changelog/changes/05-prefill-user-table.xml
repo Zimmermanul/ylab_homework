@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+    <changeSet id="05" author="khabibullin.max">
+        <insert tableName="users" schemaName="entity">
+            <column name="id" value="1"/>
+            <column name="email" value="userOne@example.com"/>
+            <column name="password_hash" value="w/dIjIJilKhHCI9sVjmDIhlXpOtv24NplqEPhPlPmuc="/>
+            <column name="salt" value="qmKiWsi2oZNVQU1jS5quSA=="/>
+            <column name="name" value="User One"/>
+            <column name="is_admin" valueBoolean="false"/>
+            <column name="is_blocked" valueBoolean="false"/>
+        </insert>
+        <insert tableName="users" schemaName="entity">
+            <column name="id" value="2"/>
+            <column name="email" value="admin@example.com"/>
+            <column name="password_hash" value="MI5IJLFIwt5TmTYuUtlyLb7YNtqRKDK+55L1Z/8MH/Y="/>
+            <column name="salt" value="yUwT+LGwQnH2szcuNU9KkQ=="/>
+            <column name="name" value="Admin User"/>
+            <column name="is_admin" valueBoolean="true"/>
+            <column name="is_blocked" valueBoolean="false"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

@@ -1,6 +1,6 @@
 package com.mkhabibullin.app.service;
 
-import com.mkhabibullin.app.data.UserRepository;
+import com.mkhabibullin.app.data.UserDbRepository;
 import com.mkhabibullin.app.model.User;
 
 import java.io.IOException;
@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
  * and administrative tasks such as blocking/unblocking users.
  */
 public class UserService {
-  private final UserRepository userRepository;
+  private final UserDbRepository userRepository;
   /**
    * Regular expression pattern for validating email addresses.
    */
@@ -29,7 +29,7 @@ public class UserService {
    *
    * @param userRepository the repository for user data
    */
-  public UserService(UserRepository userRepository) {
+  public UserService(UserDbRepository userRepository) {
     this.userRepository = userRepository;
     
   }
@@ -40,7 +40,7 @@ public class UserService {
    * @param id the ID of the user
    * @return the User object if found, null otherwise
    */
-  public User getUserById(String id) {
+  public User getUserById(Long id) {
     return userRepository.readUserById(id);
   }
   
@@ -208,7 +208,7 @@ public class UserService {
    * @param newEmail the new email address
    * @throws IllegalArgumentException if the new email is invalid, already in use, or the user is not found
    */
-  public void updateUserEmail(String userId, String newEmail) {
+  public void updateUserEmail(Long userId, String newEmail) {
     if (!isValidEmail(newEmail)) {
       throw new IllegalArgumentException("Invalid email format");
     }
@@ -230,7 +230,7 @@ public class UserService {
    * @param newName the new name
    * @throws IllegalArgumentException if the user is not found
    */
-  public void updateUserName(String userId, String newName) {
+  public void updateUserName(Long userId, String newName) {
     User user = userRepository.readUserById(userId);
     if (user == null) {
       throw new IllegalArgumentException("User not found");
@@ -246,7 +246,7 @@ public class UserService {
    * @param newPassword the new password
    * @throws IllegalArgumentException if the user is not found
    */
-  public void updateUserPassword(String userId, String newPassword) {
+  public void updateUserPassword(Long userId, String newPassword) {
     User user = userRepository.readUserById(userId);
     if (user == null) {
       throw new IllegalArgumentException("User not found");
