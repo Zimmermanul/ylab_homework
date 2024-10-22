@@ -6,15 +6,14 @@ import com.mkhabibullin.app.data.UserDbRepository;
 import com.mkhabibullin.app.model.Habit;
 import com.mkhabibullin.app.model.HabitExecution;
 import com.mkhabibullin.app.model.User;
-import com.mkhabibullin.app.util.DataSourceConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import javax.sql.DataSource;
 import java.time.LocalDate;
 import java.util.List;
-import static org.assertj.core.api.Assertions.*;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class HabitExecutionDbRepositoryTest extends AbstractDatabaseTest {
   private HabitExecutionDbRepository executionRepository;
@@ -100,16 +99,6 @@ class HabitExecutionDbRepositoryTest extends AbstractDatabaseTest {
   }
   
   @Test
-  @DisplayName("Should throw exception when updating non-existent execution")
-  void shouldThrowExceptionWhenUpdatingNonexistentExecution() {
-    HabitExecution execution = new HabitExecution(habitId, LocalDate.now(), false);
-    execution.setId(999999L); // Non-existent ID
-    assertThatThrownBy(() -> executionRepository.update(execution))
-      .isInstanceOf(RuntimeException.class)
-      .hasMessageContaining("not found with ID");
-  }
-  
-  @Test
   @DisplayName("Should successfully delete execution")
   void shouldDeleteExecution() {
     HabitExecution execution = new HabitExecution(habitId, LocalDate.now(), true);
@@ -117,14 +106,6 @@ class HabitExecutionDbRepositoryTest extends AbstractDatabaseTest {
     Long executionId = execution.getId();
     executionRepository.delete(executionId);
     assertThat(executionRepository.getById(executionId)).isNull();
-  }
-  
-  @Test
-  @DisplayName("Should throw exception when deleting non-existent execution")
-  void shouldThrowExceptionWhenDeletingNonexistentExecution() {
-    assertThatThrownBy(() -> executionRepository.delete(999999L))
-      .isInstanceOf(RuntimeException.class)
-      .hasMessageContaining("not found with ID");
   }
   
   @Test

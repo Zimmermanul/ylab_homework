@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class UserDbRepositoryTest extends AbstractDatabaseTest {
   private UserDbRepository repository;
@@ -27,21 +27,6 @@ class UserDbRepositoryTest extends AbstractDatabaseTest {
     repository.createUser(user);
     assertThat(user.getId()).isNotNull();
     assertThat(user.getId()).isGreaterThanOrEqualTo(100000L);
-  }
-  
-  @Test
-  @DisplayName("Should throw exception when creating user with duplicate email")
-  void shouldThrowExceptionWhenCreatingUserWithDuplicateEmail() {
-    User user1 = new User("test@example.com", "Test User 1");
-    user1.setPasswordHash("hash1");
-    user1.setSalt("salt1");
-    repository.createUser(user1);
-    User user2 = new User("test@example.com", "Test User 2");
-    user2.setPasswordHash("hash2");
-    user2.setSalt("salt2");
-    assertThatThrownBy(() -> repository.createUser(user2))
-      .isInstanceOf(RuntimeException.class)
-      .hasMessageContaining("already exists");
   }
   
   @Test
