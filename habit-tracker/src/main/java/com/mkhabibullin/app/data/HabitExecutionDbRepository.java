@@ -1,9 +1,11 @@
 package com.mkhabibullin.app.data;
 
 import com.mkhabibullin.app.model.HabitExecution;
-import java.sql.*;
+
 import javax.sql.DataSource;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -50,7 +52,7 @@ public class HabitExecutionDbRepository {
         }
       }
     } catch (SQLException e) {
-      throw new RuntimeException("Error saving habit execution: " + e.getMessage(), e);
+      System.out.println("Error saving habit execution: \n " + e.getMessage());
     }
   }
   
@@ -73,8 +75,9 @@ public class HabitExecutionDbRepository {
         return executions;
       }
     } catch (SQLException e) {
-      throw new RuntimeException("Error retrieving habit executions: " + e.getMessage(), e);
+      System.out.println("Error retrieving habit executions: \n " + e.getMessage());
     }
+    return new ArrayList<>();
   }
   
   /**
@@ -92,10 +95,10 @@ public class HabitExecutionDbRepository {
       
       int rowsAffected = pstmt.executeUpdate();
       if (rowsAffected == 0) {
-        throw new RuntimeException("Habit execution not found with ID: " + execution.getId());
+        System.out.println("Habit execution not found with ID: " + execution.getId());
       }
     } catch (SQLException e) {
-      throw new RuntimeException("Error updating habit execution: " + e.getMessage(), e);
+      System.out.println("Error updating habit execution: \n " + e.getMessage());
     }
   }
   
@@ -112,10 +115,10 @@ public class HabitExecutionDbRepository {
       
       int rowsAffected = pstmt.executeUpdate();
       if (rowsAffected == 0) {
-        throw new RuntimeException("Habit execution not found with ID: " + executionId);
+        System.out.println("Habit execution not found with ID: " + executionId);
       }
     } catch (SQLException e) {
-      throw new RuntimeException("Error deleting habit execution: " + e.getMessage(), e);
+      System.out.println("Error deleting habit execution: \n " + e.getMessage());
     }
   }
   
@@ -137,8 +140,9 @@ public class HabitExecutionDbRepository {
         return null;
       }
     } catch (SQLException e) {
-      throw new RuntimeException("Error getting habit execution by ID: " + e.getMessage(), e);
+      System.out.println("Error getting habit execution by ID: \n " + e.getMessage());
     }
+    return null;
   }
   
   /**
@@ -166,9 +170,11 @@ public class HabitExecutionDbRepository {
         return executions;
       }
     } catch (SQLException e) {
-      throw new RuntimeException("Error retrieving habit executions by date range: " + e.getMessage(), e);
+      System.out.println("Error retrieving habit executions by date range: \n " + e.getMessage());
     }
+    return new ArrayList<>();
   }
+  
   private HabitExecution mapResultSetToHabitExecution(ResultSet rs) throws SQLException {
     Long habitId = rs.getLong("habit_id");
     LocalDate date = rs.getDate("date").toLocalDate();

@@ -3,10 +3,12 @@ package com.mkhabibullin.app.data;
 import com.mkhabibullin.app.model.User;
 
 import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
-import java.sql.*;
 
 /**
  * Repository class for managing User entities in the database.
@@ -46,8 +48,9 @@ public class UserDbRepository {
       }
       return users;
     } catch (SQLException e) {
-      throw new RuntimeException("Error retrieving all users: " + e.getMessage(), e);
+      System.out.println("Error retrieving all users: \n " + e.getMessage());
     }
+    return new ArrayList<>();
   }
   
   /**
@@ -75,9 +78,9 @@ public class UserDbRepository {
       }
     } catch (SQLException e) {
       if (e.getSQLState().equals("23505")) { // PostgreSQL unique violation code
-        throw new RuntimeException("User with this email already exists", e);
+        System.out.println("User with this email already exists");
       }
-      throw new RuntimeException("Error creating user: " + e.getMessage(), e);
+      System.out.println("Error creating user: \n " + e.getMessage());
     }
   }
   
@@ -99,8 +102,9 @@ public class UserDbRepository {
         return null;
       }
     } catch (SQLException e) {
-      throw new RuntimeException("Error reading user by ID: " + e.getMessage(), e);
+      System.out.println("Error reading user by ID: \n " + e.getMessage());
     }
+    return null;
   }
   
   /**
@@ -121,8 +125,9 @@ public class UserDbRepository {
         return null;
       }
     } catch (SQLException e) {
-      throw new RuntimeException("Error reading user by email: " + e.getMessage(), e);
+      System.out.println("Error reading user by email: \n " + e.getMessage());
     }
+    return null;
   }
   
   /**
@@ -150,9 +155,10 @@ public class UserDbRepository {
       }
     } catch (SQLException e) {
       if (e.getSQLState().equals("23505")) {
-        throw new RuntimeException("Email address already in use", e);
+        System.out.println("Email address already in use");
       }
-      throw new RuntimeException("Error updating user: " + e.getMessage(), e);
+      System.out.println("Error updating user: \n" + e.getMessage());
+      ;
     }
   }
   
@@ -168,7 +174,7 @@ public class UserDbRepository {
       pstmt.setString(1, email);
       pstmt.executeUpdate();
     } catch (SQLException e) {
-      throw new RuntimeException("Error deleting user: " + e.getMessage(), e);
+      System.out.println("Error deleting user: \n " + e.getMessage());
     }
   }
   

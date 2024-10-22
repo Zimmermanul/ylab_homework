@@ -55,7 +55,7 @@ public class HabitDbRepository{
         }
       }
     } catch (SQLException e) {
-      throw new RuntimeException("Error creating habit: " + e.getMessage(), e);
+      System.out.println("Error creating habit: \n " + e.getMessage());
     }
   }
   
@@ -81,7 +81,7 @@ public class HabitDbRepository{
         throw new RuntimeException("Habit not found with ID: " + habit.getId());
       }
     } catch (SQLException e) {
-      throw new RuntimeException("Error updating habit: " + e.getMessage(), e);
+      System.out.println("Error updating habit: \n " + e.getMessage());
     }
   }
   
@@ -101,7 +101,7 @@ public class HabitDbRepository{
         throw new RuntimeException("Habit not found with ID: " + id);
       }
     } catch (SQLException e) {
-      throw new RuntimeException("Error deleting habit: " + e.getMessage(), e);
+      System.out.println("Error deleting habit: \n " + e.getMessage());
     }
   }
   
@@ -122,8 +122,9 @@ public class HabitDbRepository{
       }
       return habits;
     } catch (SQLException e) {
-      throw new RuntimeException("Error reading habits: " + e.getMessage(), e);
+      System.out.println("Error reading habit: \n " + e.getMessage());
     }
+    return new ArrayList<>();
   }
   
   /**
@@ -146,8 +147,9 @@ public class HabitDbRepository{
         return habits;
       }
     } catch (SQLException e) {
-      throw new RuntimeException("Error getting habits by user ID: " + e.getMessage(), e);
+      System.out.println("Error getting habits by user ID: \n " + e.getMessage());
     }
+    return new ArrayList<>();
   }
   
   /**
@@ -168,8 +170,9 @@ public class HabitDbRepository{
         return null;
       }
     } catch (SQLException e) {
-      throw new RuntimeException("Error getting habit by ID: " + e.getMessage(), e);
+      System.out.println("Error getting habit by ID: \n " + e.getMessage());
     }
+    return null;
   }
   private Habit mapResultSetToHabit(ResultSet rs) throws SQLException {
     Habit habit = new Habit();
