@@ -5,7 +5,7 @@ import com.zaxxer.hikari.HikariDataSource;
 
 import javax.sql.DataSource;
 
-import static com.mkhabibullin.app.util.DbUtil.createHikariConfig;
+import static com.mkhabibullin.app.util.DatabaseManager.createHikariConfig;
 
 /**
  * The {@code DataSourceConfig} class provides utility methods for configuring and

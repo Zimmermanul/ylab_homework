@@ -7,8 +7,8 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-import static com.mkhabibullin.app.util.DbUtil.createLiquibase;
-import static com.mkhabibullin.app.util.DbUtil.createLiquibaseServiceSchema;
+import static com.mkhabibullin.app.util.DatabaseManager.createLiquibase;
+import static com.mkhabibullin.app.util.DatabaseManager.createLiquibaseServiceSchema;
 
 /**
  * The {@code LiquibaseMigrationConfig} is responsible for managing database

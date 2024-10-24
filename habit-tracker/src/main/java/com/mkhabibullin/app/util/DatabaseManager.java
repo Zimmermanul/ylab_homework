@@ -13,13 +13,12 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
- * The {@code DBUtil} class provides utility methods to manage database operations such as loading
+ * Class provides methods to manage database operations such as loading
  * configuration properties, creating HikariCP configurations, and managing Liquibase database
  * migrations.
  */
-public class DbUtil {
-  public static final String LIQUIBASE_SERVICE_SCHEMA_NAME = "service";
-  public static final String CREATE_SCHEMA_SQL = "CREATE SCHEMA IF NOT EXISTS ";
+public class DatabaseManager {
+  private static final String LIQUIBASE_SERVICE_SCHEMA = "service";
   
   
   public static HikariConfig createHikariConfig() {
@@ -43,9 +42,9 @@ public class DbUtil {
   public static void createLiquibaseServiceSchema(Connection connection) {
     try {
       Statement statement = connection.createStatement();
-      statement.execute(CREATE_SCHEMA_SQL + LIQUIBASE_SERVICE_SCHEMA_NAME);
+      statement.execute("CREATE SCHEMA IF NOT EXISTS " + LIQUIBASE_SERVICE_SCHEMA);
     } catch (SQLException e) {
-      System.out.println("Exception while creating a schema " + LIQUIBASE_SERVICE_SCHEMA_NAME + ":\n " + e.getMessage());
+      System.out.println("Exception while creating a schema " + LIQUIBASE_SERVICE_SCHEMA + ":\n " + e.getMessage());
     }
   }
   
@@ -76,7 +75,7 @@ public class DbUtil {
     try {
       database = DatabaseFactory.getInstance()
         .findCorrectDatabaseImplementation(new JdbcConnection(connection));
-      database.setLiquibaseSchemaName(LIQUIBASE_SERVICE_SCHEMA_NAME);
+      database.setLiquibaseSchemaName(LIQUIBASE_SERVICE_SCHEMA);
     } catch (DatabaseException e) {
       System.out.println("Exception while creating a database: \n " + e.getMessage());
     }
