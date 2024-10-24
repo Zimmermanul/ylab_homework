@@ -37,7 +37,7 @@ public class HabitExecutionController {
    * @param completed whether the habit was completed or not
    * @throws IOException if there's an error during the marking process
    */
-  public void markHabitExecution(String habitId, LocalDate date, boolean completed) throws IOException {
+  public void markHabitExecution(Long habitId, LocalDate date, boolean completed) throws IOException {
     executionService.markHabitExecution(habitId, date, completed);
   }
   
@@ -48,7 +48,7 @@ public class HabitExecutionController {
    * @return a list of HabitExecution objects representing the execution history
    * @throws IOException if there's an error during the retrieval process
    */
-  public List<HabitExecution> getHabitExecutionHistory(String habitId) {
+  public List<HabitExecution> getHabitExecutionHistory(Long habitId) {
     return executionService.getHabitExecutionHistory(habitId);
   }
   
@@ -59,7 +59,7 @@ public class HabitExecutionController {
    * @return the current streak as an integer
    * @throws IOException if there's an error during the retrieval process
    */
-  public int getCurrentStreak(String habitId) {
+  public int getCurrentStreak(Long habitId) {
     return executionService.getCurrentStreak(habitId);
   }
   
@@ -72,7 +72,7 @@ public class HabitExecutionController {
    * @return the success percentage as a double (0.0 to 100.0)
    * @throws IOException if there's an error during the calculation process
    */
-  public double getSuccessPercentage(String habitId, LocalDate startDate, LocalDate endDate) {
+  public double getSuccessPercentage(Long habitId, LocalDate startDate, LocalDate endDate) {
     return executionService.getSuccessPercentage(habitId, startDate, endDate);
   }
   
@@ -85,7 +85,7 @@ public class HabitExecutionController {
    * @return a string containing the progress report
    * @throws IOException if there's an error during the report generation process
    */
-  public String generateProgressReport(String habitId, LocalDate startDate, LocalDate endDate) {
+  public String generateProgressReport(Long habitId, LocalDate startDate, LocalDate endDate) {
     return executionService.generateProgressReport(habitId, startDate, endDate);
   }
   

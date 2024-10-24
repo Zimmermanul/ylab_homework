@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+    <changeSet id="06" author="khabibullin.max">
+        <insert tableName="habits" schemaName="entity">
+            <column name="id" value="3"/>
+            <column name="user_id" value="1"/>
+            <column name="name" value="Daily Exercise"/>
+            <column name="description" value="30 minutes of physical activity"/>
+            <column name="frequency" value="DAILY"/>
+            <column name="creation_date" value="2023-01-01"/>
+            <column name="is_active" valueBoolean="true"/>
+        </insert>
+        <insert tableName="habits" schemaName="entity">
+            <column name="id" value="4"/>
+            <column name="user_id" value="1"/>
+            <column name="name" value="Weekly Reading"/>
+            <column name="description" value="Read a book for 2 hours"/>
+            <column name="frequency" value="WEEKLY"/>
+            <column name="creation_date" value="2023-01-02"/>
+            <column name="is_active" valueBoolean="true"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

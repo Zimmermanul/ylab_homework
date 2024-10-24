@@ -8,8 +8,8 @@ import java.util.UUID;
  * This class encapsulates information about when a habit was performed and whether it was completed.
  */
 public class HabitExecution {
-  private String id;
-  private String habitId;
+  private Long id;
+  private Long habitId;
   private LocalDate date;
   private boolean completed;
   
@@ -21,8 +21,7 @@ public class HabitExecution {
    * @param date      the date of this habit execution
    * @param completed whether the habit was completed on this date
    */
-  public HabitExecution(String habitId, LocalDate date, boolean completed) {
-    this.id = UUID.randomUUID().toString();
+  public HabitExecution(Long habitId, LocalDate date, boolean completed) {
     this.habitId = habitId;
     this.date = date;
     this.completed = completed;
@@ -32,7 +31,7 @@ public class HabitExecution {
    * Gets the unique identifier of this habit execution.
    * @return the habit execution's ID
    */
-  public String getId() {
+  public Long getId() {
     return id;
   }
   
@@ -40,7 +39,7 @@ public class HabitExecution {
    * Sets the unique identifier for this habit execution.
    * @param id the ID to set
    */
-  public void setId(String id) {
+  public void setId(Long id) {
     this.id = id;
   }
   
@@ -48,7 +47,7 @@ public class HabitExecution {
    * Gets the identifier of the associated habit.
    * @return the associated habit's ID
    */
-  public String getHabitId() {
+  public Long getHabitId() {
     return habitId;
   }
   
@@ -56,7 +55,7 @@ public class HabitExecution {
    * Sets the identifier of the associated habit.
    * @param habitId the habit ID to set
    */
-  public void setHabitId(String habitId) {
+  public void setHabitId(Long habitId) {
     this.habitId = habitId;
   }
   

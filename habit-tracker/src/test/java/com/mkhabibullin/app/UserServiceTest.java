@@ -1,6 +1,6 @@
 package com.mkhabibullin.app;
 
-import com.mkhabibullin.app.data.UserRepository;
+import com.mkhabibullin.app.data.UserDbRepository;
 import com.mkhabibullin.app.model.User;
 import com.mkhabibullin.app.service.UserService;
 import org.junit.jupiter.api.AfterEach;
@@ -18,7 +18,7 @@ import static org.mockito.Mockito.when;
 
 public class UserServiceTest {
   @Mock
-  private UserRepository userRepository;
+  private UserDbRepository userRepository;
   private UserService userService;
   private AutoCloseable closeable;
   

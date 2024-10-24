@@ -30,7 +30,7 @@ public class UserController {
    * @return the User object if found
    * @throws IOException if there's an error during the retrieval process
    */
-  public User getUserById(String id) {
+  public User getUserById(Long id) {
     return userService.getUserById(id);
   }
   
@@ -98,7 +98,7 @@ public class UserController {
    * @param newEmail the new email address
    * @throws IOException if there's an error during the update process
    */
-  public void updateUserEmail(String userId, String newEmail) {
+  public void updateUserEmail(Long userId, String newEmail) {
     userService.updateUserEmail(userId, newEmail);
   }
   
@@ -109,7 +109,7 @@ public class UserController {
    * @param newName the new name
    * @throws IOException if there's an error during the update process
    */
-  public void updateUserName(String userId, String newName) {
+  public void updateUserName(Long userId, String newName) {
     userService.updateUserName(userId, newName);
   }
   
@@ -120,7 +120,7 @@ public class UserController {
    * @param newPassword the new password
    * @throws IOException if there's an error during the update process
    */
-  public void updateUserPassword(String userId, String newPassword) {
+  public void updateUserPassword(Long userId, String newPassword) {
     userService.updateUserPassword(userId, newPassword);
   }
   

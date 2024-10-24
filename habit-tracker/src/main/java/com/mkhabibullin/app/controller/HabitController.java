@@ -56,7 +56,7 @@ public class HabitController {
    * @param id the unique identifier of the habit to delete
    * @throws IOException if there's an error during the habit deletion process
    */
-  public void deleteHabit(String id) throws IOException {
+  public void deleteHabit(Long id) throws IOException {
     habitService.deleteHabit(id);
   }
   
@@ -69,7 +69,7 @@ public class HabitController {
    * @return a list of habits matching the specified criteria
    * @throws IOException if there's an error during the habit retrieval process
    */
-  public List<Habit> viewHabits(String userId, LocalDate filterDate, Boolean active) {
+  public List<Habit> viewHabits(Long userId, LocalDate filterDate, Boolean active) {
     return habitService.viewHabits(userId, filterDate, active);
   }
 }
