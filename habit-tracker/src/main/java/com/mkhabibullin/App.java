@@ -1,8 +1,6 @@
 package com.mkhabibullin;
 
-import com.mkhabibullin.app.data.UserDbRepository;
 import com.mkhabibullin.app.presentation.MainMenuConsoleInterface;
-import com.mkhabibullin.app.service.UserService;
 import com.mkhabibullin.app.util.DataSourceConfig;
 import com.mkhabibullin.app.util.LiquibaseMigrationConfig;
 
@@ -13,13 +11,16 @@ import javax.sql.DataSource;
  * This class initializes necessary components and starts the application.
  */
 public class App {
-  private DataSource dataSource;
+  private final LiquibaseMigrationConfig liquibaseMigrationConfig;
+  private final MainMenuConsoleInterface mainMenuConsoleInterface;
   
   /**
    * Constructs a new Habit Tracker App instance.
    */
   public App() {
-    this.dataSource = DataSourceConfig.getDataSource();
+    DataSource dataSource = DataSourceConfig.getDataSource();
+    this.liquibaseMigrationConfig = new LiquibaseMigrationConfig(dataSource);
+    this.mainMenuConsoleInterface = new MainMenuConsoleInterface(dataSource);
   }
   
   /**
@@ -29,8 +30,8 @@ public class App {
    *
    */
   public void start() {
-    new LiquibaseMigrationConfig(dataSource).updateDB();
-    new MainMenuConsoleInterface(dataSource).start();
+    liquibaseMigrationConfig.updateDB();
+    mainMenuConsoleInterface.start();
   }
   
   /**
