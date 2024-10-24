@@ -151,14 +151,13 @@ public class UserDbRepository {
       
       int rowsAffected = pstmt.executeUpdate();
       if (rowsAffected == 0) {
-        throw new RuntimeException("User not found with ID: " + updatedUser.getId());
+        System.out.println("User not found with ID: " + updatedUser.getId());
       }
     } catch (SQLException e) {
       if (e.getSQLState().equals("23505")) {
         System.out.println("Email address already in use");
       }
       System.out.println("Error updating user: \n" + e.getMessage());
-      ;
     }
   }
   

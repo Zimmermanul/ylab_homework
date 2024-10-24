@@ -78,7 +78,7 @@ public class HabitDbRepository{
       
       int rowsAffected = pstmt.executeUpdate();
       if (rowsAffected == 0) {
-        throw new RuntimeException("Habit not found with ID: " + habit.getId());
+        System.out.println("Habit not found with ID: " + habit.getId());
       }
     } catch (SQLException e) {
       System.out.println("Error updating habit: \n " + e.getMessage());
@@ -98,7 +98,7 @@ public class HabitDbRepository{
       
       int rowsAffected = pstmt.executeUpdate();
       if (rowsAffected == 0) {
-        throw new RuntimeException("Habit not found with ID: " + id);
+        System.out.println("Habit not found with ID: " + id);
       }
     } catch (SQLException e) {
       System.out.println("Error deleting habit: \n " + e.getMessage());
