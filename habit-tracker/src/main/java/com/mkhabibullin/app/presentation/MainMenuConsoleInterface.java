@@ -3,14 +3,15 @@ package com.mkhabibullin.app.presentation;
 import com.mkhabibullin.app.controller.HabitController;
 import com.mkhabibullin.app.controller.HabitExecutionController;
 import com.mkhabibullin.app.controller.UserController;
-import com.mkhabibullin.app.data.HabitExecutionRepository;
-import com.mkhabibullin.app.data.HabitRepository;
-import com.mkhabibullin.app.data.UserRepository;
+import com.mkhabibullin.app.data.HabitDbRepository;
+import com.mkhabibullin.app.data.HabitExecutionDbRepository;
+import com.mkhabibullin.app.data.UserDbRepository;
 import com.mkhabibullin.app.model.User;
 import com.mkhabibullin.app.service.HabitExecutionService;
 import com.mkhabibullin.app.service.HabitService;
 import com.mkhabibullin.app.service.UserService;
 
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.util.Scanner;
 
@@ -20,9 +21,9 @@ import java.util.Scanner;
  * for both admin and regular users.
  */
 public class MainMenuConsoleInterface {
-  private UserRepository userRepository;
-  private HabitRepository habitRepository;
-  private HabitExecutionRepository executionRepository;
+  private UserDbRepository userRepository;
+  private HabitDbRepository habitRepository;
+  private HabitExecutionDbRepository executionRepository;
   private UserService userService;
   private HabitService habitService;
   private HabitExecutionService executionService;
@@ -37,10 +38,10 @@ public class MainMenuConsoleInterface {
    * Constructs a new MainMenuConsoleInterface.
    * Initializes all repositories, services, controllers, and sub-interfaces.
    */
-  public MainMenuConsoleInterface() {
-    this.userRepository = new UserRepository();
-    this.habitRepository = new HabitRepository();
-    this.executionRepository = new HabitExecutionRepository();
+  public MainMenuConsoleInterface(DataSource dataSource) {
+    this.userRepository = new UserDbRepository(dataSource);
+    this.habitRepository = new HabitDbRepository(dataSource);
+    this.executionRepository = new HabitExecutionDbRepository(dataSource);
     
     this.userService = new UserService(userRepository);
     this.habitService = new HabitService(habitRepository, userRepository);

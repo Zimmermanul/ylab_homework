@@ -11,8 +11,8 @@ import java.util.UUID;
  * It implements Serializable to allow for easy saving and transmission of habit objects.
  */
 public class Habit implements Serializable {
-  private String id;
-  private String userId;
+  private Long id;
+  private Long userId;
   private String name;
   private String description;
   private Frequency frequency;
@@ -32,7 +32,6 @@ public class Habit implements Serializable {
    * and marks the habit as active.
    */
   public Habit() {
-    this.id = UUID.randomUUID().toString();
     this.creationDate = LocalDate.now();
     this.isActive = true;
   }
@@ -42,7 +41,7 @@ public class Habit implements Serializable {
    *
    * @return the user ID
    */
-  public String getUserId() {
+  public Long getUserId() {
     return userId;
   }
   
@@ -51,7 +50,7 @@ public class Habit implements Serializable {
    *
    * @param userId the user ID to set
    */
-  public void setUserId(String userId) {
+  public void setUserId(Long userId) {
     this.userId = userId;
   }
   
@@ -60,7 +59,7 @@ public class Habit implements Serializable {
    *
    * @return the habit's ID
    */
-  public String getId() {
+  public Long getId() {
     return id;
   }
   
@@ -69,7 +68,7 @@ public class Habit implements Serializable {
    *
    * @param id the ID to set
    */
-  public void setId(String id) {
+  public void setId(Long id) {
     this.id = id;
   }
   

@@ -1,11 +1,10 @@
 package com.mkhabibullin.app.service;
 
-import com.mkhabibullin.app.data.UserRepository;
+import com.mkhabibullin.app.data.HabitDbRepository;
+import com.mkhabibullin.app.data.UserDbRepository;
 import com.mkhabibullin.app.model.User;
-import com.mkhabibullin.app.data.HabitRepository;
 import com.mkhabibullin.app.model.Habit;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,8 +15,8 @@ import java.util.stream.Collectors;
  * It interacts with HabitRepository for habit data persistence and UserRepository for user information.
  */
 public class HabitService {
-  private HabitRepository habitRepository;
-  private UserRepository userRepository;
+  private HabitDbRepository habitRepository;
+  private UserDbRepository userRepository;
   
   /**
    * Constructs a new HabitService with the specified repositories.
@@ -25,7 +24,7 @@ public class HabitService {
    * @param habitRepository the repository for habit data
    * @param userRepository  the repository for user data
    */
-  public HabitService(HabitRepository habitRepository, UserRepository userRepository) {
+  public HabitService(HabitDbRepository habitRepository, UserDbRepository userRepository) {
     this.habitRepository = habitRepository;
     this.userRepository = userRepository;
   }
@@ -74,7 +73,7 @@ public class HabitService {
    *
    * @param id the ID of the habit to delete
    */
-  public void deleteHabit(String id) {
+  public void deleteHabit(Long id) {
     habitRepository.delete(id);
   }
   
@@ -86,7 +85,7 @@ public class HabitService {
    * @param active     whether to retrieve only active habits, can be null to retrieve all habits
    * @return a list of habits matching the specified criteria
    */
-  public List<Habit> viewHabits(String userId, LocalDate filterDate, Boolean active) {
+  public List<Habit> viewHabits(Long userId, LocalDate filterDate, Boolean active) {
     return habitRepository.getByUserId(userId).stream()
       .filter(h -> filterDate == null || !h.getCreationDate().isBefore(filterDate))
       .filter(h -> active == null || h.isActive() == active)

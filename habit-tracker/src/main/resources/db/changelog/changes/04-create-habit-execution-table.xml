@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+    <changeSet id="04" author="khabibullin.max">
+        <createTable tableName="habit_executions" schemaName="entity"
+                     remarks="Stores individual habit execution records and their completion status">
+            <column name="id" type="bigint" defaultValueComputed="nextval('entity.global_seq')"
+                    remarks="Unique identifier for the habit execution">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="habit_id" type="bigint" remarks="Reference to the habit being executed">
+                <constraints nullable="false" foreignKeyName="fk_habit_execution_habit" references="entity.habits(id)"/>
+            </column>
+            <column name="date" type="DATE" remarks="Date when the habit execution was recorded">
+                <constraints nullable="false"/>
+            </column>
+            <column name="completed" type="BOOLEAN"
+                    remarks="Flag indicating whether the habit was completed on this date">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <sql>
+            COMMENT
+            ON TABLE entity.habit_executions IS 'Stores individual habit execution records and their completion status';
+            COMMENT
+            ON COLUMN entity.habit_executions.id IS 'Unique identifier for the habit execution';
+            COMMENT
+            ON COLUMN entity.habit_executions.habit_id IS 'Reference to the habit being executed';
+            COMMENT
+            ON COLUMN entity.habit_executions.date IS 'Date when the habit execution was recorded';
+            COMMENT
+            ON COLUMN entity.habit_executions.completed IS 'Flag indicating whether the habit was completed on this date';
+        </sql>
+    </changeSet>
+</databaseChangeLog>

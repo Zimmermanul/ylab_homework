@@ -1,0 +1,10 @@
+database:
+  host: localhost
+  port: 5432
+  name: habit-tracker-db
+  user: habit-tracker-admin
+  password: habittrackerpass123
+
+liquibase:
+  enabled: true
+  changeLogFile: db/changelog/db.changelog-master.xml

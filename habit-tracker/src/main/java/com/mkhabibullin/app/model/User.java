@@ -15,7 +15,7 @@ import java.util.UUID;
  * It implements Serializable to allow for easy saving and transmission of user objects.
  */
 public class User implements Serializable {
-  private final String id;
+  private Long id;
   private String email;
   private String passwordHash;
   private String salt;
@@ -24,25 +24,11 @@ public class User implements Serializable {
   private boolean isBlocked;
   
   /**
-   * Constructs a new User with the given email and name.
-   * Generates a new UUID for the user's id.
-   *
+   * Constructs a new User with the given email, and name.
    * @param email the user's email address
    * @param name  the user's name
    */
   public User(String email, String name) {
-    this(UUID.randomUUID().toString(), email, name);
-  }
-  
-  /**
-   * Constructs a new User with the given id, email, and name.
-   *
-   * @param id    the user's unique identifier
-   * @param email the user's email address
-   * @param name  the user's name
-   */
-  public User(String id, String email, String name) {
-    this.id = id;
     this.email = email;
     this.name = name;
     this.isAdmin = false;
@@ -54,8 +40,17 @@ public class User implements Serializable {
    *
    * @return the user's ID
    */
-  public String getId() {
+  public Long getId() {
     return id;
+  }
+  
+  /**
+   * Gets the unique identifier of the user.
+   *
+   * @return the user's ID
+   */
+  public void setId(Long id) {
+    this.id = id;
   }
   
   /**

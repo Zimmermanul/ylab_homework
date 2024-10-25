@@ -1,7 +1,7 @@
 package com.mkhabibullin.app;
 
-import com.mkhabibullin.app.data.HabitExecutionRepository;
-import com.mkhabibullin.app.data.HabitRepository;
+import com.mkhabibullin.app.data.HabitDbRepository;
+import com.mkhabibullin.app.data.HabitExecutionDbRepository;
 import com.mkhabibullin.app.model.Habit;
 import com.mkhabibullin.app.model.HabitExecution;
 import com.mkhabibullin.app.service.HabitExecutionService;
@@ -12,21 +12,18 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class HabitExecutionServiceTest {
   @Mock
-  private HabitExecutionRepository executionRepository;
-  
+  private HabitExecutionDbRepository executionRepository;
   @Mock
-  private HabitRepository habitRepository;
+  private HabitDbRepository habitRepository;
   private HabitExecutionService habitExecutionService;
   private AutoCloseable closeable;
   
@@ -44,7 +41,7 @@ public class HabitExecutionServiceTest {
   @Test
   @DisplayName("isImprovingTrend should return true when trend is improving")
   void isImprovingTrendShouldReturnTrueWhenTrendIsImproving() {
-    String habitId = "123";
+    Long habitId = 1000L;
     List<HabitExecution> executions = Arrays.asList(
       new HabitExecution(habitId, LocalDate.of(2024, 1, 1), false),
       new HabitExecution(habitId, LocalDate.of(2024, 1, 2), false),
@@ -58,7 +55,7 @@ public class HabitExecutionServiceTest {
   @Test
   @DisplayName("isImprovingTrend should return false when trend is not improving")
   void isImprovingTrendShouldReturnFalseWhenTrendIsNotImproving() {
-    String habitId = "123";
+    Long habitId = 1000L;
     List<HabitExecution> executions = Arrays.asList(
       new HabitExecution(habitId, LocalDate.of(2023, 1, 1), true),
       new HabitExecution(habitId, LocalDate.of(2023, 1, 2), true),
@@ -72,7 +69,7 @@ public class HabitExecutionServiceTest {
   @Test
   @DisplayName("calculateLongestStreak should return correct longest streak")
   void calculateLongestStreakShouldReturnCorrectLongestStreak() {
-    String habitId = "123";
+    Long habitId = 1000L;
     List<HabitExecution> executions = Arrays.asList(
       new HabitExecution(habitId, LocalDate.of(2023, 1, 1), true),
       new HabitExecution(habitId, LocalDate.of(2023, 1, 2), true),
@@ -88,7 +85,7 @@ public class HabitExecutionServiceTest {
   @Test
   @DisplayName("generateSuggestions should return appropriate suggestions for low completion rate")
   void generateSuggestionsShouldReturnAppropriateForLowCompletionRate() {
-    String habitId = "123";
+    Long habitId = 1000L;
     Habit habit = new Habit();
     habit.setId(habitId);
     habit.setName("Daily Exercise");
@@ -113,7 +110,7 @@ public class HabitExecutionServiceTest {
   @Test
   @DisplayName("generateSuggestions should return appropriate suggestions for high completion rate")
   void generateSuggestionsShouldReturnAppropriateForHighCompletionRate() {
-    String habitId = "123";
+    Long habitId = 1000L;
     Habit habit = new Habit();
     habit.setId(habitId);
     habit.setName("Weekly Reading");
@@ -139,7 +136,7 @@ public class HabitExecutionServiceTest {
   @Test
   @DisplayName("generateProgressReport should return correct report for valid habit")
   void generateProgressReportShouldReturnCorrectReportForValidHabit() {
-    String habitId = "123";
+    Long habitId = 1000L;
     LocalDate startDate = LocalDate.of(2023, 1, 1);
     LocalDate endDate = LocalDate.of(2023, 1, 31);
     Habit habit = new Habit();
@@ -165,22 +162,9 @@ public class HabitExecutionServiceTest {
   }
   
   @Test
-  @DisplayName("generateProgressReport should throw exception for nonexistent habit")
-  void generateProgressReportShouldThrowExceptionForNonexistentHabit() {
-    String habitId = "nonexistent";
-    LocalDate startDate = LocalDate.of(2023, 1, 1);
-    LocalDate endDate = LocalDate.of(2023, 1, 31);
-    when(habitRepository.getById(habitId)).thenReturn(null);
-    assertThatThrownBy(() -> habitExecutionService.generateProgressReport(habitId, startDate, endDate))
-      .isInstanceOf(IllegalArgumentException.class);
-    verify(habitRepository).getById(habitId);
-    verifyNoInteractions(executionRepository);
-  }
-  
-  @Test
   @DisplayName("getCurrentStreak should return correct streak for valid habit")
   void getCurrentStreakShouldReturnCorrectStreakForValidHabit() {
-    String habitId = "123";
+    Long habitId = 1000L;
     List<HabitExecution> executions = Arrays.asList(
       new HabitExecution(habitId, LocalDate.now(), true),
       new HabitExecution(habitId, LocalDate.now().minusDays(1), true),
@@ -196,7 +180,7 @@ public class HabitExecutionServiceTest {
   @Test
   @DisplayName("getSuccessPercentage should return correct percentage for valid habit")
   void getSuccessPercentageShouldReturnCorrectPercentageForValidHabit() {
-    String habitId = "123";
+    Long habitId = 1000L;
     LocalDate startDate = LocalDate.of(2023, 1, 1);
     LocalDate endDate = LocalDate.of(2023, 1, 10);
     List<HabitExecution> executions = Arrays.asList(

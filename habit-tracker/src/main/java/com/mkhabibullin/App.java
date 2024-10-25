@@ -1,38 +1,37 @@
 package com.mkhabibullin;
 
-import com.mkhabibullin.app.controller.UserController;
-import com.mkhabibullin.app.data.UserRepository;
-import com.mkhabibullin.app.model.User;
 import com.mkhabibullin.app.presentation.MainMenuConsoleInterface;
-import com.mkhabibullin.app.service.UserService;
+import com.mkhabibullin.app.util.DataSourceConfig;
+import com.mkhabibullin.app.util.LiquibaseMigrationConfig;
 
-import java.io.IOException;
+import javax.sql.DataSource;
 
 /**
  * Main application class that serves as the entry point for the application.
  * This class initializes necessary components and starts the application.
  */
 public class App {
-  private UserRepository userRepository;
-  private UserService userService;
-  private MainMenuConsoleInterface mainMenu;
+  private final LiquibaseMigrationConfig liquibaseMigrationConfig;
+  private final MainMenuConsoleInterface mainMenuConsoleInterface;
   
   /**
    * Constructs a new Habit Tracker App instance.
    */
   public App() {
-    this.userRepository = new UserRepository();
-    this.userService = new UserService(userRepository);
-    this.mainMenu = new MainMenuConsoleInterface();
+    DataSource dataSource = DataSourceConfig.getDataSource();
+    this.liquibaseMigrationConfig = new LiquibaseMigrationConfig(dataSource);
+    this.mainMenuConsoleInterface = new MainMenuConsoleInterface(dataSource);
   }
   
   /**
-   * Starts the application.
-   * Creates an admin user if it doesn't exist and launches the main menu.
+   * Initializes and starts the application by:
+   * 1. Running database migrations using Liquibase to ensure schema is up to date
+   * 2. Launching the main menu console interface
+   *
    */
   public void start() {
-    userService.createAdminUserIfNotExists();
-    mainMenu.start();
+    liquibaseMigrationConfig.updateDB();
+    mainMenuConsoleInterface.start();
   }
   
   /**
