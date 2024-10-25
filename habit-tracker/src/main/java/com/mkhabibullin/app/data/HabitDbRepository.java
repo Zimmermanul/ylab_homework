@@ -1,5 +1,6 @@
 package com.mkhabibullin.app.data;
 
+import com.mkhabibullin.app.data.queries.HabitRepositoryQueries;
 import com.mkhabibullin.app.model.Habit;
 
 import javax.sql.DataSource;
@@ -15,7 +16,7 @@ import java.util.List;
  * Provides CRUD (Create, Read, Update, Delete) operations for habits using JDBC.
  * All database operations are performed on the 'entity.habits' table.
  */
-public class HabitDbRepository{
+public class HabitDbRepository {
   private final DataSource dataSource;
   
   /**
@@ -38,10 +39,8 @@ public class HabitDbRepository{
    * @param habit The habit object to be persisted
    */
   public void create(Habit habit) {
-    String sql = "INSERT INTO entity.habits (user_id, name, description, frequency, creation_date, is_active) " +
-                 "VALUES (?, ?, ?, ?, ?, ?) RETURNING id";
     try (Connection conn = getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+         PreparedStatement pstmt = conn.prepareStatement(HabitRepositoryQueries.CREATE_HABIT)) {
       pstmt.setLong(1, habit.getUserId());
       pstmt.setString(2, habit.getName());
       pstmt.setString(3, habit.getDescription());
@@ -63,13 +62,10 @@ public class HabitDbRepository{
    * Updates an existing habit record in the database.
    *
    * @param habit The habit object with updated values
-    */
+   */
   public void update(Habit habit) {
-    String sql = "UPDATE entity.habits " +
-                 "SET name = ?, description = ?, frequency = ?, is_active = ? " +
-                 "WHERE id = ?";
     try (Connection conn = getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+         PreparedStatement pstmt = conn.prepareStatement(HabitRepositoryQueries.UPDATE_HABIT)) {
       pstmt.setString(1, habit.getName());
       pstmt.setString(2, habit.getDescription());
       pstmt.setString(3, habit.getFrequency().toString());
@@ -89,11 +85,10 @@ public class HabitDbRepository{
    * Deletes a habit record from the database.
    *
    * @param id The ID of the habit to delete
-    */
+   */
   public void delete(Long id) {
-    String sql = "DELETE FROM entity.habits WHERE id = ?";
     try (Connection conn = getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+         PreparedStatement pstmt = conn.prepareStatement(HabitRepositoryQueries.DELETE_HABIT)) {
       pstmt.setLong(1, id);
       
       int rowsAffected = pstmt.executeUpdate();
@@ -109,11 +104,10 @@ public class HabitDbRepository{
    * Retrieves all habit records from the database.
    *
    * @return List of all habits in the database
-    */
+   */
   public List<Habit> readAll() {
-    String sql = "SELECT * FROM entity.habits";
     try (Connection conn = getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql);
+         PreparedStatement pstmt = conn.prepareStatement(HabitRepositoryQueries.READ_ALL_HABITS);
          ResultSet rs = pstmt.executeQuery()) {
       
       List<Habit> habits = new ArrayList<>();
@@ -133,11 +127,9 @@ public class HabitDbRepository{
    * @param userId The ID of the user whose habits to retrieve
    * @return List of habits belonging to the specified user
    */
-  
   public List<Habit> getByUserId(Long userId) {
-    String sql = "SELECT * FROM entity.habits WHERE user_id = ?";
     try (Connection conn = getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+         PreparedStatement pstmt = conn.prepareStatement(HabitRepositoryQueries.GET_HABITS_BY_USER_ID)) {
       pstmt.setLong(1, userId);
       try (ResultSet rs = pstmt.executeQuery()) {
         List<Habit> habits = new ArrayList<>();
@@ -159,9 +151,8 @@ public class HabitDbRepository{
    * @return The habit object if found, null otherwise
    */
   public Habit getById(Long id) {
-    String sql = "SELECT * FROM entity.habits WHERE id = ?";
     try (Connection conn = getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+         PreparedStatement pstmt = conn.prepareStatement(HabitRepositoryQueries.GET_HABIT_BY_ID)) {
       pstmt.setLong(1, id);
       try (ResultSet rs = pstmt.executeQuery()) {
         if (rs.next()) {
@@ -174,6 +165,7 @@ public class HabitDbRepository{
     }
     return null;
   }
+  
   private Habit mapResultSetToHabit(ResultSet rs) throws SQLException {
     Habit habit = new Habit();
     habit.setId(rs.getLong("id"));

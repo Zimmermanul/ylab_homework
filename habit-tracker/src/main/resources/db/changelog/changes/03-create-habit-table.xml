@@ -5,26 +5,47 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
     <changeSet id="03" author="khabibullin.max">
-        <createTable tableName="habits" schemaName="entity">
-            <column name="id" type="bigint" defaultValueComputed="nextval('entity.global_seq')">
+        <createTable tableName="habits" schemaName="entity" remarks="Stores habit definitions and their properties">
+            <column name="id" type="bigint" defaultValueComputed="nextval('entity.global_seq')"
+                    remarks="Unique identifier for the habit">
                 <constraints primaryKey="true"/>
             </column>
-            <column name="user_id" type="bigint">
+            <column name="user_id" type="bigint" remarks="Reference to the user who owns this habit">
                 <constraints nullable="false" foreignKeyName="fk_habit_user" references="entity.users(id)"/>
             </column>
-            <column name="name" type="VARCHAR(255)">
+            <column name="name" type="VARCHAR(255)" remarks="Name or title of the habit">
                 <constraints nullable="false"/>
             </column>
-            <column name="description" type="TEXT"/>
-            <column name="frequency" type="VARCHAR(10)">
+            <column name="description" type="TEXT" remarks="Detailed description of the habit"/>
+            <column name="frequency" type="VARCHAR(10)" remarks="Frequency of habit occurrence (DAILY or WEEKLY)">
                 <constraints nullable="false"/>
             </column>
-            <column name="creation_date" type="DATE">
+            <column name="creation_date" type="DATE" remarks="Date when the habit was created">
                 <constraints nullable="false"/>
             </column>
-            <column name="is_active" type="BOOLEAN" defaultValueBoolean="true">
+            <column name="is_active" type="BOOLEAN" defaultValueBoolean="true"
+                    remarks="Flag indicating whether the habit is currently active">
                 <constraints nullable="false"/>
             </column>
         </createTable>
+
+        <sql>
+            COMMENT
+            ON TABLE entity.habits IS 'Stores habit definitions and their properties';
+            COMMENT
+            ON COLUMN entity.habits.id IS 'Unique identifier for the habit';
+            COMMENT
+            ON COLUMN entity.habits.user_id IS 'Reference to the user who owns this habit';
+            COMMENT
+            ON COLUMN entity.habits.name IS 'Name or title of the habit';
+            COMMENT
+            ON COLUMN entity.habits.description IS 'Detailed description of the habit';
+            COMMENT
+            ON COLUMN entity.habits.frequency IS 'Frequency of habit occurrence (DAILY or WEEKLY)';
+            COMMENT
+            ON COLUMN entity.habits.creation_date IS 'Date when the habit was created';
+            COMMENT
+            ON COLUMN entity.habits.is_active IS 'Flag indicating whether the habit is currently active';
+        </sql>
     </changeSet>
 </databaseChangeLog>

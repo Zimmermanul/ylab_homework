@@ -1,5 +1,6 @@
 package com.mkhabibullin.app.data;
 
+import com.mkhabibullin.app.data.queries.UserRepositoryQueries;
 import com.mkhabibullin.app.model.User;
 
 import javax.sql.DataSource;
@@ -37,9 +38,8 @@ public class UserDbRepository {
    * @return List of all users in the database
    */
   public List<User> getAllUsers() {
-    String sql = "SELECT * FROM entity.users";
     try (Connection conn = getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql);
+         PreparedStatement pstmt = conn.prepareStatement(UserRepositoryQueries.GET_ALL_USERS);
          ResultSet rs = pstmt.executeQuery()) {
       
       List<User> users = new ArrayList<>();
@@ -58,12 +58,11 @@ public class UserDbRepository {
    * The user's ID will be set after successful creation.
    *
    * @param user The user object to be persisted
+   * @throws RuntimeException if a user with the same email already exists
    */
   public void createUser(User user) {
-    String sql = "INSERT INTO entity.users (email, password_hash, salt, name, is_admin, is_blocked) " +
-                 "VALUES (?, ?, ?, ?, ?, ?) RETURNING id";
     try (Connection conn = getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+         PreparedStatement pstmt = conn.prepareStatement(UserRepositoryQueries.CREATE_USER)) {
       pstmt.setString(1, user.getEmail());
       pstmt.setString(2, user.getPasswordHash());
       pstmt.setString(3, user.getSalt());
@@ -73,11 +72,11 @@ public class UserDbRepository {
       
       try (ResultSet rs = pstmt.executeQuery()) {
         if (rs.next()) {
-          user.setId(rs.getLong("id")); // Set the generated ID back to the user object
+          user.setId(rs.getLong("id"));
         }
       }
     } catch (SQLException e) {
-      if (e.getSQLState().equals("23505")) { // PostgreSQL unique violation code
+      if (e.getSQLState().equals("23505")) {
         System.out.println("User with this email already exists");
       }
       System.out.println("Error creating user: \n " + e.getMessage());
@@ -91,9 +90,8 @@ public class UserDbRepository {
    * @return The user object if found, null otherwise
    */
   public User readUserById(Long id) {
-    String sql = "SELECT * FROM entity.users WHERE id = ?";
     try (Connection conn = getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+         PreparedStatement pstmt = conn.prepareStatement(UserRepositoryQueries.GET_USER_BY_ID)) {
       pstmt.setLong(1, id);
       try (ResultSet rs = pstmt.executeQuery()) {
         if (rs.next()) {
@@ -114,9 +112,8 @@ public class UserDbRepository {
    * @return The user object if found, null otherwise
    */
   public User readUserByEmail(String email) {
-    String sql = "SELECT * FROM entity.users WHERE email = ?";
     try (Connection conn = getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+         PreparedStatement pstmt = conn.prepareStatement(UserRepositoryQueries.GET_USER_BY_EMAIL)) {
       pstmt.setString(1, email);
       try (ResultSet rs = pstmt.executeQuery()) {
         if (rs.next()) {
@@ -134,13 +131,11 @@ public class UserDbRepository {
    * Updates an existing user's information in the database.
    *
    * @param updatedUser The user object with updated values
+   * @throws RuntimeException if the user is not found or if the email is already in use
    */
   public void updateUser(User updatedUser) {
-    String sql = "UPDATE entity.users " +
-                 "SET email = ?, password_hash = ?, salt = ?, name = ?, is_admin = ?, is_blocked = ? " +
-                 "WHERE id = ?";
     try (Connection conn = getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+         PreparedStatement pstmt = conn.prepareStatement(UserRepositoryQueries.UPDATE_USER)) {
       pstmt.setString(1, updatedUser.getEmail());
       pstmt.setString(2, updatedUser.getPasswordHash());
       pstmt.setString(3, updatedUser.getSalt());
@@ -167,11 +162,13 @@ public class UserDbRepository {
    * @param email The email address of the user to delete
    */
   public void deleteUser(String email) {
-    String sql = "DELETE FROM entity.users WHERE email = ?";
     try (Connection conn = getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+         PreparedStatement pstmt = conn.prepareStatement(UserRepositoryQueries.DELETE_USER_BY_EMAIL)) {
       pstmt.setString(1, email);
-      pstmt.executeUpdate();
+      int rowsAffected = pstmt.executeUpdate();
+      if (rowsAffected == 0) {
+        System.out.println("User not found with email: " + email);
+      }
     } catch (SQLException e) {
       System.out.println("Error deleting user: \n " + e.getMessage());
     }

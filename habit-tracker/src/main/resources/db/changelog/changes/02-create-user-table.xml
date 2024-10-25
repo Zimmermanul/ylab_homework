@@ -5,28 +5,53 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
     <changeSet id="02" author="khabibullin.max">
-        <createTable tableName="users" schemaName="entity">
-            <column name="id" type="bigint" defaultValueComputed="nextval('entity.global_seq')">
+        <createTable tableName="users" schemaName="entity"
+                     remarks="Stores user account information and authentication details">
+            <column name="id" type="bigint" defaultValueComputed="nextval('entity.global_seq')"
+                    remarks="Unique identifier for the user">
                 <constraints primaryKey="true"/>
             </column>
-            <column name="email" type="VARCHAR(255)">
+            <column name="email" type="VARCHAR(255)"
+                    remarks="User's email address, used for authentication and communication">
                 <constraints unique="true" nullable="false"/>
             </column>
-            <column name="password_hash" type="VARCHAR(255)">
+            <column name="password_hash" type="VARCHAR(255)"
+                    remarks="Hashed version of user's password for secure storage">
                 <constraints nullable="false"/>
             </column>
-            <column name="salt" type="VARCHAR(255)">
+            <column name="salt" type="VARCHAR(255)" remarks="Random salt used in password hashing">
                 <constraints nullable="false"/>
             </column>
-            <column name="name" type="VARCHAR(255)">
+            <column name="name" type="VARCHAR(255)" remarks="User's display name">
                 <constraints nullable="false"/>
             </column>
-            <column name="is_admin" type="BOOLEAN" defaultValueBoolean="false">
+            <column name="is_admin" type="BOOLEAN" defaultValueBoolean="false"
+                    remarks="Flag indicating whether user has administrator privileges">
                 <constraints nullable="false"/>
             </column>
-            <column name="is_blocked" type="BOOLEAN" defaultValueBoolean="false">
+            <column name="is_blocked" type="BOOLEAN" defaultValueBoolean="false"
+                    remarks="Flag indicating whether user account is blocked">
                 <constraints nullable="false"/>
             </column>
         </createTable>
+
+        <sql>
+            COMMENT
+            ON TABLE entity.users IS 'Stores user account information and authentication details';
+            COMMENT
+            ON COLUMN entity.users.id IS 'Unique identifier for the user';
+            COMMENT
+            ON COLUMN entity.users.email IS 'User''s email address, used for authentication and communication';
+            COMMENT
+            ON COLUMN entity.users.password_hash IS 'Hashed version of user''s password for secure storage';
+            COMMENT
+            ON COLUMN entity.users.salt IS 'Random salt used in password hashing';
+            COMMENT
+            ON COLUMN entity.users.name IS 'User''s display name';
+            COMMENT
+            ON COLUMN entity.users.is_admin IS 'Flag indicating whether user has administrator privileges';
+            COMMENT
+            ON COLUMN entity.users.is_blocked IS 'Flag indicating whether user account is blocked';
+        </sql>
     </changeSet>
 </databaseChangeLog>

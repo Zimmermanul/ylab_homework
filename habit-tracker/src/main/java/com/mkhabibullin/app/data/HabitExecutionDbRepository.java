@@ -1,5 +1,6 @@
 package com.mkhabibullin.app.data;
 
+import com.mkhabibullin.app.data.queries.HabitExecutionRepositoryQueries;
 import com.mkhabibullin.app.model.HabitExecution;
 
 import javax.sql.DataSource;
@@ -38,17 +39,15 @@ public class HabitExecutionDbRepository {
    * @param execution The habit execution object to be persisted
    */
   public void save(HabitExecution execution) {
-    String sql = "INSERT INTO entity.habit_executions (habit_id, date, completed) " +
-                 "VALUES (?, ?, ?) RETURNING id";
     try (Connection conn = getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+         PreparedStatement pstmt = conn.prepareStatement(HabitExecutionRepositoryQueries.SAVE_EXECUTION)) {
       pstmt.setLong(1, execution.getHabitId());
       pstmt.setDate(2, java.sql.Date.valueOf(execution.getDate()));
       pstmt.setBoolean(3, execution.isCompleted());
       
       try (ResultSet rs = pstmt.executeQuery()) {
         if (rs.next()) {
-          execution.setId(rs.getLong("id")); // Set the generated ID back to the execution object
+          execution.setId(rs.getLong("id"));
         }
       }
     } catch (SQLException e) {
@@ -63,9 +62,8 @@ public class HabitExecutionDbRepository {
    * @return List of executions for the specified habit, ordered by date
    */
   public List<HabitExecution> getByHabitId(Long habitId) {
-    String sql = "SELECT * FROM entity.habit_executions WHERE habit_id = ? ORDER BY date";
     try (Connection conn = getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+         PreparedStatement pstmt = conn.prepareStatement(HabitExecutionRepositoryQueries.GET_BY_HABIT_ID)) {
       pstmt.setLong(1, habitId);
       try (ResultSet rs = pstmt.executeQuery()) {
         List<HabitExecution> executions = new ArrayList<>();
@@ -86,9 +84,8 @@ public class HabitExecutionDbRepository {
    * @param execution The habit execution object with updated values
    */
   public void update(HabitExecution execution) {
-    String sql = "UPDATE entity.habit_executions SET date = ?, completed = ? WHERE id = ?";
     try (Connection conn = getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+         PreparedStatement pstmt = conn.prepareStatement(HabitExecutionRepositoryQueries.UPDATE_EXECUTION)) {
       pstmt.setDate(1, java.sql.Date.valueOf(execution.getDate()));
       pstmt.setBoolean(2, execution.isCompleted());
       pstmt.setLong(3, execution.getId());
@@ -108,9 +105,8 @@ public class HabitExecutionDbRepository {
    * @param executionId The ID of the execution record to delete
    */
   public void delete(Long executionId) {
-    String sql = "DELETE FROM entity.habit_executions WHERE id = ?";
     try (Connection conn = getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+         PreparedStatement pstmt = conn.prepareStatement(HabitExecutionRepositoryQueries.DELETE_EXECUTION)) {
       pstmt.setLong(1, executionId);
       
       int rowsAffected = pstmt.executeUpdate();
@@ -129,9 +125,8 @@ public class HabitExecutionDbRepository {
    * @return The habit execution object if found, null otherwise
    */
   public HabitExecution getById(Long id) {
-    String sql = "SELECT * FROM entity.habit_executions WHERE id = ?";
     try (Connection conn = getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+         PreparedStatement pstmt = conn.prepareStatement(HabitExecutionRepositoryQueries.GET_BY_ID)) {
       pstmt.setLong(1, id);
       try (ResultSet rs = pstmt.executeQuery()) {
         if (rs.next()) {
@@ -154,10 +149,8 @@ public class HabitExecutionDbRepository {
    * @return List of executions within the specified date range, ordered by date
    */
   public List<HabitExecution> getByHabitAndDateRange(Long habitId, LocalDate startDate, LocalDate endDate) {
-    String sql = "SELECT * FROM entity.habit_executions " +
-                 "WHERE habit_id = ? AND date BETWEEN ? AND ? ORDER BY date";
     try (Connection conn = getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+         PreparedStatement pstmt = conn.prepareStatement(HabitExecutionRepositoryQueries.GET_BY_HABIT_AND_DATE_RANGE)) {
       pstmt.setLong(1, habitId);
       pstmt.setDate(2, java.sql.Date.valueOf(startDate));
       pstmt.setDate(3, java.sql.Date.valueOf(endDate));
