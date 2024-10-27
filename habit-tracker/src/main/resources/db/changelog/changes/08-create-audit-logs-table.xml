@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+    <changeSet id="08" author="khabibullin.max">
+        <sql>
+            CREATE SCHEMA IF NOT EXISTS audit;
+        </sql>
+        <createTable tableName="audit_logs" schemaName="audit" remarks="Stores audit logs for system operations">
+            <column name="id" type="bigint" defaultValueComputed="nextval('entity.global_seq')"
+                    remarks="Unique identifier for the audit log entry">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="username" type="VARCHAR(255)" remarks="Username who performed the action">
+                <constraints nullable="false"/>
+            </column>
+            <column name="method_name" type="VARCHAR(255)" remarks="Name of the method that was called">
+                <constraints nullable="false"/>
+            </column>
+            <column name="operation" type="VARCHAR(255)" remarks="Description of the operation performed">
+                <constraints nullable="false"/>
+            </column>
+            <column name="timestamp" type="TIMESTAMP" remarks="When the operation was performed">
+                <constraints nullable="false"/>
+            </column>
+            <column name="execution_time_ms" type="BIGINT" remarks="Duration of the operation in milliseconds">
+                <constraints nullable="false"/>
+            </column>
+            <column name="request_uri" type="VARCHAR(255)" remarks="URI of the request">
+                <constraints nullable="true"/>
+            </column>
+            <column name="request_method" type="VARCHAR(10)" remarks="HTTP method of the request">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+        <sql>
+            COMMENT
+            ON TABLE audit.audit_logs IS 'Stores audit logs for system operations';
+            COMMENT
+            ON COLUMN audit.audit_logs.id IS 'Unique identifier for the audit log entry';
+            COMMENT
+            ON COLUMN audit.audit_logs.username IS 'Username who performed the action';
+            COMMENT
+            ON COLUMN audit.audit_logs.method_name IS 'Name of the method that was called';
+            COMMENT
+            ON COLUMN audit.audit_logs.operation IS 'Description of the operation performed';
+            COMMENT
+            ON COLUMN audit.audit_logs.timestamp IS 'When the operation was performed';
+            COMMENT
+            ON COLUMN audit.audit_logs.execution_time_ms IS 'Duration of the operation in milliseconds';
+            COMMENT
+            ON COLUMN audit.audit_logs.request_uri IS 'URI of the request';
+            COMMENT
+            ON COLUMN audit.audit_logs.request_method IS 'HTTP method of the request';
+        </sql>
+        <createIndex indexName="idx_audit_logs_timestamp"
+                     tableName="audit_logs"
+                     schemaName="audit">
+            <column name="timestamp"/>
+        </createIndex>
+        <createIndex indexName="idx_audit_logs_username"
+                     tableName="audit_logs"
+                     schemaName="audit">
+            <column name="username"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

@@ -2,6 +2,7 @@ package com.mkhabibullin.app.servlet;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.mkhabibullin.app.annotation.Audited;
 import com.mkhabibullin.app.controller.HabitExecutionController;
 import com.mkhabibullin.app.dto.ErrorDTO;
 import com.mkhabibullin.app.dto.MessageDTO;
@@ -27,6 +28,7 @@ import java.io.IOException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -102,6 +104,7 @@ public class HabitExecutionServlet extends HttpServlet {
     }
   }
   
+  @Audited(operation = "Track Habit Execution")
   private void handleTrackExecution(HttpServletRequest request, HttpServletResponse response,
                                     String habitId, User currentUser) throws IOException {
     try {
@@ -125,6 +128,7 @@ public class HabitExecutionServlet extends HttpServlet {
     }
   }
   
+  @Audited(operation = "Get Execution History")
   private void handleGetExecutionHistory(HttpServletRequest request, HttpServletResponse response,
                                          String habitId, User currentUser) throws IOException {
     try {
@@ -138,28 +142,25 @@ public class HabitExecutionServlet extends HttpServlet {
     }
   }
   
+  @Audited(operation = "Get Execution Statistics")
   private void handleGetStatistics(HttpServletRequest request, HttpServletResponse response,
                                    String habitId, User currentUser) throws IOException {
     try {
       Long habitIdLong = Long.parseLong(habitId);
       DateRangeDTO dateRange = parseDateRange(request);
-      
       List<HabitExecution> history = executionController.getHabitExecutionHistory(habitIdLong);
       List<HabitExecution> filteredHistory = filterHistoryByDateRange(
         history,
         dateRange.startDate(),
         dateRange.endDate()
       );
-      
       int currentStreak = executionController.getCurrentStreak(habitIdLong);
       double successPercentage = executionController.getSuccessPercentage(
         habitIdLong,
         dateRange.startDate(),
         dateRange.endDate()
       );
-      
       Map<DayOfWeek, Long> completionsByDay = calculateCompletionsByDay(filteredHistory);
-      
       HabitStatisticsDTO statistics = executionMapper.createStatisticsDto(
         currentStreak,
         successPercentage,
@@ -168,7 +169,6 @@ public class HabitExecutionServlet extends HttpServlet {
         filteredHistory.stream().filter(e -> !e.isCompleted()).count(),
         completionsByDay
       );
-      
       sendJsonResponse(response, HttpServletResponse.SC_OK, statistics);
       logger.info("Retrieved statistics for habit {} by user {}", habitId, currentUser.getId());
     } catch (IllegalArgumentException e) {
@@ -176,7 +176,7 @@ public class HabitExecutionServlet extends HttpServlet {
     }
   }
   
-  
+  @Audited(operation = "Get Progress Report")
   private void handleGetProgressReport(HttpServletRequest request, HttpServletResponse response,
                                        String habitId, User currentUser) throws IOException {
     try {
@@ -206,7 +206,6 @@ public class HabitExecutionServlet extends HttpServlet {
         longestStreak,
         suggestions
       );
-      
       sendJsonResponse(response, HttpServletResponse.SC_OK, progressReport);
       logger.info("Retrieved progress report for habit {} by user {}", habitId, currentUser.getId());
     } catch (IllegalArgumentException e) {
@@ -227,18 +226,14 @@ public class HabitExecutionServlet extends HttpServlet {
     try {
       String startDateStr = request.getParameter("startDate");
       String endDateStr = request.getParameter("endDate");
-      
       if (startDateStr == null || endDateStr == null) {
         throw new IllegalArgumentException("Start date and end date are required");
       }
-      
       LocalDate startDate = LocalDate.parse(startDateStr);
       LocalDate endDate = LocalDate.parse(endDateStr);
-      
       if (endDate.isBefore(startDate)) {
         throw new IllegalArgumentException("End date cannot be before start date");
       }
-      
       return new DateRangeDTO(startDate, endDate);
     } catch (DateTimeParseException e) {
       throw new IllegalArgumentException("Invalid date format. Use YYYY-MM-DD");
@@ -251,7 +246,7 @@ public class HabitExecutionServlet extends HttpServlet {
     LocalDate endDate) {
     return history.stream()
       .filter(e -> !e.getDate().isBefore(startDate) && !e.getDate().isAfter(endDate))
-      .sorted((e1, e2) -> e1.getDate().compareTo(e2.getDate()))
+      .sorted(Comparator.comparing(HabitExecution::getDate))
       .collect(Collectors.toList());
   }
   

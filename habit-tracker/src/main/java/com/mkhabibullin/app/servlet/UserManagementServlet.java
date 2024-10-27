@@ -2,6 +2,7 @@ package com.mkhabibullin.app.servlet;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.mkhabibullin.app.annotation.Audited;
 import com.mkhabibullin.app.controller.UserController;
 import com.mkhabibullin.app.dto.ErrorDTO;
 import com.mkhabibullin.app.dto.MessageDTO;
@@ -148,6 +149,7 @@ public class UserManagementServlet extends HttpServlet {
     }
   }
   
+  @Audited(operation = "Register user")
   private void handleRegistration(HttpServletRequest request, HttpServletResponse response)
     throws IOException {
     try {
@@ -162,6 +164,7 @@ public class UserManagementServlet extends HttpServlet {
     }
   }
   
+  @Audited(operation = "Login user")
   private void handleLogin(HttpServletRequest request, HttpServletResponse response)
     throws IOException {
     try {
@@ -188,6 +191,7 @@ public class UserManagementServlet extends HttpServlet {
     }
   }
   
+  @Audited(operation = "Logout user")
   private void handleLogout(HttpServletRequest request, HttpServletResponse response) {
     HttpSession session = request.getSession(false);
     if (session != null) {

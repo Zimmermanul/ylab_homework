@@ -2,6 +2,7 @@ package com.mkhabibullin.app.servlet;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.mkhabibullin.app.annotation.Audited;
 import com.mkhabibullin.app.controller.HabitController;
 import com.mkhabibullin.app.dto.ErrorDTO;
 import com.mkhabibullin.app.dto.MessageDTO;
@@ -128,6 +129,7 @@ public class HabitManagementServlet extends HttpServlet {
     }
   }
   
+  @Audited(operation = "Create habit")
   private void handleCreateHabit(HttpServletRequest request, HttpServletResponse response, User currentUser)
     throws IOException {
     try {
@@ -147,6 +149,7 @@ public class HabitManagementServlet extends HttpServlet {
     }
   }
   
+  @Audited(operation = "Get list of habits")
   private void handleGetHabits(HttpServletRequest request, HttpServletResponse response, User currentUser)
     throws IOException {
     try {
@@ -164,6 +167,7 @@ public class HabitManagementServlet extends HttpServlet {
     }
   }
   
+  @Audited(operation = "Update habit")
   private void handleUpdateHabit(HttpServletRequest request, HttpServletResponse response,
                                  String habitId, User currentUser) throws IOException {
     try {
@@ -184,6 +188,7 @@ public class HabitManagementServlet extends HttpServlet {
     }
   }
   
+  @Audited(operation = "Delete habit")
   private void handleDeleteHabit(HttpServletRequest request, HttpServletResponse response,
                                  String habitId, User currentUser) throws IOException {
     try {
@@ -218,21 +223,6 @@ public class HabitManagementServlet extends HttpServlet {
       return Long.parseLong(habitId);
     } catch (NumberFormatException e) {
       throw new ValidationException("Invalid habit ID format");
-    }
-  }
-  
-  private void validateCreateHabitRequest(CreateHabitDTO dto) throws ValidationException {
-    if (dto.name() == null || dto.name().trim().isEmpty()) {
-      throw new ValidationException("Habit name is required");
-    }
-    if (dto.frequency() == null) {
-      throw new ValidationException("Habit frequency is required");
-    }
-  }
-  
-  private void validateUpdateHabitRequest(UpdateHabitDTO dto) throws ValidationException {
-    if (dto.name() != null && dto.name().trim().isEmpty()) {
-      throw new ValidationException("Habit name cannot be empty");
     }
   }
   
