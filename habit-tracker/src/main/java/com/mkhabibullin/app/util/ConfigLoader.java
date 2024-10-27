@@ -1,27 +1,39 @@
 package com.mkhabibullin.app.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
+
 import java.io.InputStream;
 import java.util.Map;
 
 public class ConfigLoader {
+  private static final Logger logger = LoggerFactory.getLogger(ConfigLoader.class);
   private static final String CONFIG_FILE = "config.yml";
-  private static Map<String, Object> config;
+  private static final Map<String, Object> config;
   
   static {
-    loadConfig();
+    config = loadConfig();
   }
-  private static void loadConfig() {
+  
+  private static Map<String, Object> loadConfig() {
     try (InputStream inputStream = ConfigLoader.class.getClassLoader().getResourceAsStream(CONFIG_FILE)) {
+      if (inputStream == null) {
+        throw new RuntimeException("Configuration file " + CONFIG_FILE + " not found in classpath");
+      }
+      logger.info("Loading configuration from {}", CONFIG_FILE);
       Yaml yaml = new Yaml();
-      config = yaml.load(inputStream);
+      Map<String, Object> loadedConfig = yaml.load(inputStream);
+      logger.info("Configuration loaded successfully");
+      return loadedConfig;
     } catch (Exception e) {
+      logger.error("Failed to load configuration", e);
       throw new RuntimeException("Failed to load configuration", e);
     }
   }
   
   public static String getDatabaseUrl() {
-    Map<String, Object> dbConfig = (Map<String, Object>) config.get("database");
+    Map<String, Object> dbConfig = getConfigSection("database");
     return String.format("jdbc:postgresql://%s:%s/%s",
       dbConfig.get("host"),
       dbConfig.get("port"),
@@ -29,26 +41,27 @@ public class ConfigLoader {
   }
   
   public static String getDatabaseUser() {
-    return ((Map<String, Object>) config.get("database")).get("user").toString();
+    return getConfigSection("database").get("user").toString();
   }
   
   public static String getDatabasePassword() {
-    return ((Map<String, Object>) config.get("database")).get("password").toString();
-  }
-  
-  public static boolean isMigrationsEnabled() {
-    return (boolean) ((Map<String, Object>) config.get("migrations")).get("enabled");
-  }
-  
-  public static String getMigrationsLocation() {
-    return ((Map<String, Object>) config.get("migrations")).get("location").toString();
+    return getConfigSection("database").get("password").toString();
   }
   
   public static boolean isLiquibaseEnabled() {
-    return (boolean) ((Map<String, Object>) config.get("liquibase")).get("enabled");
+    return (boolean) getConfigSection("liquibase").get("enabled");
   }
   
   public static String getLiquibaseChangeLogFile() {
-    return ((Map<String, Object>) config.get("liquibase")).get("changeLogFile").toString();
+    return getConfigSection("liquibase").get("changeLogFile").toString();
+  }
+  
+  @SuppressWarnings("unchecked")
+  private static Map<String, Object> getConfigSection(String section) {
+    Map<String, Object> sectionConfig = (Map<String, Object>) config.get(section);
+    if (sectionConfig == null) {
+      throw new RuntimeException("Configuration section '" + section + "' not found");
+    }
+    return sectionConfig;
   }
 }

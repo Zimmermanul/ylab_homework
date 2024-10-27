@@ -5,8 +5,9 @@ import liquibase.Liquibase;
 import liquibase.database.Database;
 import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
-import liquibase.exception.DatabaseException;
 import liquibase.resource.ClassLoaderResourceAccessor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -18,68 +19,75 @@ import java.sql.Statement;
  * migrations.
  */
 public class DatabaseManager {
+  private static final Logger logger = LoggerFactory.getLogger(DatabaseManager.class);
   private static final String LIQUIBASE_SERVICE_SCHEMA = "service";
   
-  
   public static HikariConfig createHikariConfig() {
-    
-    final String jdbc_url = ConfigLoader.getDatabaseUrl();
-    final String user = ConfigLoader.getDatabaseUser();
-    final String password =ConfigLoader.getDatabasePassword();
+    logger.info("Creating HikariCP configuration");
     
     HikariConfig config = new HikariConfig();
-    config.setJdbcUrl(jdbc_url);
-    config.setUsername(user);
-    config.setPassword(password);
+    config.setJdbcUrl(ConfigLoader.getDatabaseUrl());
+    config.setUsername(ConfigLoader.getDatabaseUser());
+    config.setPassword(ConfigLoader.getDatabasePassword());
+    
+    // Additional configuration for web application
+    config.setMaximumPoolSize(10);
+    config.setMinimumIdle(5);
+    config.setIdleTimeout(300000); // 5 minutes
+    config.setConnectionTimeout(20000); // 20 seconds
+    config.setValidationTimeout(5000); // 5 seconds
+    config.setConnectionTestQuery("SELECT 1");
+    config.setDriverClassName("org.postgresql.Driver");
+    
+    logger.info("HikariCP configuration created successfully");
     return config;
   }
   
-  /**
-   * Creates the Liquibase service schema if it does not already exist.
-   *
-   * @param connection the {@link java.sql.Connection} to the database
-   */
   public static void createLiquibaseServiceSchema(Connection connection) {
     try {
-      Statement statement = connection.createStatement();
-      statement.execute("CREATE SCHEMA IF NOT EXISTS " + LIQUIBASE_SERVICE_SCHEMA);
+      logger.info("Creating Liquibase service schema if not exists");
+      try (Statement statement = connection.createStatement()) {
+        statement.execute("CREATE SCHEMA IF NOT EXISTS " + LIQUIBASE_SERVICE_SCHEMA);
+      }
+      logger.info("Liquibase service schema created/verified successfully");
     } catch (SQLException e) {
-      System.out.println("Exception while creating a schema " + LIQUIBASE_SERVICE_SCHEMA + ":\n " + e.getMessage());
+      logger.error("Failed to create Liquibase service schema", e);
+      throw new RuntimeException("Failed to create Liquibase service schema", e);
     }
   }
   
-  /**
-   * Creates and returns a {@link liquibase.Liquibase} instance using the provided connection.
-   * <p>
-   * This method sets up the Liquibase environment using the changelog file.
-   *
-   * @param connection the {@link java.sql.Connection} to be used by Liquibase
-   * @return a configured {@link liquibase.Liquibase} instance
-   */
   public static Liquibase createLiquibase(Connection connection) {
-    Database database = createDatabase(connection);
-    return new Liquibase(ConfigLoader.getLiquibaseChangeLogFile(), new ClassLoaderResourceAccessor(), database);
+    try {
+      logger.info("Creating Liquibase instance");
+      Database database = createDatabase(connection);
+      if (database == null) {
+        throw new RuntimeException("Failed to create database instance for Liquibase");
+      }
+      
+      String changeLogFile = ConfigLoader.getLiquibaseChangeLogFile();
+      logger.info("Using changelog file: {}", changeLogFile);
+      
+      return new Liquibase(
+        changeLogFile,
+        new ClassLoaderResourceAccessor(),
+        database
+      );
+    } catch (Exception e) {
+      logger.error("Failed to create Liquibase instance", e);
+      throw new RuntimeException("Failed to create Liquibase instance", e);
+    }
   }
   
-  /**
-   * Creates and returns a {@link liquibase.database.Database} instance using the provided connection.
-   * <p>
-   * This method initializes a {@link liquibase.database.jvm.JdbcConnection} and sets
-   * the Liquibase schema name for the connection.
-   *
-   * @param connection the {@link java.sql.Connection} to be used by the database
-   * @return a {@link liquibase.database.Database} object or {@code null} if an exception occurs
-   */
   private static Database createDatabase(Connection connection) {
-    Database database = null;
     try {
-      database = DatabaseFactory.getInstance()
+      logger.info("Creating database instance for Liquibase");
+      Database database = DatabaseFactory.getInstance()
         .findCorrectDatabaseImplementation(new JdbcConnection(connection));
       database.setLiquibaseSchemaName(LIQUIBASE_SERVICE_SCHEMA);
-    } catch (DatabaseException e) {
-      System.out.println("Exception while creating a database: \n " + e.getMessage());
+      return database;
+    } catch (Exception e) {
+      logger.error("Failed to create database instance", e);
+      return null;
     }
-    
-    return database;
   }
 }

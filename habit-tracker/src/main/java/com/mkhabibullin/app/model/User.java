@@ -6,7 +6,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Objects;
-import java.util.UUID;
 
 /**
  * Represents a user in the system.
@@ -20,8 +19,8 @@ public class User implements Serializable {
   private String passwordHash;
   private String salt;
   private String name;
-  private boolean isAdmin;
-  private boolean isBlocked;
+  private boolean admin;
+  private boolean blocked;
   
   /**
    * Constructs a new User with the given email, and name.
@@ -31,8 +30,8 @@ public class User implements Serializable {
   public User(String email, String name) {
     this.email = email;
     this.name = name;
-    this.isAdmin = false;
-    this.isBlocked = false;
+    this.admin = false;
+    this.blocked = false;
   }
   
   /**
@@ -142,7 +141,7 @@ public class User implements Serializable {
    * @return true if the user is an admin, false otherwise
    */
   public boolean isAdmin() {
-    return isAdmin;
+    return admin;
   }
   
   /**
@@ -151,7 +150,7 @@ public class User implements Serializable {
    * @param admin the admin status to set
    */
   public void setAdmin(boolean admin) {
-    isAdmin = admin;
+    this.admin = admin;
   }
   
   /**
@@ -160,7 +159,7 @@ public class User implements Serializable {
    * @return true if the user is blocked, false otherwise
    */
   public boolean isBlocked() {
-    return isBlocked;
+    return blocked;
   }
   
   /**
@@ -169,7 +168,7 @@ public class User implements Serializable {
    * @param blocked the blocked status to set
    */
   public void setBlocked(boolean blocked) {
-    isBlocked = blocked;
+    this.blocked = blocked;
   }
   private String generateSalt() {
     SecureRandom random = new SecureRandom();
