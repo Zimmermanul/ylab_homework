@@ -62,13 +62,11 @@ public class MainApplicationServlet extends HttpServlet {
   private void handleGetStatus(HttpServletRequest request, HttpServletResponse response)
     throws IOException {
     User currentUser = getCurrentUser(request);
-    
     Map<String, Object> status = new HashMap<>();
     status.put("status", "running");
     status.put("timestamp", LocalDateTime.now());
     status.put("startupTime", startupTime);
     status.put("uptime", getUptime());
-    
     if (currentUser != null) {
       Map<String, Object> userInfo = new HashMap<>();
       userInfo.put("id", currentUser.getId());
@@ -77,9 +75,7 @@ public class MainApplicationServlet extends HttpServlet {
       userInfo.put("isAdmin", currentUser.isAdmin());
       status.put("user", userInfo);
     }
-    
     status.put("authenticated", currentUser != null);
-    
     sendJsonResponse(response, HttpServletResponse.SC_OK, status);
     logger.debug("Status request processed successfully");
   }
@@ -92,13 +88,10 @@ public class MainApplicationServlet extends HttpServlet {
     Map<String, Object> health = new HashMap<>();
     Map<String, Object> components = new HashMap<>();
     boolean isHealthy = true;
-    
-    // Check database connection
     try {
-      // Implement database health check
       components.put("database", Map.of(
         "status", "up",
-        "responseTime", 100 // Add actual response time measurement
+        "responseTime", 100
       ));
     } catch (Exception e) {
       components.put("database", Map.of(
@@ -107,8 +100,6 @@ public class MainApplicationServlet extends HttpServlet {
       ));
       isHealthy = false;
     }
-    
-    // Check session store
     try {
       request.getSession(false);
       components.put("session", Map.of("status", "up"));
@@ -119,8 +110,6 @@ public class MainApplicationServlet extends HttpServlet {
       ));
       isHealthy = false;
     }
-    
-    // Add memory status
     Runtime runtime = Runtime.getRuntime();
     Map<String, Object> memory = new HashMap<>();
     memory.put("total", runtime.totalMemory());
@@ -131,10 +120,8 @@ public class MainApplicationServlet extends HttpServlet {
     health.put("status", isHealthy ? "healthy" : "unhealthy");
     health.put("timestamp", LocalDateTime.now());
     health.put("components", components);
-    
     int status = isHealthy ? HttpServletResponse.SC_OK : HttpServletResponse.SC_SERVICE_UNAVAILABLE;
     sendJsonResponse(response, status, health);
-    
     if (!isHealthy) {
       logger.warn("Health check failed: {}", health);
     }
@@ -146,25 +133,8 @@ public class MainApplicationServlet extends HttpServlet {
   private void handleGetInfo(HttpServletRequest request, HttpServletResponse response)
     throws IOException {
     Map<String, Object> info = new HashMap<>();
-    
-    // Application information
     info.put("name", "Habit Tracker");
-    info.put("version", getApplicationVersion());
-    info.put("environment", getEnvironment());
-    
-    // System information
-    Map<String, Object> system = new HashMap<>();
-    system.put("javaVersion", System.getProperty("java.version"));
-    system.put("os", System.getProperty("os.name"));
-    system.put("processors", Runtime.getRuntime().availableProcessors());
-    info.put("system", system);
-    
-    // Configuration information (non-sensitive)
-    Map<String, Object> config = new HashMap<>();
-    config.put("timezone", System.getProperty("user.timezone"));
-    config.put("encoding", System.getProperty("file.encoding"));
-    info.put("config", config);
-    
+    info.put("version", "1.0");
     sendJsonResponse(response, HttpServletResponse.SC_OK, info);
     logger.debug("Info request processed successfully");
   }
@@ -191,22 +161,6 @@ public class MainApplicationServlet extends HttpServlet {
     uptime.put("seconds", (long) duration.toSecondsPart());
     
     return uptime;
-  }
-  
-  /**
-   * Gets the application version from configuration or manifest.
-   */
-  private String getApplicationVersion() {
-    // You can implement this to read from a properties file or manifest
-    return "1.0.0";
-  }
-  
-  /**
-   * Gets the current environment (dev, test, prod).
-   */
-  private String getEnvironment() {
-    // Implement to read from configuration or environment variable
-    return System.getProperty("app.environment", "development");
   }
   
   private void sendJsonResponse(HttpServletResponse response, int status, Object data)
