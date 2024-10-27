@@ -55,14 +55,6 @@ java -jar habit-tracker.jar --migrate
 - Электронная почта: userOne@example.com
 - Пароль: hashedpassword1
 
-## API endpoints
-
-1. [Authentication Endpoints](authentication-endpoints.md)
-2. [User Management Endpoints](user-management-endpoints.md)
-3. [Habit Management Endpoints](habit-management-endpoints.md)
-4. [Habit Execution Endpoints](habit-execution-endpoints.md)
-5. [System Status Endpoints](system-status-endpoints.md)
-
 ## Обзор функциональности
 
 ### Регистрация и авторизация пользователей
