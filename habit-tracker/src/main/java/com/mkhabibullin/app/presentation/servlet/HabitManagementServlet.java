@@ -97,8 +97,7 @@ public class HabitManagementServlet extends HttpServlet {
     try {
       User currentUser = validateUserAuthentication(request);
       String pathInfo = validatePathInfo(request);
-      String habitId = pathInfo.substring(1); // Remove leading slash
-      
+      String habitId = pathInfo.substring(1);
       handleUpdateHabit(request, response, habitId, currentUser);
     } catch (AuthenticationException e) {
       sendError(response, HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
@@ -116,8 +115,7 @@ public class HabitManagementServlet extends HttpServlet {
     try {
       User currentUser = validateUserAuthentication(request);
       String pathInfo = validatePathInfo(request);
-      String habitId = pathInfo.substring(1); // Remove leading slash
-      
+      String habitId = pathInfo.substring(1);
       handleDeleteHabit(request, response, habitId, currentUser);
     } catch (AuthenticationException e) {
       sendError(response, HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());

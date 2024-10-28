@@ -2,7 +2,9 @@ package com.mkhabibullin.app.presentation.servlet;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.mkhabibullin.app.application.mapper.AuditMapper;
 import com.mkhabibullin.app.domain.exception.AuthenticationException;
+import com.mkhabibullin.app.domain.exception.ValidationException;
 import com.mkhabibullin.app.domain.model.User;
 import com.mkhabibullin.app.presentation.controller.AuditLogController;
 import com.mkhabibullin.app.presentation.dto.ErrorDTO;
@@ -26,12 +28,14 @@ import java.time.format.DateTimeParseException;
 public class AuditLogServlet extends HttpServlet {
   private static final Logger logger = LoggerFactory.getLogger(AuditLogServlet.class);
   private final AuditLogController auditLogController;
+  private final AuditMapper auditMapper;
   private final ObjectMapper objectMapper;
   private static final String CONTENT_TYPE = "application/json";
   private static final String CHARACTER_ENCODING = "UTF-8";
   
   public AuditLogServlet(AuditLogController auditLogController) {
     this.auditLogController = auditLogController;
+    this.auditMapper = AuditMapper.getInstance();
     this.objectMapper = new ObjectMapper();
     this.objectMapper.registerModule(new JavaTimeModule());
   }
@@ -42,6 +46,7 @@ public class AuditLogServlet extends HttpServlet {
     try {
       User currentUser = validateUserAuthentication(request);
       String pathInfo = request.getPathInfo();
+      
       if (pathInfo != null) {
         if (pathInfo.startsWith("/user/")) {
           String username = pathInfo.substring("/user/".length());
@@ -61,6 +66,8 @@ public class AuditLogServlet extends HttpServlet {
       }
     } catch (AuthenticationException e) {
       sendError(response, HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
+    } catch (ValidationException e) {
+      sendError(response, HttpServletResponse.SC_BAD_REQUEST, String.join("; ", e.getValidationErrors()));
     } catch (Exception e) {
       logger.error("Error processing GET request", e);
       sendError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error");
@@ -71,8 +78,12 @@ public class AuditLogServlet extends HttpServlet {
                                  String username, User currentUser) throws IOException {
     try {
       var logs = auditLogController.getUserLogs(username);
-      sendJsonResponse(response, HttpServletResponse.SC_OK, logs);
+      var responseDtos = auditMapper.auditLogsToResponseDtos(logs);
+      sendJsonResponse(response, HttpServletResponse.SC_OK, responseDtos);
       logger.info("Retrieved audit logs for user {} by admin {}", username, currentUser.getId());
+    } catch (ValidationException e) {
+      logger.error("Validation error while getting user logs: {}", e.getMessage());
+      sendError(response, HttpServletResponse.SC_BAD_REQUEST, String.join("; ", e.getValidationErrors()));
     } catch (IllegalArgumentException e) {
       sendError(response, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
     }
@@ -82,34 +93,40 @@ public class AuditLogServlet extends HttpServlet {
                                       String operation, User currentUser) throws IOException {
     try {
       var logs = auditLogController.getOperationLogs(operation);
-      sendJsonResponse(response, HttpServletResponse.SC_OK, logs);
+      var responseDtos = auditMapper.auditLogsToResponseDtos(logs);
+      sendJsonResponse(response, HttpServletResponse.SC_OK, responseDtos);
       logger.info("Retrieved audit logs for operation {} by user {}", operation, currentUser.getId());
+    } catch (ValidationException e) {
+      logger.error("Validation error while getting operation logs: {}", e.getMessage());
+      sendError(response, HttpServletResponse.SC_BAD_REQUEST, String.join("; ", e.getValidationErrors()));
     } catch (IllegalArgumentException e) {
       sendError(response, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
     }
   }
   
   private void handleGetRecentLogs(HttpServletRequest request, HttpServletResponse response,
-                                   User currentUser) throws IOException {
+                                   User currentUser) throws IOException, ValidationException {
     try {
       int limit = parseLimit(request);
       var logs = auditLogController.getRecentLogs(limit);
-      sendJsonResponse(response, HttpServletResponse.SC_OK, logs);
+      var responseDtos = auditMapper.auditLogsToResponseDtos(logs);
+      sendJsonResponse(response, HttpServletResponse.SC_OK, responseDtos);
       logger.info("Retrieved {} recent audit logs by user {}", limit, currentUser.getId());
     } catch (IllegalArgumentException e) {
-      sendError(response, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+      throw new ValidationException("Invalid recent logs request: " + e.getMessage());
     }
   }
   
   private void handleGetStatistics(HttpServletRequest request, HttpServletResponse response,
-                                   User currentUser) throws IOException {
+                                   User currentUser) throws IOException, ValidationException {
     try {
       DateTimeRange dateRange = parseDateTimeRange(request);
       var statistics = auditLogController.getStatistics(dateRange.startDateTime(), dateRange.endDateTime());
-      sendJsonResponse(response, HttpServletResponse.SC_OK, statistics);
+      var statisticsDto = auditMapper.statisticsToDto(statistics);
+      sendJsonResponse(response, HttpServletResponse.SC_OK, statisticsDto);
       logger.info("Retrieved audit statistics by user {}", currentUser.getId());
     } catch (IllegalArgumentException e) {
-      sendError(response, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+      throw new ValidationException("Invalid statistics request: " + e.getMessage());
     }
   }
   
@@ -122,7 +139,7 @@ public class AuditLogServlet extends HttpServlet {
     return user;
   }
   
-  private int parseLimit(HttpServletRequest request) {
+  private int parseLimit(HttpServletRequest request) throws ValidationException {
     String limitStr = request.getParameter("limit");
     if (limitStr == null) {
       return 10; // default limit
@@ -130,36 +147,36 @@ public class AuditLogServlet extends HttpServlet {
     try {
       int limit = Integer.parseInt(limitStr);
       if (limit <= 0 || limit > 100) {
-        throw new IllegalArgumentException("Limit must be between 1 and 100");
+        throw new ValidationException("Limit must be between 1 and 100");
       }
       return limit;
     } catch (NumberFormatException e) {
-      throw new IllegalArgumentException("Invalid limit format");
+      throw new ValidationException("Invalid limit format");
     }
   }
   
   private record DateTimeRange(LocalDateTime startDateTime, LocalDateTime endDateTime) {
   }
   
-  private DateTimeRange parseDateTimeRange(HttpServletRequest request) {
+  private DateTimeRange parseDateTimeRange(HttpServletRequest request) throws ValidationException {
     try {
       String startStr = request.getParameter("startDateTime");
       String endStr = request.getParameter("endDateTime");
       
       if (startStr == null || endStr == null) {
-        throw new IllegalArgumentException("Start date/time and end date/time are required");
+        throw new ValidationException("Start date/time and end date/time are required");
       }
       
       LocalDateTime startDateTime = LocalDateTime.parse(startStr);
       LocalDateTime endDateTime = LocalDateTime.parse(endStr);
       
       if (endDateTime.isBefore(startDateTime)) {
-        throw new IllegalArgumentException("End date/time cannot be before start date/time");
+        throw new ValidationException("End date/time cannot be before start date/time");
       }
       
       return new DateTimeRange(startDateTime, endDateTime);
     } catch (DateTimeParseException e) {
-      throw new IllegalArgumentException("Invalid date/time format. Use ISO-8601 format");
+      throw new ValidationException("Invalid date/time format. Use ISO-8601 format");
     }
   }
   

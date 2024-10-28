@@ -1,173 +1,83 @@
 package com.mkhabibullin.app.presentation.controller;
 
+import com.mkhabibullin.app.application.service.AuditLogService;
 import com.mkhabibullin.app.domain.model.AuditLog;
-import com.mkhabibullin.app.infrastructure.persistence.repository.AuditLogDbRepository;
-import com.mkhabibullin.app.presentation.dto.audit.AuditLogResponseDTO;
-import com.mkhabibullin.app.presentation.dto.audit.AuditStatisticsDTO;
-import com.mkhabibullin.app.presentation.dto.audit.UserActivityDTO;
+import com.mkhabibullin.app.domain.model.AuditStatistics;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Controller for managing audit log operations and generating statistics.
  * Provides methods for retrieving and analyzing audit log data.
  */
 public class AuditLogController {
-  private final AuditLogDbRepository auditLogRepository;
+  private final AuditLogService auditLogService;
   
   /**
-   * Constructs a new AuditLogController with the specified repository.
+   * Constructs a new AuditLogController with the specified service.
    *
-   * @param auditLogRepository the repository for audit log data
+   * @param auditLogService the service to handle audit-related operations
    */
-  public AuditLogController(AuditLogDbRepository auditLogRepository) {
-    this.auditLogRepository = auditLogRepository;
+  public AuditLogController(AuditLogService auditLogService) {
+    this.auditLogService = auditLogService;
   }
   
   /**
    * Retrieves audit logs for a specific user.
    *
    * @param username the username whose logs to retrieve
-   * @return list of audit log DTOs
+   * @return list of audit logs
+   * @throws IOException if there's an error during retrieval
    */
-  public List<AuditLogResponseDTO> getUserLogs(String username) {
-    List<AuditLog> logs = auditLogRepository.getByUsername(username);
-    return logs.stream()
-      .map(this::mapToResponseDTO)
-      .collect(Collectors.toList());
+  public List<AuditLog> getUserLogs(String username) throws IOException {
+    return auditLogService.getUserLogs(username);
   }
   
   /**
-   * Retrieves audit logs for a specific operation type.
+   * Retrieves audit logs for a specific operation.
    *
    * @param operation the operation type to query
-   * @return list of audit log DTOs
+   * @return list of audit logs
+   * @throws IOException if there's an error during retrieval
    */
-  public List<AuditLogResponseDTO> getOperationLogs(String operation) {
-    List<AuditLog> logs = auditLogRepository.getByOperation(operation);
-    return logs.stream()
-      .map(this::mapToResponseDTO)
-      .collect(Collectors.toList());
+  public List<AuditLog> getOperationLogs(String operation) throws IOException {
+    return auditLogService.getOperationLogs(operation);
   }
   
   /**
    * Retrieves the most recent audit logs.
    *
    * @param limit maximum number of logs to retrieve
-   * @return list of audit log DTOs
+   * @return list of recent audit logs
+   * @throws IOException if there's an error during retrieval
    */
-  public List<AuditLogResponseDTO> getRecentLogs(int limit) {
-    List<AuditLog> logs = auditLogRepository.getRecentLogs(limit);
-    return logs.stream()
-      .map(this::mapToResponseDTO)
-      .collect(Collectors.toList());
+  public List<AuditLog> getRecentLogs(int limit) throws IOException {
+    return auditLogService.getRecentLogs(limit);
   }
   
   /**
-   * Generates statistics for audit logs within a specified time range.
+   * Retrieves audit logs within a specified time range.
    *
    * @param startDateTime start of the time range
-   * @param endDateTime   end of the time range
-   * @return statistics DTO containing various metrics
+   * @param endDateTime end of the time range
+   * @return list of audit logs within the range
+   * @throws IOException if there's an error during retrieval
    */
-  public AuditStatisticsDTO getStatistics(LocalDateTime startDateTime, LocalDateTime endDateTime) {
-    List<AuditLog> logs = auditLogRepository.getByTimestampRange(startDateTime, endDateTime);
-    Map<String, Long> operationCounts = logs.stream()
-      .collect(Collectors.groupingBy(
-        AuditLog::getOperation,
-        Collectors.counting()
-      ));
-    Map<String, Long> userActivityCounts = logs.stream()
-      .collect(Collectors.groupingBy(
-        AuditLog::getUsername,
-        Collectors.counting()
-      ));
-    Map<String, Double> averageTimeByOperation = logs.stream()
-      .collect(Collectors.groupingBy(
-        AuditLog::getOperation,
-        Collectors.averagingLong(AuditLog::getExecutionTimeMs)
-      ));
-    String mostActiveUser = userActivityCounts.entrySet().stream()
-      .max(Map.Entry.comparingByValue())
-      .map(Map.Entry::getKey)
-      .orElse("N/A");
-    String mostCommonOperation = operationCounts.entrySet().stream()
-      .max(Map.Entry.comparingByValue())
-      .map(Map.Entry::getKey)
-      .orElse("N/A");
-    double averageExecutionTime = logs.stream()
-      .mapToLong(AuditLog::getExecutionTimeMs)
-      .average()
-      .orElse(0.0);
-    
-    return new AuditStatisticsDTO(
-      logs.size(),
-      averageExecutionTime,
-      operationCounts,
-      userActivityCounts,
-      averageTimeByOperation,
-      mostActiveUser,
-      mostCommonOperation,
-      startDateTime,
-      endDateTime
-    );
+  public List<AuditLog> getLogsByDateRange(LocalDateTime startDateTime, LocalDateTime endDateTime) throws IOException {
+    return auditLogService.getLogsByDateRange(startDateTime, endDateTime);
   }
   
   /**
-   * Generates activity summary for a specific user.
+   * Retrieves statistics for audit logs within a specified time range.
    *
-   * @param username the username to analyze
-   * @return user activity DTO containing usage statistics
+   * @param startDateTime start of the time range
+   * @param endDateTime end of the time range
+   * @return statistics object containing various metrics
+   * @throws IOException if there's an error during retrieval
    */
-  public UserActivityDTO getUserActivity(String username) {
-    List<AuditLog> userLogs = auditLogRepository.getByUsername(username);
-    
-    if (userLogs.isEmpty()) {
-      return new UserActivityDTO(
-        username, 0, Map.of(), 0.0,
-        null, null
-      );
-    }
-    Map<String, Long> operationCounts = userLogs.stream()
-      .collect(Collectors.groupingBy(
-        AuditLog::getOperation,
-        Collectors.counting()
-      ));
-    double averageExecutionTime = userLogs.stream()
-      .mapToLong(AuditLog::getExecutionTimeMs)
-      .average()
-      .orElse(0.0);
-    LocalDateTime firstOperation = userLogs.stream()
-      .min(Comparator.comparing(AuditLog::getTimestamp))
-      .map(AuditLog::getTimestamp)
-      .orElse(null);
-    LocalDateTime lastOperation = userLogs.stream()
-      .max(Comparator.comparing(AuditLog::getTimestamp))
-      .map(AuditLog::getTimestamp)
-      .orElse(null);
-    return new UserActivityDTO(
-      username,
-      userLogs.size(),
-      operationCounts,
-      averageExecutionTime,
-      firstOperation,
-      lastOperation
-    );
-  }
-  private AuditLogResponseDTO mapToResponseDTO(AuditLog log) {
-    return new AuditLogResponseDTO(
-      log.getId(),
-      log.getUsername(),
-      log.getMethodName(),
-      log.getOperation(),
-      log.getTimestamp(),
-      log.getExecutionTimeMs(),
-      log.getRequestUri(),
-      log.getRequestMethod()
-    );
+  public AuditStatistics getStatistics(LocalDateTime startDateTime, LocalDateTime endDateTime) throws IOException {
+    return auditLogService.getStatistics(startDateTime, endDateTime);
   }
 }

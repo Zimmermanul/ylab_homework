@@ -87,11 +87,7 @@ public class ApplicationInitializer implements ServletContextListener {
   private void initializeApplicationComponents(ServletContext context) {
     try {
       logger.info("Initializing application components...");
-      
-      // Initialize application config
       this.applicationConfig = new ApplicationConfig(dataSource);
-      
-      // Register controllers in servlet context
       registerControllers(context);
       
       logger.info("Application components initialized successfully");
@@ -105,31 +101,22 @@ public class ApplicationInitializer implements ServletContextListener {
     if (context == null) {
       throw new IllegalArgumentException("ServletContext cannot be null");
     }
-    
     logger.debug("Registering controllers in servlet context...");
-    
-    // Register each controller
     context.setAttribute("userController", applicationConfig.getUserController());
     context.setAttribute("habitController", applicationConfig.getHabitController());
     context.setAttribute("executionController", applicationConfig.getExecutionController());
-    
     logger.debug("Controllers registered successfully");
   }
   
   private void cleanupResources() {
     try {
       logger.info("Cleaning up application resources...");
-      
-      // Close DataSource
       if (dataSource != null) {
         DataSourceConfig.closeDataSource();
         logger.info("DataSource closed successfully");
       }
-      
-      // Clear references
       dataSource = null;
       applicationConfig = null;
-      
       logger.info("Resource cleanup completed");
     } catch (Exception e) {
       logger.error("Error during resource cleanup", e);

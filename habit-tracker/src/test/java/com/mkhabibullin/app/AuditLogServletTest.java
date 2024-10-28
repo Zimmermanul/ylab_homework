@@ -2,6 +2,7 @@ package com.mkhabibullin.app;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.mkhabibullin.app.application.service.AuditLogService;
 import com.mkhabibullin.app.domain.model.User;
 import com.mkhabibullin.app.infrastructure.persistence.repository.AuditLogDbRepository;
 import com.mkhabibullin.app.infrastructure.persistence.repository.UserDbRepository;
@@ -32,6 +33,7 @@ import static org.mockito.Mockito.when;
 public class AuditLogServletTest extends AbstractDatabaseTest {
   private AuditLogServlet servlet;
   private AuditLogController auditLogController;
+  private AuditLogService auditLogService;
   private AuditLogDbRepository auditLogRepository;
   private UserDbRepository userRepository;
   private ObjectMapper objectMapper;
@@ -46,7 +48,8 @@ public class AuditLogServletTest extends AbstractDatabaseTest {
     super.setUp();
     auditLogRepository = new AuditLogDbRepository(dataSource);
     userRepository = new UserDbRepository(dataSource);
-    auditLogController = new AuditLogController(auditLogRepository);
+    auditLogService = new AuditLogService(auditLogRepository);
+    auditLogController = new AuditLogController(auditLogService);
     servlet = new AuditLogServlet(auditLogController);
     objectMapper = new ObjectMapper();
     objectMapper.registerModule(new JavaTimeModule());
@@ -103,8 +106,9 @@ public class AuditLogServletTest extends AbstractDatabaseTest {
   @Test
   @DisplayName("Should return audit statistics for specified date range")
   void shouldReturnAuditStatistics() throws Exception {
-    LocalDateTime startDateTime = LocalDateTime.now().minusDays(1).withHour(0).withMinute(0).withSecond(0);
-    LocalDateTime endDateTime = LocalDateTime.now().withHour(23).withMinute(59).withSecond(59);
+    LocalDateTime now = LocalDateTime.now();
+    LocalDateTime startDateTime = now.minusDays(1).withHour(0).withMinute(0).withSecond(0);
+    LocalDateTime endDateTime = now.minusDays(1).withHour(23).withMinute(59).withSecond(59);
     try (Connection conn = dataSource.getConnection();
          Statement stmt = conn.createStatement()) {
       stmt.execute(String.format("""
@@ -124,17 +128,21 @@ public class AuditLogServletTest extends AbstractDatabaseTest {
     when(request.getParameter("endDateTime")).thenReturn(endDateTime.toString());
     servlet.doGet(request, response);
     AuditStatisticsDTO stats = objectMapper.readValue(outputStream.toString(), AuditStatisticsDTO.class);
-    assertThat(stats.totalOperations()).as("Should have 3 operations in total").isEqualTo(3);
-    assertThat(stats.mostActiveUser()).as("Most active user should be test@example.com").isEqualTo("test@example.com");
-    assertThat(stats.operationCounts())
-      .as("Operation counts should include User Login")
-      .containsKey("User Login");
-    assertThat(stats.operationCounts().get("User Login"))
-      .as("Should have 2 User Login operations")
-      .isEqualTo(2L);
-    assertThat(stats.averageExecutionTime())
-      .as("Average execution time should be between 100 and 150 ms")
-      .isBetween(100.0, 150.0);
+    assertThat(stats)
+      .isNotNull()
+      .satisfies(s -> {
+        assertThat(s.totalOperations()).as("Should have 3 operations in total").isEqualTo(3);
+        assertThat(s.mostActiveUser()).as("Most active user should be test@example.com").isEqualTo("test@example.com");
+        assertThat(s.operationCounts())
+          .as("Operation counts should include User Login")
+          .containsKey("User Login");
+        assertThat(s.operationCounts().get("User Login"))
+          .as("Should have 2 User Login operations")
+          .isEqualTo(2L);
+        assertThat(s.averageExecutionTime())
+          .as("Average execution time should be between 100 and 150 ms")
+          .isBetween(100.0, 150.0);
+      });
   }
   
   
