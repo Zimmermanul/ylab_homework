@@ -35,7 +35,7 @@ public class AuditLogServlet extends HttpServlet {
   
   public AuditLogServlet(AuditLogController auditLogController) {
     this.auditLogController = auditLogController;
-    this.auditMapper = AuditMapper.getInstance();
+    this.auditMapper = AuditMapper.INSTANCE;
     this.objectMapper = new ObjectMapper();
     this.objectMapper.registerModule(new JavaTimeModule());
   }
@@ -48,18 +48,20 @@ public class AuditLogServlet extends HttpServlet {
       String pathInfo = request.getPathInfo();
       
       if (pathInfo != null) {
-        if (pathInfo.startsWith("/user/")) {
-          String username = pathInfo.substring("/user/".length());
-          handleGetUserLogs(request, response, username, currentUser);
-        } else if (pathInfo.startsWith("/operation/")) {
-          String operation = pathInfo.substring("/operation/".length());
-          handleGetOperationLogs(request, response, operation, currentUser);
-        } else if (pathInfo.equals("/recent")) {
-          handleGetRecentLogs(request, response, currentUser);
-        } else if (pathInfo.equals("/statistics")) {
-          handleGetStatistics(request, response, currentUser);
-        } else {
-          sendError(response, HttpServletResponse.SC_NOT_FOUND, "Invalid endpoint");
+        switch (pathInfo) {
+          case "/statistics" -> handleGetStatistics(request, response, currentUser);
+          case "/recent" -> handleGetRecentLogs(request, response, currentUser);
+          default -> {
+            if (pathInfo.startsWith("/user/")) {
+              String username = pathInfo.substring("/user/".length());
+              handleGetUserLogs(request, response, username, currentUser);
+            } else if (pathInfo.startsWith("/operation/")) {
+              String operation = pathInfo.substring("/operation/".length());
+              handleGetOperationLogs(request, response, operation, currentUser);
+            } else {
+              sendError(response, HttpServletResponse.SC_NOT_FOUND, "Invalid endpoint");
+            }
+          }
         }
       } else {
         sendError(response, HttpServletResponse.SC_BAD_REQUEST, "Path info is required");
@@ -81,9 +83,6 @@ public class AuditLogServlet extends HttpServlet {
       var responseDtos = auditMapper.auditLogsToResponseDtos(logs);
       sendJsonResponse(response, HttpServletResponse.SC_OK, responseDtos);
       logger.info("Retrieved audit logs for user {} by admin {}", username, currentUser.getId());
-    } catch (ValidationException e) {
-      logger.error("Validation error while getting user logs: {}", e.getMessage());
-      sendError(response, HttpServletResponse.SC_BAD_REQUEST, String.join("; ", e.getValidationErrors()));
     } catch (IllegalArgumentException e) {
       sendError(response, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
     }
@@ -96,9 +95,6 @@ public class AuditLogServlet extends HttpServlet {
       var responseDtos = auditMapper.auditLogsToResponseDtos(logs);
       sendJsonResponse(response, HttpServletResponse.SC_OK, responseDtos);
       logger.info("Retrieved audit logs for operation {} by user {}", operation, currentUser.getId());
-    } catch (ValidationException e) {
-      logger.error("Validation error while getting operation logs: {}", e.getMessage());
-      sendError(response, HttpServletResponse.SC_BAD_REQUEST, String.join("; ", e.getValidationErrors()));
     } catch (IllegalArgumentException e) {
       sendError(response, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
     }

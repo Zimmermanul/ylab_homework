@@ -1,105 +1,58 @@
 package com.mkhabibullin.app.application.mapper;
 
 import com.mkhabibullin.app.application.validation.AuditMapperValidator;
-import com.mkhabibullin.app.domain.exception.ValidationException;
 import com.mkhabibullin.app.domain.model.AuditLog;
 import com.mkhabibullin.app.domain.model.AuditStatistics;
 import com.mkhabibullin.app.presentation.dto.audit.AuditLogResponseDTO;
 import com.mkhabibullin.app.presentation.dto.audit.AuditStatisticsDTO;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Mapper class for converting between Audit entities and DTOs.
+ * MapStruct mapper interface for converting between Audit DTOs and entities.
  * This mapper handles audit data transformations while performing validation
  * through {@link AuditMapperValidator}.
+ *
+ * <p>The mapper is configured with:</p>
+ * <ul>
+ *   <li>Default component model for simple instantiation</li>
+ *   <li>Integration with {@link AuditMapperValidator} for field validation</li>
+ *   <li>A singleton INSTANCE for stateless mapping operations</li>
+ * </ul>
+ *
+ * @see org.mapstruct.Mapper
+ * @see AuditMapperValidator
+ * @see AuditLog
+ * @see AuditStatistics
  */
-public class AuditMapper {
-  private static final AuditMapper INSTANCE = new AuditMapper();
-  private final AuditMapperValidator validator;
+@Mapper(componentModel = "default", uses = AuditMapperValidator.class)
+public interface AuditMapper {
   
-  private AuditMapper() {
-    this.validator = new AuditMapperValidator();
-  }
+  AuditMapper INSTANCE = Mappers.getMapper(AuditMapper.class);
   
-  public static AuditMapper getInstance() {
-    return INSTANCE;
-  }
+  @Mapping(target = "id", source = "id", qualifiedByName = "validateId")
+  @Mapping(target = "username", source = "username", qualifiedByName = "validateUsername")
+  @Mapping(target = "methodName", source = "methodName", qualifiedByName = "validateMethodName")
+  @Mapping(target = "operation", source = "operation", qualifiedByName = "validateOperation")
+  @Mapping(target = "timestamp", source = "timestamp", qualifiedByName = "validateTimestamp")
+  @Mapping(target = "executionTimeMs", source = "executionTimeMs", qualifiedByName = "validateExecutionTime")
+  @Mapping(target = "requestUri", source = "requestUri", qualifiedByName = "validateRequestUri")
+  @Mapping(target = "requestMethod", source = "requestMethod", qualifiedByName = "validateRequestMethod")
+  AuditLogResponseDTO auditLogToResponseDto(AuditLog auditLog);
   
-  /**
-   * Converts an audit log entity to a response DTO.
-   *
-   * @param auditLog The audit log entity to convert
-   * @return The corresponding response DTO
-   * @throws ValidationException if validation fails
-   */
-  public AuditLogResponseDTO auditLogToResponseDto(AuditLog auditLog) throws ValidationException {
-    if (auditLog == null) {
-      throw new ValidationException("Audit log cannot be null");
-    }
-    validator.validateAuditLog(auditLog);
-    return new AuditLogResponseDTO(
-      auditLog.getId(),
-      auditLog.getUsername(),
-      auditLog.getMethodName(),
-      auditLog.getOperation(),
-      auditLog.getTimestamp(),
-      auditLog.getExecutionTimeMs(),
-      auditLog.getRequestUri(),
-      auditLog.getRequestMethod()
-    );
-  }
+  List<AuditLogResponseDTO> auditLogsToResponseDtos(List<AuditLog> logs);
   
-  /**
-   * Converts audit statistics entity to a response DTO.
-   *
-   * @param statistics The audit statistics entity to convert
-   * @return The corresponding statistics DTO
-   * @throws ValidationException if validation fails
-   */
-  public AuditStatisticsDTO statisticsToDto(AuditStatistics statistics) throws ValidationException {
-    if (statistics == null) {
-      throw new ValidationException("Statistics cannot be null");
-    }
-    validator.validateAuditStatistics(statistics);
-    return new AuditStatisticsDTO(
-      statistics.getTotalOperations(),
-      statistics.getAverageExecutionTime(),
-      statistics.getOperationCounts(),
-      statistics.getUserActivityCounts(),
-      statistics.getAverageTimeByOperation(),
-      statistics.getMostActiveUser(),
-      statistics.getMostCommonOperation(),
-      statistics.getPeriodStart(),
-      statistics.getPeriodEnd()
-    );
-  }
-  
-  /**
-   * Converts a list of audit logs to response DTOs.
-   *
-   * @param logs The list of audit log entities
-   * @return List of corresponding response DTOs
-   * @throws ValidationException if validation fails for any log entry
-   */
-  public List<AuditLogResponseDTO> auditLogsToResponseDtos(List<AuditLog> logs) throws ValidationException {
-    if (logs == null) {
-      return new ArrayList<>();
-    }
-    List<String> errors = new ArrayList<>();
-    List<AuditLogResponseDTO> dtos = new ArrayList<>();
-    
-    for (AuditLog log : logs) {
-      try {
-        dtos.add(auditLogToResponseDto(log));
-      } catch (ValidationException e) {
-        errors.addAll(e.getValidationErrors());
-      }
-    }
-    if (!errors.isEmpty()) {
-      throw new ValidationException(errors);
-    }
-    return dtos;
-  }
+  @Mapping(target = "totalOperations", source = "totalOperations", qualifiedByName = "validateTotalOperations")
+  @Mapping(target = "averageExecutionTime", source = "averageExecutionTime", qualifiedByName = "validateAverageExecutionTime")
+  @Mapping(target = "operationCounts", source = "operationCounts", qualifiedByName = "validateOperationCounts")
+  @Mapping(target = "userActivityCounts", source = "userActivityCounts", qualifiedByName = "validateUserActivityCounts")
+  @Mapping(target = "averageTimeByOperation", source = "averageTimeByOperation", qualifiedByName = "validateAverageTimeByOperation")
+  @Mapping(target = "mostActiveUser", source = "mostActiveUser", qualifiedByName = "validateMostActiveUser")
+  @Mapping(target = "mostCommonOperation", source = "mostCommonOperation", qualifiedByName = "validateMostCommonOperation")
+  @Mapping(target = "periodStart", source = "periodStart", qualifiedByName = "validatePeriodStart")
+  @Mapping(target = "periodEnd", source = "periodEnd", qualifiedByName = "validatePeriodEnd")
+  AuditStatisticsDTO statisticsToDto(AuditStatistics statistics);
 }
