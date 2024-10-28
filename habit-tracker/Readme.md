@@ -35,7 +35,7 @@ $CATALINA_HOME/bin/startup.sh
 
 #### Приложение будет доступно по адресу:
 
-http://localhost:8080/habit-tracker
+http://localhost:8080/habitTracker_war/
 
 #### Учетные данные для доступа в админ-меню:
 
