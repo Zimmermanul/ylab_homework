@@ -1,10 +1,10 @@
 package com.mkhabibullin.app;
 
-import com.mkhabibullin.app.data.HabitDbRepository;
-import com.mkhabibullin.app.data.HabitExecutionDbRepository;
-import com.mkhabibullin.app.model.Habit;
-import com.mkhabibullin.app.model.HabitExecution;
-import com.mkhabibullin.app.service.HabitExecutionService;
+import com.mkhabibullin.app.application.service.HabitExecutionService;
+import com.mkhabibullin.app.domain.model.Habit;
+import com.mkhabibullin.app.domain.model.HabitExecution;
+import com.mkhabibullin.app.infrastructure.persistence.repository.HabitDbRepository;
+import com.mkhabibullin.app.infrastructure.persistence.repository.HabitExecutionDbRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -16,7 +16,8 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 import static org.mockito.Mockito.*;
 
 public class HabitExecutionServiceTest {

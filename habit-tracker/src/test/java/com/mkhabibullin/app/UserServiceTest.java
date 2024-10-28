@@ -1,8 +1,8 @@
 package com.mkhabibullin.app;
 
-import com.mkhabibullin.app.data.UserDbRepository;
-import com.mkhabibullin.app.model.User;
-import com.mkhabibullin.app.service.UserService;
+import com.mkhabibullin.app.application.service.UserService;
+import com.mkhabibullin.app.domain.model.User;
+import com.mkhabibullin.app.infrastructure.persistence.repository.UserDbRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

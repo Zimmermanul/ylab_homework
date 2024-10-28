@@ -1,11 +1,11 @@
 package com.mkhabibullin.app;
 
-import com.mkhabibullin.app.data.HabitDbRepository;
-import com.mkhabibullin.app.data.HabitExecutionDbRepository;
-import com.mkhabibullin.app.data.UserDbRepository;
-import com.mkhabibullin.app.model.Habit;
-import com.mkhabibullin.app.model.HabitExecution;
-import com.mkhabibullin.app.model.User;
+import com.mkhabibullin.app.domain.model.Habit;
+import com.mkhabibullin.app.domain.model.HabitExecution;
+import com.mkhabibullin.app.domain.model.User;
+import com.mkhabibullin.app.infrastructure.persistence.repository.HabitDbRepository;
+import com.mkhabibullin.app.infrastructure.persistence.repository.HabitExecutionDbRepository;
+import com.mkhabibullin.app.infrastructure.persistence.repository.UserDbRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

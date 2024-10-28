@@ -1,8 +1,9 @@
 package com.mkhabibullin.app;
-import com.mkhabibullin.app.data.HabitDbRepository;
-import com.mkhabibullin.app.data.UserDbRepository;
-import com.mkhabibullin.app.model.Habit;
-import com.mkhabibullin.app.model.User;
+
+import com.mkhabibullin.app.domain.model.Habit;
+import com.mkhabibullin.app.domain.model.User;
+import com.mkhabibullin.app.infrastructure.persistence.repository.HabitDbRepository;
+import com.mkhabibullin.app.infrastructure.persistence.repository.UserDbRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -10,7 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class HabitDbRepositoryTest extends AbstractDatabaseTest {
   private HabitDbRepository habitRepository;

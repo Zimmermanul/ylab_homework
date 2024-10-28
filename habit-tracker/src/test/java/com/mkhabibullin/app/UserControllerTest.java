@@ -1,7 +1,7 @@
 package com.mkhabibullin.app;
 
-import com.mkhabibullin.app.controller.UserController;
-import com.mkhabibullin.app.service.UserService;
+import com.mkhabibullin.app.application.service.UserService;
+import com.mkhabibullin.app.presentation.controller.UserController;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

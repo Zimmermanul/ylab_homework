@@ -1,9 +1,9 @@
 package com.mkhabibullin.app;
 
-import com.mkhabibullin.app.util.ApplicationConfig;
-import com.mkhabibullin.app.util.ConfigLoader;
-import com.mkhabibullin.app.util.DataSourceConfig;
-import com.mkhabibullin.app.util.LiquibaseMigrationConfig;
+import com.mkhabibullin.app.infrastructure.config.ApplicationConfig;
+import com.mkhabibullin.app.infrastructure.config.ConfigLoader;
+import com.mkhabibullin.app.infrastructure.config.DataSourceConfig;
+import com.mkhabibullin.app.infrastructure.config.LiquibaseMigrationConfig;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
