@@ -46,6 +46,7 @@ public abstract class AbstractDatabaseTest {
     try (Connection conn = dataSource.getConnection();
          Statement stmt = conn.createStatement()) {
       stmt.execute("CREATE SCHEMA IF NOT EXISTS entity");
+      stmt.execute("CREATE SCHEMA IF NOT EXISTS audit");
       stmt.execute("CREATE SEQUENCE IF NOT EXISTS entity.global_seq START 100000");
       stmt.execute("""
                 CREATE TABLE IF NOT EXISTS entity.users (
@@ -80,9 +81,23 @@ public abstract class AbstractDatabaseTest {
                 )
             """);
       
+      stmt.execute("""
+            CREATE TABLE IF NOT EXISTS audit.audit_logs (
+                id BIGINT DEFAULT nextval('entity.global_seq') PRIMARY KEY,
+                username VARCHAR(255) NOT NULL,
+                method_name VARCHAR(255) NOT NULL,
+                operation VARCHAR(255),
+                timestamp TIMESTAMP NOT NULL,
+                execution_time_ms BIGINT NOT NULL,
+                request_uri VARCHAR(255),
+                request_method VARCHAR(10)
+            )
+        """);
+      
       stmt.execute("TRUNCATE entity.habit_executions CASCADE");
       stmt.execute("TRUNCATE entity.habits CASCADE");
       stmt.execute("TRUNCATE entity.users CASCADE");
+      stmt.execute("TRUNCATE audit.audit_logs CASCADE");
     }
   }
 }

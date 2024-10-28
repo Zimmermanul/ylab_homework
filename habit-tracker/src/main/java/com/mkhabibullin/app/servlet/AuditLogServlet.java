@@ -37,12 +37,11 @@ public class AuditLogServlet extends HttpServlet {
   }
   
   @Override
-  protected void doGet(HttpServletRequest request, HttpServletResponse response)
+  public void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
     try {
       User currentUser = validateUserAuthentication(request);
       String pathInfo = request.getPathInfo();
-      
       if (pathInfo != null) {
         if (pathInfo.startsWith("/user/")) {
           String username = pathInfo.substring("/user/".length());

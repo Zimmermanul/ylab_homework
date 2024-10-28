@@ -36,8 +36,8 @@ public class AuditAspect {
    * Pointcut that matches all methods annotated with @Audited.
    * This pointcut is used to define which methods should be audited.
    */
-  @Pointcut("@annotation(com.mkhabibullin.app.annotation.Audited)")
-  public void auditedMethod() {
+  @Pointcut("@annotation(audited)")
+  public void auditedMethod(Audited audited) {
   }
   
   /**
@@ -47,16 +47,16 @@ public class AuditAspect {
   @Pointcut("execution(* *(.., javax.servlet.http.HttpServletRequest, ..))")
   public void webMethod() {
   }
-  
   /**
    * Around advice that intercepts method calls matching the auditedMethod pointcut.
    * This method measures execution time and logs the operation details.
    *
    * @param joinPoint The join point representing the intercepted method call
+   * @param audited The Audited annotation instance from the method
    * @return The result of the method execution
    * @throws Throwable if the method execution fails
    */
-  @Around("auditedMethod() && @annotation(audited)")
+  @Around("auditedMethod(audited)")
   public Object logAuditEvent(ProceedingJoinPoint joinPoint, Audited audited) throws Throwable {
     long startTime = System.currentTimeMillis();
     MethodSignature signature = (MethodSignature) joinPoint.getSignature();
@@ -88,6 +88,7 @@ public class AuditAspect {
       throw throwable;
     }
   }
+  
   private HttpServletRequest extractHttpRequest(ProceedingJoinPoint joinPoint) {
     for (Object arg : joinPoint.getArgs()) {
       if (arg instanceof HttpServletRequest) {
@@ -96,6 +97,7 @@ public class AuditAspect {
     }
     return null;
   }
+  
   private String extractUsername(HttpServletRequest request) {
     if (request != null) {
       HttpSession session = request.getSession(false);
@@ -108,6 +110,7 @@ public class AuditAspect {
     }
     return "anonymous";
   }
+  
   private AuditLog createAuditLog(
     String username,
     String methodName,
@@ -117,6 +120,7 @@ public class AuditAspect {
   ) {
     String requestUri = request != null ? request.getRequestURI() : null;
     String requestMethod = request != null ? request.getMethod() : null;
+    
     return new AuditLog(
       username,
       methodName,

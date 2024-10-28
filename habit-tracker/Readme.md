@@ -37,20 +37,12 @@ $CATALINA_HOME/bin/startup.sh
 
 http://localhost:8080/habit-tracker
 
-### Запуск в консольном режиме (включая миграции)
-
-java -jar habit-tracker.jar --console
-
-### Запуск только миграции базы данных
-
-java -jar habit-tracker.jar --migrate
-
-### Учетные данные для доступа в админ-меню:
+#### Учетные данные для доступа в админ-меню:
 
 - Электронная почта: admin@example.com
 - Пароль: adminpassword
 
-### Учетные данные пользователя с предзаполненными данными:
+#### Учетные данные пользователя с предзаполненными данными:
 
 - Электронная почта: userOne@example.com
 - Пароль: hashedpassword1

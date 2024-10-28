@@ -74,7 +74,6 @@ public class ApplicationInitializer implements ServletContextListener {
         logger.info("Database migrations are disabled, skipping...");
         return;
       }
-      
       logger.info("Running database migrations...");
       LiquibaseMigrationConfig liquibaseMigrationConfig = new LiquibaseMigrationConfig(dataSource);
       liquibaseMigrationConfig.updateDB();
