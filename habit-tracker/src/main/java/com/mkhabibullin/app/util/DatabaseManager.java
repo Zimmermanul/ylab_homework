@@ -22,27 +22,45 @@ public class DatabaseManager {
   private static final Logger logger = LoggerFactory.getLogger(DatabaseManager.class);
   private static final String LIQUIBASE_SERVICE_SCHEMA = "service";
   
+  /**
+   * Creates and configures a HikariCP configuration object with predefined database
+   * connection parameters and pool settings.
+   *
+   * <p>Configuration includes:</p>
+   * <ul>
+   *   <li>Connection parameters from {@link ConfigLoader}</li>
+   *   <li>Pool size: maximum 10 connections</li>
+   *   <li>Minimum idle connections: 5</li>
+   *   <li>Idle timeout: 300 seconds</li>
+   *   <li>Connection timeout: 20 seconds</li>
+   *   <li>Validation timeout: 5 seconds</li>
+   * </ul>
+   *
+   * @return A configured {@link HikariConfig} instance ready for creating a connection pool
+   */
   public static HikariConfig createHikariConfig() {
     logger.info("Creating HikariCP configuration");
-    
     HikariConfig config = new HikariConfig();
     config.setJdbcUrl(ConfigLoader.getDatabaseUrl());
     config.setUsername(ConfigLoader.getDatabaseUser());
     config.setPassword(ConfigLoader.getDatabasePassword());
-    
-    // Additional configuration for web application
     config.setMaximumPoolSize(10);
     config.setMinimumIdle(5);
-    config.setIdleTimeout(300000); // 5 minutes
-    config.setConnectionTimeout(20000); // 20 seconds
-    config.setValidationTimeout(5000); // 5 seconds
+    config.setIdleTimeout(300000);
+    config.setConnectionTimeout(20000);
+    config.setValidationTimeout(5000);
     config.setConnectionTestQuery("SELECT 1");
     config.setDriverClassName("org.postgresql.Driver");
-    
     logger.info("HikariCP configuration created successfully");
     return config;
   }
   
+  /**
+   * Creates the Liquibase service schema if it doesn't exist.
+   * This schema is used to store Liquibase metadata and change log information.
+   *
+   * @param connection An active database connection
+   */
   public static void createLiquibaseServiceSchema(Connection connection) {
     try {
       logger.info("Creating Liquibase service schema if not exists");
@@ -56,6 +74,12 @@ public class DatabaseManager {
     }
   }
   
+  /**
+   * Creates and configures a Liquibase instance for managing database migrations.
+   *
+   * @param connection An active database connection
+   * @return A configured {@link Liquibase} instance ready for running migrations
+   */
   public static Liquibase createLiquibase(Connection connection) {
     try {
       logger.info("Creating Liquibase instance");

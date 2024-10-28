@@ -177,13 +177,6 @@ public class AuditLogDbRepository {
     return new ArrayList<>();
   }
   
-  /**
-   * Maps a ResultSet row to an AuditLog object.
-   *
-   * @param rs The ResultSet containing the audit log data
-   * @return A new AuditLog object populated with data from the ResultSet
-   * @throws SQLException if there is an error accessing the ResultSet
-   */
   private AuditLog mapResultSetToAuditLog(ResultSet rs) throws SQLException {
     AuditLog log = new AuditLog(
       rs.getString("username"),

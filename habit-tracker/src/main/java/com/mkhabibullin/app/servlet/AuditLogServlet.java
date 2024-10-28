@@ -2,7 +2,6 @@ package com.mkhabibullin.app.servlet;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.mkhabibullin.app.annotation.Audited;
 import com.mkhabibullin.app.controller.AuditLogController;
 import com.mkhabibullin.app.dto.ErrorDTO;
 import com.mkhabibullin.app.exception.AuthenticationException;
@@ -21,7 +20,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 
 /**
- * Servlet handling all audit log related operations including viewing logs and statistics.
+ * Servlet handling all audit log related operations.
  */
 @WebServlet("/api/audit-logs/*")
 public class AuditLogServlet extends HttpServlet {
@@ -69,10 +68,6 @@ public class AuditLogServlet extends HttpServlet {
     }
   }
   
-  /**
-   * Handles retrieval of audit logs for a specific user.
-   */
-  @Audited(operation = "Get User Audit Logs")
   private void handleGetUserLogs(HttpServletRequest request, HttpServletResponse response,
                                  String username, User currentUser) throws IOException {
     try {
@@ -84,10 +79,6 @@ public class AuditLogServlet extends HttpServlet {
     }
   }
   
-  /**
-   * Handles retrieval of audit logs for a specific operation type.
-   */
-  @Audited(operation = "Get Operation Audit Logs")
   private void handleGetOperationLogs(HttpServletRequest request, HttpServletResponse response,
                                       String operation, User currentUser) throws IOException {
     try {
@@ -99,10 +90,6 @@ public class AuditLogServlet extends HttpServlet {
     }
   }
   
-  /**
-   * Handles retrieval of recent audit logs.
-   */
-  @Audited(operation = "Get Recent Audit Logs")
   private void handleGetRecentLogs(HttpServletRequest request, HttpServletResponse response,
                                    User currentUser) throws IOException {
     try {
@@ -115,10 +102,6 @@ public class AuditLogServlet extends HttpServlet {
     }
   }
   
-  /**
-   * Handles retrieval of audit statistics.
-   */
-  @Audited(operation = "Get Audit Statistics")
   private void handleGetStatistics(HttpServletRequest request, HttpServletResponse response,
                                    User currentUser) throws IOException {
     try {

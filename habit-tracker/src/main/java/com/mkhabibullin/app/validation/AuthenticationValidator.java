@@ -4,13 +4,17 @@ import com.mkhabibullin.app.model.User;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
+/**
+ * Validator class for authentication and authorization checks.
+ * Provides utility methods to validate user authentication status and permissions.
+ */
 public class AuthenticationValidator {
+
   /**
-   * Validates user authentication status from the HTTP session
+   * Validates user authentication status from the HTTP
    *
    * @param request HTTP request containing the session
    * @return authenticated User object
-   * @throws AuthenticationException if user is not authenticated
    */
   public static User validateAuthentication(HttpServletRequest request) throws AuthenticationException {
     HttpSession session = request.getSession(false);

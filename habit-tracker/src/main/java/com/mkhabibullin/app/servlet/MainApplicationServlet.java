@@ -54,11 +54,6 @@ public class MainApplicationServlet extends HttpServlet {
       sendError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error");
     }
   }
-  
-  /**
-   * Handles the status endpoint which provides current application status
-   * and user session information.
-   */
   private void handleGetStatus(HttpServletRequest request, HttpServletResponse response)
     throws IOException {
     User currentUser = getCurrentUser(request);
@@ -79,10 +74,6 @@ public class MainApplicationServlet extends HttpServlet {
     sendJsonResponse(response, HttpServletResponse.SC_OK, status);
     logger.debug("Status request processed successfully");
   }
-  
-  /**
-   * Handles the health check endpoint which verifies critical system components.
-   */
   private void handleHealthCheck(HttpServletRequest request, HttpServletResponse response)
     throws IOException {
     Map<String, Object> health = new HashMap<>();
@@ -126,10 +117,6 @@ public class MainApplicationServlet extends HttpServlet {
       logger.warn("Health check failed: {}", health);
     }
   }
-  
-  /**
-   * Handles the info endpoint which provides general application information.
-   */
   private void handleGetInfo(HttpServletRequest request, HttpServletResponse response)
     throws IOException {
     Map<String, Object> info = new HashMap<>();
@@ -138,18 +125,10 @@ public class MainApplicationServlet extends HttpServlet {
     sendJsonResponse(response, HttpServletResponse.SC_OK, info);
     logger.debug("Info request processed successfully");
   }
-  
-  /**
-   * Gets the current logged-in user from the session.
-   */
   private User getCurrentUser(HttpServletRequest request) {
     HttpSession session = request.getSession(false);
     return session != null ? (User) session.getAttribute("user") : null;
   }
-  
-  /**
-   * Calculates the application uptime.
-   */
   private Map<String, Long> getUptime() {
     LocalDateTime now = LocalDateTime.now();
     java.time.Duration duration = java.time.Duration.between(startupTime, now);

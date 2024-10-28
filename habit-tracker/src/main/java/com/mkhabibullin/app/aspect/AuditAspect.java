@@ -88,13 +88,6 @@ public class AuditAspect {
       throw throwable;
     }
   }
-  
-  /**
-   * Extracts HttpServletRequest from method arguments.
-   *
-   * @param joinPoint The join point containing method arguments
-   * @return The HttpServletRequest if found, null otherwise
-   */
   private HttpServletRequest extractHttpRequest(ProceedingJoinPoint joinPoint) {
     for (Object arg : joinPoint.getArgs()) {
       if (arg instanceof HttpServletRequest) {
@@ -103,14 +96,6 @@ public class AuditAspect {
     }
     return null;
   }
-  
-  /**
-   * Extracts username from the request session.
-   * Returns "anonymous" if no user is found in the session.
-   *
-   * @param request The HTTP request object
-   * @return The username from the session or "anonymous"
-   */
   private String extractUsername(HttpServletRequest request) {
     if (request != null) {
       HttpSession session = request.getSession(false);
@@ -123,17 +108,6 @@ public class AuditAspect {
     }
     return "anonymous";
   }
-  
-  /**
-   * Creates an AuditLog object with the provided information.
-   *
-   * @param username      The username performing the operation
-   * @param methodName    The name of the method being executed
-   * @param operation     The operation description
-   * @param executionTime The execution time in milliseconds
-   * @param request       The HTTP request object
-   * @return A new AuditLog object
-   */
   private AuditLog createAuditLog(
     String username,
     String methodName,

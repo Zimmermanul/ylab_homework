@@ -15,10 +15,36 @@ import java.time.DayOfWeek;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * MapStruct mapper interface for converting between Habit Execution DTOs and entities.
+ * This mapper handles the conversion of habit execution data while performing validation
+ * through {@link HabitExecutionMapperValidator}.
+ *
+ * <p>The mapper is configured with:</p>
+ * <ul>
+ *   <li>Default component model for simple instantiation</li>
+ *   <li>Integration with {@link HabitExecutionMapperValidator} for field validation</li>
+ *   <li>A singleton INSTANCE for stateless mapping operations</li>
+ * </ul>
+ *
+ * @see org.mapstruct.Mapper
+ * @see HabitExecutionMapperValidator
+ * @see HabitExecutionRequestDTO
+ * @see HabitExecution
+ */
 @Mapper(componentModel = "default", uses = HabitExecutionMapperValidator.class)
 public interface HabitExecutionMapper {
+  /**
+   * Singleton instance of the mapper.
+   * Use this instance for all mapping operations to ensure consistent behavior
+   * and optimal resource usage.
+   */
   HabitExecutionMapper INSTANCE = Mappers.getMapper(HabitExecutionMapper.class);
   
+  /**
+   * Converts a habit execution request DTO to a habit execution entity.
+   * This method performs validation on all mapped fields using {@link HabitExecutionMapperValidator}.
+   */
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "date", source = "dto.date", qualifiedByName = "validateDate")
   @Mapping(target = "completed", source = "dto.completed", qualifiedByName = "validateCompleted")

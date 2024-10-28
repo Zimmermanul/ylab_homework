@@ -158,13 +158,6 @@ public class AuditLogController {
       lastOperation
     );
   }
-  
-  /**
-   * Maps an AuditLog entity to its DTO representation.
-   *
-   * @param log the audit log entity to map
-   * @return the corresponding DTO
-   */
   private AuditLogResponseDTO mapToResponseDTO(AuditLog log) {
     return new AuditLogResponseDTO(
       log.getId(),

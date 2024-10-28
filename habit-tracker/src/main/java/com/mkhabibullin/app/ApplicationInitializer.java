@@ -14,8 +14,9 @@ import org.slf4j.LoggerFactory;
 import javax.sql.DataSource;
 
 /**
- * ServletContextListener that initializes the application when deployed to a web container.
- * Handles database initialization, migrations, and application component setup.
+ * A ServletContextListener implementation that handles the initialization and shutdown
+ * of the Habit Tracker web application. This class is responsible for setting up necessary
+ * resources when the application starts and cleaning them up when the application shuts down.
  */
 @WebListener
 public class ApplicationInitializer implements ServletContextListener {
@@ -23,6 +24,10 @@ public class ApplicationInitializer implements ServletContextListener {
   private DataSource dataSource;
   private ApplicationConfig applicationConfig;
   
+  /**
+   * Initializes the web application when the server starts up. This method is called by
+   * the servlet container when the application context is initialized.
+   */
   @Override
   public void contextInitialized(ServletContextEvent event) {
     try {
@@ -37,6 +42,10 @@ public class ApplicationInitializer implements ServletContextListener {
     }
   }
   
+  /**
+   * Performs cleanup when the web application is being shut down. This method is called by
+   * the servlet container when the application context is being destroyed.
+   */
   @Override
   public void contextDestroyed(ServletContextEvent event) {
     try {

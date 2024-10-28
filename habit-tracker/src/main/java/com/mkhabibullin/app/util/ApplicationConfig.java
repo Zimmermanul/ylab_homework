@@ -12,6 +12,11 @@ import com.mkhabibullin.app.service.UserService;
 
 import javax.sql.DataSource;
 
+/**
+ * Configuration class responsible for initializing and managing application components.
+ * This class handles the dependency injection and component lifecycle for the application,
+ * including repositories, services, and controllers.
+ */
 public class ApplicationConfig {
   private final DataSource dataSource;
   private UserDbRepository userRepository;
@@ -24,6 +29,13 @@ public class ApplicationConfig {
   private HabitController habitController;
   private HabitExecutionController executionController;
   
+  /**
+   * Constructs a new ApplicationConfig with the specified data source.
+   * Initializes all application components including repositories, services,
+   * and controllers with proper dependency injection.
+   *
+   * @param dataSource The data source to be used for database connections
+   */
   public ApplicationConfig(DataSource dataSource) {
     this.dataSource = dataSource;
     initializeComponents();
@@ -43,14 +55,27 @@ public class ApplicationConfig {
     this.executionController = new HabitExecutionController(executionService);
   }
   
+  /**
+   * Retrieves the user controller instance.
+   *
+   * @return The configured {@link UserController} instance
+   */
   public UserController getUserController() {
     return userController;
   }
   
+  /**
+   * Retrieves the habit controller instance.
+   * @return The configured {@link HabitController} instance
+   */
   public HabitController getHabitController() {
     return habitController;
   }
   
+  /**
+   * Retrieves the habit execution controller instance.
+   * @return The configured {@link HabitExecutionController} instance
+   */
   public HabitExecutionController getExecutionController() {
     return executionController;
   }
