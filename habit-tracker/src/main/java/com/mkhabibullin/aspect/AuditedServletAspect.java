@@ -27,12 +27,12 @@ public class AuditedServletAspect {
   private AuditedServletAspect() {
   }
   @Pointcut("@annotation(audited)")
-  public void callAtSecuredMethod(Audited audited) {
+  public void callAtAuditedMethod(Audited audited) {
   }
   
-  @Around(value = "callAtSecuredMethod(audited) && args(.., req, resp)",
+  @Around(value = "callAtAuditedMethod(audited) && args(.., req, resp)",
     argNames = "joinPoint,audited,req,resp")
-  public Object checkRole(ProceedingJoinPoint joinPoint, Audited audited, HttpServletRequest req, HttpServletResponse resp) throws Throwable {
+  public Object writeAuditLog(ProceedingJoinPoint joinPoint, Audited audited, HttpServletRequest req, HttpServletResponse resp) throws Throwable {
     System.out.println("Audit aspect is being executed!");
     long startTime = System.currentTimeMillis();
     MethodSignature signature = (MethodSignature) joinPoint.getSignature();
