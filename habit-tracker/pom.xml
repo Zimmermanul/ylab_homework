@@ -19,6 +19,7 @@
         <logback.version>1.4.11</logback.version>
         <aspectjrt.version>1.9.19</aspectjrt.version>
         <aspectjweaver.version>1.9.19</aspectjweaver.version>
+        <aspectj.maven.plugin.version>1.14.0</aspectj.maven.plugin.version>
         <jackson-databind.version>2.15.3</jackson-databind.version>
         <jakarta.servlet.version>6.0.0</jakarta.servlet.version>
         <jakarta.jakartaee-web-api.version>9.1.0</jakarta.jakartaee-web-api.version>
@@ -179,18 +180,20 @@
                     <Xlint>ignore</Xlint>
                     <encoding>UTF-8</encoding>
                     <forceAjcCompile>true</forceAjcCompile>
-                    <aspectDirectory>src/main/java</aspectDirectory>
-                    <includes>
-                        <include>**/*.java</include>
-                    </includes>
                     <proc>none</proc>
                 </configuration>
                 <executions>
                     <execution>
+                        <id>compile</id>
                         <phase>process-classes</phase>
                         <goals>
                             <goal>compile</goal>
                         </goals>
+                        <configuration>
+                            <excludes>
+                                <exclude>**/test/**/*.java</exclude>
+                            </excludes>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>test-compile</id>
@@ -198,6 +201,11 @@
                         <goals>
                             <goal>test-compile</goal>
                         </goals>
+                        <configuration>
+                            <weaveDirectories>
+                                <weaveDirectory>${project.build.directory}/test-classes</weaveDirectory>
+                            </weaveDirectories>
+                        </configuration>
                     </execution>
                 </executions>
                 <dependencies>
@@ -208,7 +216,6 @@
                     </dependency>
                 </dependencies>
             </plugin>
-
             <!-- Build Helper for generated sources -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
