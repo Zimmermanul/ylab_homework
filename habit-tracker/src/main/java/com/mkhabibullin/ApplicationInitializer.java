@@ -4,7 +4,6 @@ import com.mkhabibullin.infrastructure.config.ApplicationConfig;
 import com.mkhabibullin.infrastructure.config.ConfigLoader;
 import com.mkhabibullin.infrastructure.config.DataSourceConfig;
 import com.mkhabibullin.infrastructure.config.LiquibaseMigrationConfig;
-import com.mkhabibullin.infrastructure.persistence.repository.AuditLogDbRepository;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
@@ -36,7 +35,6 @@ public class ApplicationInitializer implements ServletContextListener {
       initializeDataSource();
       runDatabaseMigrations();
       initializeApplicationComponents(event.getServletContext());
-      initializeAuditAspect();
       logger.info("Application initialized successfully");
     } catch (Exception e) {
       logger.error("Failed to initialize application", e);
@@ -96,17 +94,6 @@ public class ApplicationInitializer implements ServletContextListener {
     } catch (Exception e) {
       logger.error("Failed to initialize application components", e);
       throw new RuntimeException("Failed to initialize application components", e);
-    }
-  }
-  
-  private void initializeAuditAspect() {
-    try {
-      logger.info("Initializing AuditAspect...");
-      AuditLogDbRepository auditLogRepository = new AuditLogDbRepository(dataSource);
-      logger.info("AuditAspect initialized successfully");
-    } catch (Exception e) {
-      logger.error("Failed to initialize AuditAspect", e);
-      throw new RuntimeException("Failed to initialize AuditAspect", e);
     }
   }
   
