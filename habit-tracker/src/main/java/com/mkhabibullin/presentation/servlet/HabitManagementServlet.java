@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.mkhabibullin.application.mapper.HabitMapper;
 import com.mkhabibullin.application.validation.HabitMapperValidator;
+import com.mkhabibullin.common.Audited;
 import com.mkhabibullin.domain.exception.AuthenticationException;
 import com.mkhabibullin.domain.exception.ValidationException;
 import com.mkhabibullin.domain.model.Habit;
@@ -50,8 +51,9 @@ public class HabitManagementServlet extends HttpServlet {
     this.objectMapper.registerModule(new JavaTimeModule());
   }
   
+  @Audited(audited = "Create Habit")
   @Override
-  protected void doPost(HttpServletRequest request, HttpServletResponse response)
+  public void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
     try {
       User currentUser = validateUserAuthentication(request);
@@ -70,8 +72,9 @@ public class HabitManagementServlet extends HttpServlet {
     }
   }
   
+  @Audited(audited = "View Habits")
   @Override
-  protected void doGet(HttpServletRequest request, HttpServletResponse response)
+  public void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
     try {
       User currentUser = validateUserAuthentication(request);
@@ -90,8 +93,9 @@ public class HabitManagementServlet extends HttpServlet {
     }
   }
   
+  @Audited(audited = "Update Habit")
   @Override
-  protected void doPut(HttpServletRequest request, HttpServletResponse response)
+  public void doPut(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
     try {
       User currentUser = validateUserAuthentication(request);
@@ -108,8 +112,9 @@ public class HabitManagementServlet extends HttpServlet {
     }
   }
   
+  @Audited(audited = "Delete Habit")
   @Override
-  protected void doDelete(HttpServletRequest request, HttpServletResponse response)
+  public void doDelete(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
     try {
       User currentUser = validateUserAuthentication(request);
