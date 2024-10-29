@@ -45,11 +45,13 @@ public abstract class AbstractDatabaseTest {
   void setUp() throws SQLException {
     try (Connection conn = dataSource.getConnection();
          Statement stmt = conn.createStatement()) {
-      stmt.execute("CREATE SCHEMA IF NOT EXISTS entity");
-      stmt.execute("CREATE SCHEMA IF NOT EXISTS audit");
-      stmt.execute("CREATE SEQUENCE IF NOT EXISTS entity.global_seq START 100000");
+      stmt.execute("DROP SCHEMA IF EXISTS entity CASCADE");
+      stmt.execute("DROP SCHEMA IF EXISTS audit CASCADE");
+      stmt.execute("CREATE SCHEMA entity");
+      stmt.execute("CREATE SCHEMA audit");
+      stmt.execute("CREATE SEQUENCE entity.global_seq START 100000");
       stmt.execute("""
-                CREATE TABLE IF NOT EXISTS entity.users (
+            CREATE TABLE entity.users (
                     id BIGINT DEFAULT nextval('entity.global_seq') PRIMARY KEY,
                     email VARCHAR(255) NOT NULL UNIQUE,
                     password_hash VARCHAR(255) NOT NULL,
@@ -61,7 +63,7 @@ public abstract class AbstractDatabaseTest {
             """);
       
       stmt.execute("""
-                CREATE TABLE IF NOT EXISTS entity.habits (
+            CREATE TABLE entity.habits (
                     id BIGINT DEFAULT nextval('entity.global_seq') PRIMARY KEY,
                     user_id BIGINT REFERENCES entity.users(id),
                     name VARCHAR(255) NOT NULL,
@@ -73,7 +75,7 @@ public abstract class AbstractDatabaseTest {
             """);
       
       stmt.execute("""
-                CREATE TABLE IF NOT EXISTS entity.habit_executions (
+            CREATE TABLE entity.habit_executions (
                     id BIGINT DEFAULT nextval('entity.global_seq') PRIMARY KEY,
                     habit_id BIGINT REFERENCES entity.habits(id),
                     date DATE NOT NULL,
@@ -82,7 +84,7 @@ public abstract class AbstractDatabaseTest {
             """);
       
       stmt.execute("""
-            CREATE TABLE IF NOT EXISTS audit.audit_logs (
+            CREATE TABLE audit.audit_logs (
                 id BIGINT DEFAULT nextval('entity.global_seq') PRIMARY KEY,
                 username VARCHAR(255) NOT NULL,
                 method_name VARCHAR(255) NOT NULL,
@@ -93,11 +95,6 @@ public abstract class AbstractDatabaseTest {
                 request_method VARCHAR(10)
             )
         """);
-      
-      stmt.execute("TRUNCATE entity.habit_executions CASCADE");
-      stmt.execute("TRUNCATE entity.habits CASCADE");
-      stmt.execute("TRUNCATE entity.users CASCADE");
-      stmt.execute("TRUNCATE audit.audit_logs CASCADE");
     }
   }
 }

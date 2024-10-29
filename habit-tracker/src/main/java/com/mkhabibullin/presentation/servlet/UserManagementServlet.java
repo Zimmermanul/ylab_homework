@@ -5,6 +5,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.mkhabibullin.application.mapper.UserMapper;
 import com.mkhabibullin.application.validation.AuthenticationValidator;
 import com.mkhabibullin.application.validation.UserMapperValidator;
+import com.mkhabibullin.common.Audited;
 import com.mkhabibullin.domain.exception.AuthenticationException;
 import com.mkhabibullin.domain.exception.ValidationException;
 import com.mkhabibullin.domain.model.User;
@@ -52,8 +53,9 @@ public class UserManagementServlet extends HttpServlet {
     this.objectMapper.registerModule(new JavaTimeModule());
   }
   
+  @Audited(audited = "User Management - registration, login, logout")
   @Override
-  protected void doPost(HttpServletRequest request, HttpServletResponse response)
+  public void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
     String pathInfo = request.getPathInfo();
     try {
@@ -72,8 +74,9 @@ public class UserManagementServlet extends HttpServlet {
     }
   }
   
+  @Audited(audited = "User Profile Update")
   @Override
-  protected void doPut(HttpServletRequest request, HttpServletResponse response)
+  public void doPut(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
     try {
       User currentUser = AuthenticationValidator.validateAuthentication(request);
@@ -107,8 +110,9 @@ public class UserManagementServlet extends HttpServlet {
     }
   }
   
+  @Audited(audited = "View All Users")
   @Override
-  protected void doGet(HttpServletRequest request, HttpServletResponse response)
+  public void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
     try {
       User currentUser = AuthenticationValidator.validateAuthentication(request);
@@ -124,8 +128,9 @@ public class UserManagementServlet extends HttpServlet {
     }
   }
   
+  @Audited(audited = "Delete User")
   @Override
-  protected void doDelete(HttpServletRequest request, HttpServletResponse response)
+  public void doDelete(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
     try {
       User currentUser = AuthenticationValidator.validateAuthentication(request);
