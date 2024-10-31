@@ -46,7 +46,6 @@ public abstract class AbstractDatabaseTest {
   
   @BeforeEach
   void setUp() throws SQLException {
-    AspectContext.setTestContext(dataSource);
     try (Connection conn = dataSource.getConnection();
          Statement stmt = conn.createStatement()) {
       stmt.execute("DROP SCHEMA IF EXISTS entity CASCADE");

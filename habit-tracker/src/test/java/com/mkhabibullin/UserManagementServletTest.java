@@ -3,6 +3,7 @@ package com.mkhabibullin;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.mkhabibullin.application.service.UserService;
+import com.mkhabibullin.aspect.AspectContext;
 import com.mkhabibullin.aspect.TestAuditedServletAspect;
 import com.mkhabibullin.domain.model.User;
 import com.mkhabibullin.infrastructure.persistence.repository.AuditLogDbRepository;
@@ -18,6 +19,7 @@ import com.mkhabibullin.util.ServletTestUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -50,6 +52,7 @@ public class UserManagementServletTest extends AbstractDatabaseTest {
   @BeforeEach
   void init() throws Exception {
     super.setUp();
+    AspectContext.setTestContext(dataSource);
     TestAuditedServletAspect.setTestDataSource(dataSource);
     userRepository = new UserDbRepository(dataSource);
     auditLogRepository = new AuditLogDbRepository(dataSource);
@@ -75,6 +78,11 @@ public class UserManagementServletTest extends AbstractDatabaseTest {
     when(request.getSession(true)).thenReturn(session);
     when(request.getContextPath()).thenReturn("");
     when(request.getServletPath()).thenReturn("/api/users");
+  }
+  
+  @AfterEach
+  void tearDown() {
+    AspectContext.clearTestContext();
   }
   
   private String getResponseContent() {

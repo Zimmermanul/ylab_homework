@@ -4,6 +4,7 @@ package com.mkhabibullin;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.mkhabibullin.application.service.HabitService;
+import com.mkhabibullin.aspect.AspectContext;
 import com.mkhabibullin.aspect.TestAuditedServletAspect;
 import com.mkhabibullin.domain.model.Habit;
 import com.mkhabibullin.domain.model.User;
@@ -20,6 +21,7 @@ import com.mkhabibullin.util.ServletTestUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -54,6 +56,7 @@ public class HabitManagementServletTest extends AbstractDatabaseTest {
   @BeforeEach
   void init() throws Exception {
     super.setUp();
+    AspectContext.setTestContext(dataSource);
     TestAuditedServletAspect.setTestDataSource(dataSource);
     auditLogRepository = new AuditLogDbRepository(dataSource);
     userRepository = new UserDbRepository(dataSource);
@@ -76,6 +79,11 @@ public class HabitManagementServletTest extends AbstractDatabaseTest {
     when(request.getSession(false)).thenReturn(session);
     when(request.getSession(true)).thenReturn(session);
     when(session.getAttribute("user")).thenReturn(testUser);
+  }
+  
+  @AfterEach
+  void tearDown() {
+    AspectContext.clearTestContext();
   }
   
   private String getResponseContent() {
