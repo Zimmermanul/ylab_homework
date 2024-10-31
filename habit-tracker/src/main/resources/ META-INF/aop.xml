@@ -1,0 +1,8 @@
+<aspectj>
+    <aspects>
+        <aspect name="com.mkhabibullin.aspect.AuditedServletAspect"/>
+    </aspects>
+    <weaver>
+        <include within="com.mkhabibullin..*"/>
+    </weaver>
+</aspectj>

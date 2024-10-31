@@ -12,4 +12,5 @@
     <include file="db/changelog/changes/05-prefill-user-table.xml"/>
     <include file="db/changelog/changes/06-prefill-habit-table.xml"/>
     <include file="db/changelog/changes/07-prefill-habit-execution-table.xml"/>
+    <include file="db/changelog/changes/08-create-audit-logs-table.xml"/>
 </databaseChangeLog>
