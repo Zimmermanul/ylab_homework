@@ -38,36 +38,34 @@ public class AuditedServletAspect {
       return joinPoint.proceed();
     }
     System.out.println("Audit aspect is being executed!");
-    Thread.dumpStack();
     long startTime = System.currentTimeMillis();
     MethodSignature signature = (MethodSignature) joinPoint.getSignature();
     String methodName = signature.getName();
     HttpServletRequest request = extractHttpRequest(joinPoint);
     String username = extractUsername(request);
     AuditLogDbRepository auditLogRepository = new AuditLogDbRepository(DataSourceConfig.getDataSource());
+    Object result;
+    Throwable caughtThrowable = null;
     try {
-      Object result = joinPoint.proceed();
-      long executionTime = System.currentTimeMillis() - startTime;
-      AuditLog auditLog = createAuditLog(
-        username,
-        methodName,
-        audited.audited(),
-        executionTime,
-        request
-      );
-      auditLogRepository.save(auditLog);
+      result = joinPoint.proceed();
       return result;
     } catch (Throwable throwable) {
+      caughtThrowable = throwable;
+      throw throwable;
+    } finally {
       long executionTime = System.currentTimeMillis() - startTime;
+      String operation = audited.audited();
+      if (caughtThrowable != null) {
+        operation += " (Failed: " + caughtThrowable.getMessage() + ")";
+      }
       AuditLog auditLog = createAuditLog(
         username,
         methodName,
-        audited.audited() + " (Failed: " + throwable.getMessage() + ")",
+        operation,
         executionTime,
         request
       );
       auditLogRepository.save(auditLog);
-      throw throwable;
     }
   }
   

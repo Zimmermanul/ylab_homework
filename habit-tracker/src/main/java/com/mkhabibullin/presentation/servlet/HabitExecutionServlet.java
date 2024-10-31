@@ -81,7 +81,6 @@ public class HabitExecutionServlet extends HttpServlet {
     try {
       User currentUser = validateUserAuthentication(request);
       String pathInfo = request.getPathInfo();
-      
       if (pathInfo != null) {
         if (pathInfo.startsWith("/history/")) {
           String habitId = pathInfo.substring("/history/".length());

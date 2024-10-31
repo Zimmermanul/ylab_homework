@@ -49,17 +49,18 @@ public class TestAuditedServletAspect {
     String methodName = signature.getName();
     String username = extractUsername(req);
     AuditLogDbRepository auditLogRepository = new AuditLogDbRepository(testDataSource);
+    Object result;
+    Throwable caughtThrowable = null;
     try {
-      Object result = joinPoint.proceed();
-      long executionTime = System.currentTimeMillis() - startTime;
-      saveAuditLog(auditLogRepository, username, methodName, audited.audited(),
-        executionTime, req, null);
+      result = joinPoint.proceed();
       return result;
     } catch (Throwable throwable) {
+      caughtThrowable = throwable;
+      throw throwable;
+    } finally {
       long executionTime = System.currentTimeMillis() - startTime;
       saveAuditLog(auditLogRepository, username, methodName,
-        audited.audited(), executionTime, req, throwable);
-      throw throwable;
+        audited.audited(), executionTime, req, caughtThrowable);
     }
   }
   

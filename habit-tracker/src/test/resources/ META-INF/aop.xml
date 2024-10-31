@@ -2,7 +2,7 @@
     <aspects>
         <aspect name="com.mkhabibullin.aspect.TestAuditedServletAspect"/>
     </aspects>
-    <weaver options="-verbose">
+    <weaver>
         <include within="com.mkhabibullin..*"/>
     </weaver>
 </aspectj>
