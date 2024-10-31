@@ -10,8 +10,7 @@ import com.mkhabibullin.presentation.controller.AuditLogController;
 import com.mkhabibullin.presentation.dto.ErrorDTO;
 import com.mkhabibullin.presentation.dto.audit.AuditStatisticsDTO;
 import com.mkhabibullin.presentation.servlet.AuditLogServlet;
-import jakarta.servlet.ServletOutputStream;
-import jakarta.servlet.WriteListener;
+import com.mkhabibullin.util.ServletTestUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -20,7 +19,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.Statement;
 import java.time.LocalDateTime;
@@ -61,22 +59,7 @@ public class AuditLogServletTest extends AbstractDatabaseTest {
     response = mock(HttpServletResponse.class);
     session = mock(HttpSession.class);
     outputStream = new ByteArrayOutputStream();
-    ServletOutputStream servletOutputStream = new ServletOutputStream() {
-      @Override
-      public boolean isReady() {
-        return true;
-      }
-      
-      @Override
-      public void setWriteListener(WriteListener writeListener) {
-      }
-      
-      @Override
-      public void write(int b) throws IOException {
-        outputStream.write(b);
-      }
-    };
-    when(response.getOutputStream()).thenReturn(servletOutputStream);
+    when(response.getOutputStream()).thenReturn(ServletTestUtils.createServletOutputStream(outputStream));
     when(request.getSession(false)).thenReturn(session);
     when(session.getAttribute("user")).thenReturn(testUser);
   }

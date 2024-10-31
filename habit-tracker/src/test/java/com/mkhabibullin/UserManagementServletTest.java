@@ -14,8 +14,7 @@ import com.mkhabibullin.presentation.dto.user.RegisterUserDTO;
 import com.mkhabibullin.presentation.dto.user.UpdateNameDTO;
 import com.mkhabibullin.presentation.dto.user.UserEmailDTO;
 import com.mkhabibullin.presentation.servlet.UserManagementServlet;
-import jakarta.servlet.ServletOutputStream;
-import jakarta.servlet.WriteListener;
+import com.mkhabibullin.util.ServletTestUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -25,7 +24,6 @@ import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -71,22 +69,7 @@ public class UserManagementServletTest extends AbstractDatabaseTest {
     response = mock(HttpServletResponse.class);
     session = mock(HttpSession.class);
     outputStream = new ByteArrayOutputStream();
-    ServletOutputStream servletOutputStream = new ServletOutputStream() {
-      @Override
-      public boolean isReady() {
-        return true;
-      }
-      
-      @Override
-      public void setWriteListener(WriteListener writeListener) {
-      }
-      
-      @Override
-      public void write(int b) throws IOException {
-        outputStream.write(b);
-      }
-    };
-    when(response.getOutputStream()).thenReturn(servletOutputStream);
+    when(response.getOutputStream()).thenReturn(ServletTestUtils.createServletOutputStream(outputStream));
     when(request.getSession()).thenReturn(session);
     when(request.getSession(false)).thenReturn(session);
     when(request.getSession(true)).thenReturn(session);
