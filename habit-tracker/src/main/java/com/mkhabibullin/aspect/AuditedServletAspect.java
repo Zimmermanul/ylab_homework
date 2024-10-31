@@ -34,7 +34,7 @@ public class AuditedServletAspect {
   @Around(value = "auditedMethod(audited) && args(.., req, resp)",
     argNames = "joinPoint,audited,req,resp")
   public Object writeAuditLog(ProceedingJoinPoint joinPoint, Audited audited, HttpServletRequest req, HttpServletResponse resp) throws Throwable {
-    if (AspectContext.isTestContext()) {
+    if (isCalledFromTest()) {
       return joinPoint.proceed();
     }
     System.out.println("Audit aspect is being executed!");
@@ -109,5 +109,19 @@ public class AuditedServletAspect {
       requestUri,
       requestMethod
     );
+  }
+  
+  private boolean isCalledFromTest() {
+    StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+    for (StackTraceElement element : stackTrace) {
+      String className = element.getClassName();
+      if (className.endsWith("Test") ||
+          className.contains("Test$") ||
+          className.startsWith("org.junit.") ||
+          element.getMethodName().startsWith("test")) {
+        return true;
+      }
+    }
+    return false;
   }
 }

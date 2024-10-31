@@ -14,6 +14,7 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 
 import javax.sql.DataSource;
+import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 
 @Aspect
@@ -40,7 +41,7 @@ public class TestAuditedServletAspect {
     argNames = "joinPoint,audited,req,resp")
   public Object writeAuditLog(ProceedingJoinPoint joinPoint, Audited audited,
                               HttpServletRequest req, HttpServletResponse resp) throws Throwable {
-    if (!AspectContext.isTestContext()) {
+    if (!isCalledFromTest() || testDataSource == null) {
       return joinPoint.proceed();
     }
     System.out.println("Test Audit aspect is being executed!");
@@ -98,5 +99,33 @@ public class TestAuditedServletAspect {
       System.err.println("Error extracting username: " + e.getMessage());
     }
     return "anonymous";
+  }
+  
+  private boolean isCalledFromTest() {
+    StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+    for (StackTraceElement element : stackTrace) {
+      if (element.getClassName().endsWith("Test")) {
+        try {
+          Class<?> callingClass = Class.forName(element.getClassName());
+          if (hasTestAnnotations(callingClass)) {
+            return true;
+          }
+        } catch (ClassNotFoundException e) {
+        }
+      }
+    }
+    return false;
+  }
+  
+  private boolean hasTestAnnotations(Class<?> clazz) {
+    if (clazz.isAnnotationPresent(org.junit.jupiter.api.Test.class)) {
+      return true;
+    }
+    for (Method method : clazz.getDeclaredMethods()) {
+      if (method.isAnnotationPresent(org.junit.jupiter.api.Test.class)) {
+        return true;
+      }
+    }
+    return false;
   }
 }
