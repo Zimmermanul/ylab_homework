@@ -5,6 +5,7 @@ import com.mkhabibullin.domain.model.AuditLog;
 import com.mkhabibullin.domain.model.User;
 import com.mkhabibullin.infrastructure.persistence.repository.AuditLogDbRepository;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -35,34 +36,29 @@ public class TestAuditedServletAspect {
   public void auditedMethod(Audited audited) {
   }
   
-  @Around("auditedMethod(audited)")
-  public Object auditMethod(ProceedingJoinPoint joinPoint, Audited audited) throws Throwable {
-    if (testDataSource == null) {
+  @Around(value = "auditedMethod(audited) && args(.., req, resp)",
+    argNames = "joinPoint,audited,req,resp")
+  public Object writeAuditLog(ProceedingJoinPoint joinPoint, Audited audited,
+                              HttpServletRequest req, HttpServletResponse resp) throws Throwable {
+    if (!AspectContext.isTestContext()) {
       return joinPoint.proceed();
     }
     System.out.println("Test Audit aspect is being executed!");
     long startTime = System.currentTimeMillis();
     MethodSignature signature = (MethodSignature) joinPoint.getSignature();
     String methodName = signature.getName();
-    HttpServletRequest request = null;
-    for (Object arg : joinPoint.getArgs()) {
-      if (arg instanceof HttpServletRequest) {
-        request = (HttpServletRequest) arg;
-        break;
-      }
-    }
-    String username = extractUsername(request);
+    String username = extractUsername(req);
     AuditLogDbRepository auditLogRepository = new AuditLogDbRepository(testDataSource);
     try {
       Object result = joinPoint.proceed();
       long executionTime = System.currentTimeMillis() - startTime;
       saveAuditLog(auditLogRepository, username, methodName, audited.audited(),
-        executionTime, request, null);
+        executionTime, req, null);
       return result;
     } catch (Throwable throwable) {
       long executionTime = System.currentTimeMillis() - startTime;
       saveAuditLog(auditLogRepository, username, methodName,
-        audited.audited(), executionTime, request, throwable);
+        audited.audited(), executionTime, req, throwable);
       throw throwable;
     }
   }

@@ -1,10 +1,8 @@
 <aspectj>
     <aspects>
-        <exclude within="com.mkhabibullin.aspect.AuditedServletAspect"/>
         <aspect name="com.mkhabibullin.aspect.TestAuditedServletAspect"/>
     </aspects>
-    <weaver options="-verbose -showWeaveInfo">
+    <weaver options="-verbose">
         <include within="com.mkhabibullin..*"/>
-        <exclude within="com.mkhabibullin.aspect.AuditedServletAspect"/>
     </weaver>
 </aspectj>

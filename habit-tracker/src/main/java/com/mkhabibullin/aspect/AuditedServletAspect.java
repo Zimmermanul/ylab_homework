@@ -26,14 +26,19 @@ public class AuditedServletAspect {
   
   private AuditedServletAspect() {
   }
+  
   @Pointcut("@annotation(audited)")
-  public void callAtAuditedMethod(Audited audited) {
+  public void auditedMethod(Audited audited) {
   }
   
-  @Around(value = "callAtAuditedMethod(audited) && args(.., req, resp)",
+  @Around(value = "auditedMethod(audited) && args(.., req, resp)",
     argNames = "joinPoint,audited,req,resp")
   public Object writeAuditLog(ProceedingJoinPoint joinPoint, Audited audited, HttpServletRequest req, HttpServletResponse resp) throws Throwable {
+    if (AspectContext.isTestContext()) {
+      return joinPoint.proceed();
+    }
     System.out.println("Audit aspect is being executed!");
+    Thread.dumpStack();
     long startTime = System.currentTimeMillis();
     MethodSignature signature = (MethodSignature) joinPoint.getSignature();
     String methodName = signature.getName();
@@ -65,6 +70,7 @@ public class AuditedServletAspect {
       throw throwable;
     }
   }
+  
   private HttpServletRequest extractHttpRequest(ProceedingJoinPoint joinPoint) {
     for (Object arg : joinPoint.getArgs()) {
       if (arg instanceof HttpServletRequest) {

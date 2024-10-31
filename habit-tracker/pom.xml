@@ -170,7 +170,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>aspectj-maven-plugin</artifactId>
-                <version>1.14.0</version>
+                <version>${aspectj.maven.plugin.version}</version>
                 <configuration>
                     <complianceLevel>${java.version}</complianceLevel>
                     <source>${java.version}</source>
@@ -180,6 +180,8 @@
                     <Xlint>ignore</Xlint>
                     <encoding>UTF-8</encoding>
                     <forceAjcCompile>true</forceAjcCompile>
+                    <aspectDirectory>src/main/java</aspectDirectory>
+                    <testAspectDirectory>src/test/java</testAspectDirectory>
                     <proc>none</proc>
                 </configuration>
                 <executions>
@@ -190,9 +192,9 @@
                             <goal>compile</goal>
                         </goals>
                         <configuration>
-                            <excludes>
-                                <exclude>**/test/**/*.java</exclude>
-                            </excludes>
+                            <weaveDirectories>
+                                <weaveDirectory>${project.build.directory}/classes</weaveDirectory>
+                            </weaveDirectories>
                         </configuration>
                     </execution>
                     <execution>

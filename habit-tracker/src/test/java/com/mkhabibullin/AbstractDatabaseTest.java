@@ -1,7 +1,10 @@
 package com.mkhabibullin;
+
+import com.mkhabibullin.aspect.AspectContext;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -43,6 +46,7 @@ public abstract class AbstractDatabaseTest {
   
   @BeforeEach
   void setUp() throws SQLException {
+    AspectContext.setTestContext(dataSource);
     try (Connection conn = dataSource.getConnection();
          Statement stmt = conn.createStatement()) {
       stmt.execute("DROP SCHEMA IF EXISTS entity CASCADE");
@@ -96,5 +100,10 @@ public abstract class AbstractDatabaseTest {
             )
         """);
     }
+  }
+  
+  @AfterEach
+  void tearDown() {
+    AspectContext.clearTestContext();
   }
 }
