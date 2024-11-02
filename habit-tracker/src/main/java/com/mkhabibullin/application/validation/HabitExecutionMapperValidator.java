@@ -1,61 +1,44 @@
 package com.mkhabibullin.application.validation;
 
-import com.mkhabibullin.application.mapper.HabitExecutionMapper;
-import org.mapstruct.Named;
+import com.mkhabibullin.domain.exception.ValidationException;
+import com.mkhabibullin.presentation.dto.habitExecution.HabitExecutionRequestDTO;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
-
 /**
- * Validator class for habit execution mapping operations.
- * Provides validation methods used by {@link HabitExecutionMapper} to ensure
- * data integrity during the mapping process.
+ * Validator component for habit execution-related DTOs.
+ * Provides validation methods for ensuring data integrity during habit execution operations.
  */
+@Component
 public class HabitExecutionMapperValidator {
+  
   /**
-   * Validates the date for a habit execution.
-   * Ensures that the date is not null and not in the future.
+   * Validates a DTO for habit execution tracking.
    *
-   * @param date The date to validate
-   * @return The validated date
+   * @param dto The habit execution request DTO to validate
+   * @throws ValidationException if validation fails
    */
-  @Named("validateDate")
-  public LocalDate validateDate(LocalDate date) {
+  public void validateHabitExecutionRequestDTO(HabitExecutionRequestDTO dto) throws ValidationException {
+    if (dto == null) {
+      throw new ValidationException("HabitExecutionRequestDTO cannot be null");
+    }
+    
+    validateDate(dto.date());
+    validateCompleted(dto.completed());
+  }
+  
+  private void validateDate(LocalDate date) throws ValidationException {
     if (date == null) {
-      throw new IllegalArgumentException("Date is required");
+      throw new ValidationException("Date is required");
     }
     if (date.isAfter(LocalDate.now())) {
-      throw new IllegalArgumentException("Cannot record executions for future dates");
+      throw new ValidationException("Cannot record executions for future dates");
     }
-    return date;
   }
   
-  /**
-   * Validates the completion status of a habit execution.
-   * Ensures that the completion status is not null.
-   *
-   * @param completed The completion status to validate
-   * @return The validated completion status
-   */
-  @Named("validateCompleted")
-  public Boolean validateCompleted(Boolean completed) {
+  private void validateCompleted(Boolean completed) throws ValidationException {
     if (completed == null) {
-      throw new IllegalArgumentException("Completion status is required");
+      throw new ValidationException("Completion status is required");
     }
-    return completed;
-  }
-  
-  /**
-   * Validates the habit ID associated with an execution.
-   * Ensures that the habit ID is not null.
-   *
-   * @param habitId The habit ID to validate
-   * @return The validated habit ID
-   */
-  @Named("validateHabitId")
-  public Long validateHabitId(Long habitId) {
-    if (habitId == null) {
-      throw new IllegalArgumentException("Habit ID is required");
-    }
-    return habitId;
   }
 }

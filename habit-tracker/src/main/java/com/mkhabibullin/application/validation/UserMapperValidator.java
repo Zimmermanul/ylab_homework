@@ -1,94 +1,111 @@
 package com.mkhabibullin.application.validation;
 
-import com.mkhabibullin.application.mapper.UserMapper;
+import com.mkhabibullin.domain.exception.ValidationException;
+import com.mkhabibullin.presentation.dto.user.LoginDTO;
 import com.mkhabibullin.presentation.dto.user.RegisterUserDTO;
 import com.mkhabibullin.presentation.dto.user.UpdateEmailDTO;
 import com.mkhabibullin.presentation.dto.user.UpdateNameDTO;
 import com.mkhabibullin.presentation.dto.user.UpdatePasswordDTO;
-import com.mkhabibullin.presentation.dto.user.UpdateUserDTO;
 import com.mkhabibullin.presentation.dto.user.UserEmailDTO;
-import org.mapstruct.BeforeMapping;
+import org.springframework.stereotype.Component;
 
 import java.util.regex.Pattern;
-
 /**
- * Validator class for user-related DTOs.
- * Provides validation methods used by {@link UserMapper} to ensure data integrity
- * during user registration, updates, and other operations.
+ * Validator component for user-related DTOs.
+ * Provides validation methods for ensuring data integrity during user operations.
  */
+@Component
 public class UserMapperValidator {
-  private static final Pattern EMAIL_PATTERN = Pattern.compile(
-    "^[A-Za-z0-9+_.-]+@(.+)$"
-  );
+  
+  private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@(.+)$");
   private static final Pattern PASSWORD_PATTERN = Pattern.compile(
     "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$"
   );
   
   /**
-   * Validates user registration data before mapping.
-   * Checks email format, password strength, and name requirements.
+   * Validates user registration data.
    *
-   * @param dto The registration data to validate
+   * @param dto the registration data to validate
+   * @throws ValidationException if validation fails
    */
-  @BeforeMapping
-  public void validateRegisterUserDTO(RegisterUserDTO dto) {
+  public void validateRegisterUserDTO(RegisterUserDTO dto) throws ValidationException {
+    if (dto == null) {
+      throw new ValidationException("Registration data cannot be null");
+    }
     validateEmail(dto.email());
     validatePassword(dto.password());
     validateName(dto.name());
   }
   
   /**
-   * Validates user update data before mapping.
+   * Validates login data.
    *
-   * @param dto The update data to validate
+   * @param dto the login data to validate
+   * @throws ValidationException if validation fails
    */
-  @BeforeMapping
-  public void validateUpdateUserDTO(UpdateUserDTO dto) {
-    if (dto.email() != null) {
-      validateEmail(dto.email());
+  public void validateLoginDTO(LoginDTO dto) throws ValidationException {
+    if (dto == null) {
+      throw new ValidationException("Login data cannot be null");
     }
-    if (dto.name() != null) {
-      validateName(dto.name());
+    validateEmail(dto.email());
+    if (dto.password() == null || dto.password().trim().isEmpty()) {
+      throw new ValidationException("Password is required");
     }
   }
   
   /**
-   * Validates email update data before mapping.
-   * @param dto The email update data to validate
+   * Validates email update data.
+   *
+   * @param dto the email update data to validate
+   * @throws ValidationException if validation fails
    */
-  @BeforeMapping
-  public void validateUpdateEmailDTO(UpdateEmailDTO dto) {
+  public void validateUpdateEmailDTO(UpdateEmailDTO dto) throws ValidationException {
+    if (dto == null) {
+      throw new ValidationException("Email update data cannot be null");
+    }
     validateEmail(dto.newEmail());
   }
   
   /**
-   * Validates name update data before mapping.
-   * @param dto The name update data to validate
+   * Validates name update data.
+   *
+   * @param dto the name update data to validate
+   * @throws ValidationException if validation fails
    */
-  @BeforeMapping
-  public void validateUpdateNameDTO(UpdateNameDTO dto) {
+  public void validateUpdateNameDTO(UpdateNameDTO dto) throws ValidationException {
+    if (dto == null) {
+      throw new ValidationException("Name update data cannot be null");
+    }
     validateName(dto.newName());
   }
   
   /**
-   * Validates password update data before mapping.
-   * @param dto The password update data to validate
+   * Validates password update data.
+   *
+   * @param dto the password update data to validate
+   * @throws ValidationException if validation fails
    */
-  @BeforeMapping
-  public void validateUpdatePasswordDTO(UpdatePasswordDTO dto) {
+  public void validateUpdatePasswordDTO(UpdatePasswordDTO dto) throws ValidationException {
+    if (dto == null) {
+      throw new ValidationException("Password update data cannot be null");
+    }
     validatePassword(dto.newPassword());
   }
   
   /**
-   * Validates email-only DTO before mapping.
-   * @param dto The email-only data to validate
+   * Validates email-only data.
+   *
+   * @param dto the email-only data to validate
+   * @throws ValidationException if validation fails
    */
-  @BeforeMapping
-  public void validateUserEmailDTO(UserEmailDTO dto) {
+  public void validateUserEmailDTO(UserEmailDTO dto) throws ValidationException {
+    if (dto == null) {
+      throw new ValidationException("Email data cannot be null");
+    }
     validateEmail(dto.email());
   }
   
-  private void validateEmail(String email) {
+  private void validateEmail(String email) throws ValidationException {
     if (email == null || email.trim().isEmpty()) {
       throw new ValidationException("Email is required");
     }
@@ -97,7 +114,7 @@ public class UserMapperValidator {
     }
   }
   
-  private void validatePassword(String password) {
+  private void validatePassword(String password) throws ValidationException {
     if (password == null || password.trim().isEmpty()) {
       throw new ValidationException("Password is required");
     }
@@ -107,18 +124,12 @@ public class UserMapperValidator {
     }
   }
   
-  private void validateName(String name) {
+  private void validateName(String name) throws ValidationException {
     if (name == null || name.trim().isEmpty()) {
       throw new ValidationException("Name is required");
     }
     if (name.length() < 2) {
       throw new ValidationException("Name must be at least 2 characters long");
-    }
-  }
-  
-  public static class ValidationException extends RuntimeException {
-    public ValidationException(String message) {
-      super(message);
     }
   }
 }

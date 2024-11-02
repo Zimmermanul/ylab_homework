@@ -1,0 +1,176 @@
+# Common Properties
+spring:
+  application:
+    name: habit-tracker
+
+# Default profile configuration
+---
+spring:
+  config:
+    activate:
+      on-profile: default
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:habit-tracker-db}
+    username: ${DB_USER:habit-tracker-admin}
+    password: ${DB_PASSWORD:habittrackerpass123}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      validation-timeout: 5000
+      pool-name: HabitTrackerPool
+      auto-commit: true
+      connection-test-query: SELECT 1
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          batch_size: 25
+          time_zone: UTC
+    open-in-view: false
+
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.xml
+    default-schema: public
+    liquibase-schema: service
+    parameters:
+      search-path: public,service
+
+logging:
+  level:
+    root: INFO
+    com.mkhabibullin: INFO
+    org.springframework: INFO
+    org.hibernate.SQL: INFO
+    org.hibernate.type.descriptor.sql.BasicBinder: INFO
+    com.zaxxer.hikari: INFO
+
+# Development profile configuration
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+logging:
+  level:
+    root: INFO
+    com.mkhabibullin: DEBUG
+    org.springframework: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    com.zaxxer.hikari: DEBUG
+
+# Test profile configuration
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+
+  datasource:
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+      idle-timeout: 30000
+      connection-timeout: 20000
+      pool-name: TestHabitTrackerPool
+
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    hibernate:
+      ddl-auto: create-drop
+
+  liquibase:
+    enabled: true
+    contexts: test
+
+logging:
+  level:
+    root: INFO
+    com.mkhabibullin: DEBUG
+    org.springframework: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.testcontainers: INFO
+
+# Production profile configuration
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  datasource:
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 10
+      idle-timeout: 300000
+      connection-timeout: 20000
+      validation-timeout: 5000
+
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+  liquibase:
+    contexts: prod
+
+logging:
+  level:
+    root: WARN
+    com.mkhabibullin: INFO
+    org.springframework: WARN
+    org.hibernate: WARN
+    com.zaxxer.hikari: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: ${catalina.base}/logs/habit-tracker.log
+    max-size: 10MB
+    max-history: 30
+
+# Swagger/OpenAPI Configuration (available in all profiles except prod)
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: ${SWAGGER_ENABLED:true}
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: ${SWAGGER_ENABLED:true}
+    doc-expansion: none
+    tags-sorter: alpha
+    operations-sorter: method
+  show-actuator: false
+  paths-to-match: /api/**
+
+# Application Specific Configuration
+application:
+  name: Habit Tracker
+  version: 1.0.0
+  description: Application for tracking habits and personal development
+  security:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:*}
+    allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+    allowed-headers: "*"
+    max-age: 3600

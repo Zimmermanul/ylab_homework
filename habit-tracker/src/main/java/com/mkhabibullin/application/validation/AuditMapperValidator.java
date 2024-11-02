@@ -1,289 +1,202 @@
 package com.mkhabibullin.application.validation;
 
-import com.mkhabibullin.application.mapper.AuditMapper;
-import org.mapstruct.Named;
+import com.mkhabibullin.domain.exception.ValidationException;
+import com.mkhabibullin.presentation.dto.audit.AuditLogResponseDTO;
+import com.mkhabibullin.presentation.dto.audit.AuditStatisticsDTO;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.Map;
 
 /**
- * Validator class for audit mapping operations.
- * Provides validation methods used by {@link AuditMapper} to ensure
- * data integrity during the mapping process.
+ * Validator component for audit-related DTOs.
+ * Provides validation methods for ensuring data integrity during audit operations.
  */
+@Component
 public class AuditMapperValidator {
   
   /**
-   * Validates the ID field.
+   * Validates audit log data.
    *
-   * @param id The ID to validate
-   * @return The validated ID
+   * @param dto the audit log data to validate
+   * @throws ValidationException if validation fails
    */
-  @Named("validateId")
-  public Long validateId(Long id) {
+  public void validateAuditLogDTO(AuditLogResponseDTO dto) throws ValidationException {
+    if (dto == null) {
+      throw new ValidationException("Audit log data cannot be null");
+    }
+    validateId(dto.id());
+    validateUsername(dto.username());
+    validateMethodName(dto.methodName());
+    validateOperation(dto.operation());
+    validateTimestamp(dto.timestamp());
+    validateExecutionTime(dto.executionTimeMs());
+    validateRequestUri(dto.requestUri());
+    validateRequestMethod(dto.requestMethod());
+  }
+  
+  /**
+   * Validates audit statistics data.
+   *
+   * @param dto the audit statistics data to validate
+   * @throws ValidationException if validation fails
+   */
+  public void validateAuditStatisticsDTO(AuditStatisticsDTO dto) throws ValidationException {
+    if (dto == null) {
+      throw new ValidationException("Audit statistics data cannot be null");
+    }
+    validateTotalOperations(dto.totalOperations());
+    validateAverageExecutionTime(dto.averageExecutionTime());
+    validateOperationCounts(dto.operationCounts());
+    validateUserActivityCounts(dto.userActivityCounts());
+    validateAverageTimeByOperation(dto.averageTimeByOperation());
+    validateMostActiveUser(dto.mostActiveUser());
+    validateMostCommonOperation(dto.mostCommonOperation());
+    validatePeriodStart(dto.periodStart());
+    validatePeriodEnd(dto.periodEnd());
+  }
+  
+  private void validateId(Long id) throws ValidationException {
     if (id == null) {
-      throw new IllegalArgumentException("ID is required");
+      throw new ValidationException("ID is required");
     }
-    return id;
   }
   
-  /**
-   * Validates the username field.
-   *
-   * @param username The username to validate
-   * @return The validated username
-   */
-  @Named("validateUsername")
-  public String validateUsername(String username) {
+  private void validateUsername(String username) throws ValidationException {
     if (username == null || username.trim().isEmpty()) {
-      throw new IllegalArgumentException("Username is required");
+      throw new ValidationException("Username is required");
     }
-    return username;
   }
   
-  /**
-   * Validates the method name field.
-   *
-   * @param methodName The method name to validate
-   * @return The validated method name
-   */
-  @Named("validateMethodName")
-  public String validateMethodName(String methodName) {
+  private void validateMethodName(String methodName) throws ValidationException {
     if (methodName == null || methodName.trim().isEmpty()) {
-      throw new IllegalArgumentException("Method name is required");
+      throw new ValidationException("Method name is required");
     }
-    return methodName;
   }
   
-  /**
-   * Validates the operation field.
-   *
-   * @param operation The operation to validate
-   * @return The validated operation
-   */
-  @Named("validateOperation")
-  public String validateOperation(String operation) {
+  private void validateOperation(String operation) throws ValidationException {
     if (operation == null || operation.trim().isEmpty()) {
-      throw new IllegalArgumentException("Operation is required");
+      throw new ValidationException("Operation is required");
     }
-    return operation;
   }
   
-  /**
-   * Validates the timestamp field.
-   *
-   * @param timestamp The timestamp to validate
-   * @return The validated timestamp
-   */
-  @Named("validateTimestamp")
-  public LocalDateTime validateTimestamp(LocalDateTime timestamp) {
+  private void validateTimestamp(LocalDateTime timestamp) throws ValidationException {
     if (timestamp == null) {
-      throw new IllegalArgumentException("Timestamp is required");
+      throw new ValidationException("Timestamp is required");
     }
     if (timestamp.isAfter(LocalDateTime.now())) {
-      throw new IllegalArgumentException("Timestamp cannot be in the future");
+      throw new ValidationException("Timestamp cannot be in the future");
     }
-    return timestamp;
   }
   
-  /**
-   * Validates the execution time field.
-   *
-   * @param executionTimeMs The execution time to validate
-   * @return The validated execution time
-   */
-  @Named("validateExecutionTime")
-  public Long validateExecutionTime(Long executionTimeMs) {
+  private void validateExecutionTime(Long executionTimeMs) throws ValidationException {
     if (executionTimeMs == null) {
-      throw new IllegalArgumentException("Execution time is required");
+      throw new ValidationException("Execution time is required");
     }
     if (executionTimeMs < 0) {
-      throw new IllegalArgumentException("Execution time cannot be negative");
+      throw new ValidationException("Execution time cannot be negative");
     }
-    return executionTimeMs;
   }
   
-  /**
-   * Validates the request URI field.
-   *
-   * @param requestUri The request URI to validate
-   * @return The validated request URI
-   */
-  @Named("validateRequestUri")
-  public String validateRequestUri(String requestUri) {
+  private void validateRequestUri(String requestUri) throws ValidationException {
     if (requestUri == null || requestUri.trim().isEmpty()) {
-      throw new IllegalArgumentException("Request URI is required");
+      throw new ValidationException("Request URI is required");
     }
-    return requestUri;
   }
   
-  /**
-   * Validates the request method field.
-   *
-   * @param requestMethod The request method to validate
-   * @return The validated request method
-   */
-  @Named("validateRequestMethod")
-  public String validateRequestMethod(String requestMethod) {
+  private void validateRequestMethod(String requestMethod) throws ValidationException {
     if (requestMethod == null || requestMethod.trim().isEmpty()) {
-      throw new IllegalArgumentException("Request method is required");
+      throw new ValidationException("Request method is required");
     }
-    return requestMethod;
   }
   
-  /**
-   * Validates the total operations count.
-   *
-   * @param totalOperations The total operations count to validate
-   * @return The validated total operations count
-   */
-  @Named("validateTotalOperations")
-  public Long validateTotalOperations(Long totalOperations) {
+  private void validateTotalOperations(Long totalOperations) throws ValidationException {
     if (totalOperations == null || totalOperations < 0) {
-      throw new IllegalArgumentException("Total operations must be non-negative");
+      throw new ValidationException("Total operations must be non-negative");
     }
-    return totalOperations;
   }
   
-  /**
-   * Validates the average execution time.
-   *
-   * @param averageExecutionTime The average execution time to validate
-   * @return The validated average execution time
-   */
-  @Named("validateAverageExecutionTime")
-  public Double validateAverageExecutionTime(Double averageExecutionTime) {
+  private void validateAverageExecutionTime(Double averageExecutionTime) throws ValidationException {
     if (averageExecutionTime == null || averageExecutionTime < 0) {
-      throw new IllegalArgumentException("Average execution time must be non-negative");
+      throw new ValidationException("Average execution time must be non-negative");
     }
-    return averageExecutionTime;
   }
   
-  /**
-   * Validates the operation counts map.
-   *
-   * @param operationCounts The operation counts map to validate
-   * @return The validated operation counts map
-   */
-  @Named("validateOperationCounts")
-  public Map<String, Long> validateOperationCounts(Map<String, Long> operationCounts) {
+  private void validateOperationCounts(Map<String, Long> operationCounts) throws ValidationException {
     if (operationCounts == null) {
-      throw new IllegalArgumentException("Operation counts map is required");
+      throw new ValidationException("Operation counts map is required");
     }
-    operationCounts.forEach((operation, count) -> {
+    for (Map.Entry<String, Long> entry : operationCounts.entrySet()) {
+      String operation = entry.getKey();
+      Long count = entry.getValue();
       if (operation == null || operation.trim().isEmpty()) {
-        throw new IllegalArgumentException("Operation name cannot be empty");
+        throw new ValidationException("Operation name cannot be empty");
       }
       if (count == null || count < 0) {
-        throw new IllegalArgumentException("Invalid operation count for: " + operation);
+        throw new ValidationException("Invalid operation count for: " + operation);
       }
-    });
-    return operationCounts;
+    }
   }
   
-  /**
-   * Validates the user activity counts map.
-   *
-   * @param userActivityCounts The user activity counts map to validate
-   * @return The validated user activity counts map
-   */
-  @Named("validateUserActivityCounts")
-  public Map<String, Long> validateUserActivityCounts(Map<String, Long> userActivityCounts) {
+  private void validateUserActivityCounts(Map<String, Long> userActivityCounts) throws ValidationException {
     if (userActivityCounts == null) {
-      throw new IllegalArgumentException("User activity counts map is required");
+      throw new ValidationException("User activity counts map is required");
     }
-    userActivityCounts.forEach((username, count) -> {
+    for (Map.Entry<String, Long> entry : userActivityCounts.entrySet()) {
+      String username = entry.getKey();
+      Long count = entry.getValue();
       if (username == null || username.trim().isEmpty()) {
-        throw new IllegalArgumentException("Username cannot be empty");
+        throw new ValidationException("Username cannot be empty");
       }
       if (count == null || count < 0) {
-        throw new IllegalArgumentException("Invalid activity count for user: " + username);
+        throw new ValidationException("Invalid activity count for user: " + username);
       }
-    });
-    return userActivityCounts;
+    }
   }
   
-  /**
-   * Validates the average time by operation map.
-   *
-   * @param averageTimeByOperation The average time by operation map to validate
-   * @return The validated average time by operation map
-   */
-  @Named("validateAverageTimeByOperation")
-  public Map<String, Double> validateAverageTimeByOperation(Map<String, Double> averageTimeByOperation) {
+  private void validateAverageTimeByOperation(Map<String, Double> averageTimeByOperation) throws ValidationException {
     if (averageTimeByOperation == null) {
-      throw new IllegalArgumentException("Average time by operation map is required");
+      throw new ValidationException("Average time by operation map is required");
     }
-    averageTimeByOperation.forEach((operation, avgTime) -> {
+    for (Map.Entry<String, Double> entry : averageTimeByOperation.entrySet()) {
+      String operation = entry.getKey();
+      Double avgTime = entry.getValue();
       if (operation == null || operation.trim().isEmpty()) {
-        throw new IllegalArgumentException("Operation name cannot be empty");
+        throw new ValidationException("Operation name cannot be empty");
       }
       if (avgTime == null || avgTime < 0) {
-        throw new IllegalArgumentException("Invalid average time for operation: " + operation);
+        throw new ValidationException("Invalid average time for operation: " + operation);
       }
-    });
-    return averageTimeByOperation;
+    }
   }
   
-  /**
-   * Validates the most active user field.
-   *
-   * @param mostActiveUser The most active user to validate
-   * @return The validated most active user
-   */
-  @Named("validateMostActiveUser")
-  public String validateMostActiveUser(String mostActiveUser) {
+  private void validateMostActiveUser(String mostActiveUser) throws ValidationException {
     if (mostActiveUser == null || mostActiveUser.trim().isEmpty()) {
-      throw new IllegalArgumentException("Most active user is required");
+      throw new ValidationException("Most active user is required");
     }
-    return mostActiveUser;
   }
   
-  /**
-   * Validates the most common operation field.
-   *
-   * @param mostCommonOperation The most common operation to validate
-   * @return The validated most common operation
-   */
-  @Named("validateMostCommonOperation")
-  public String validateMostCommonOperation(String mostCommonOperation) {
+  private void validateMostCommonOperation(String mostCommonOperation) throws ValidationException {
     if (mostCommonOperation == null || mostCommonOperation.trim().isEmpty()) {
-      throw new IllegalArgumentException("Most common operation is required");
+      throw new ValidationException("Most common operation is required");
     }
-    return mostCommonOperation;
   }
   
-  /**
-   * Validates the period start timestamp.
-   *
-   * @param periodStart The period start timestamp to validate
-   * @return The validated period start timestamp
-   */
-  @Named("validatePeriodStart")
-  public LocalDateTime validatePeriodStart(LocalDateTime periodStart) {
+  private void validatePeriodStart(LocalDateTime periodStart) throws ValidationException {
     if (periodStart == null) {
-      throw new IllegalArgumentException("Period start is required");
+      throw new ValidationException("Period start is required");
     }
     if (periodStart.isAfter(LocalDateTime.now())) {
-      throw new IllegalArgumentException("Period start cannot be in the future");
+      throw new ValidationException("Period start cannot be in the future");
     }
-    return periodStart;
   }
   
-  /**
-   * Validates the period end timestamp.
-   *
-   * @param periodEnd The period end timestamp to validate
-   * @return The validated period end timestamp
-   */
-  @Named("validatePeriodEnd")
-  public LocalDateTime validatePeriodEnd(LocalDateTime periodEnd) {
+  private void validatePeriodEnd(LocalDateTime periodEnd) throws ValidationException {
     if (periodEnd == null) {
-      throw new IllegalArgumentException("Period end is required");
+      throw new ValidationException("Period end is required");
     }
     if (periodEnd.isAfter(LocalDateTime.now())) {
-      throw new IllegalArgumentException("Period end cannot be in the future");
+      throw new ValidationException("Period end cannot be in the future");
     }
-    return periodEnd;
   }
 }

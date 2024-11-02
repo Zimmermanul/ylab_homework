@@ -47,6 +47,18 @@ http://localhost:8080/habit-tracker
 - Электронная почта: userOne@example.com
 - Пароль: hashedpassword1
 
+6. Просмотреть логи контейнеров
+
+``` console
+docker-compose logs -f
+```
+
+7. Остановка контейнеров
+
+``` console
+docker-compose down
+```
+
 ## Обзор функциональности
 
 ### Регистрация и авторизация пользователей
