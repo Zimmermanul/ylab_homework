@@ -7,12 +7,16 @@ import org.springframework.context.annotation.Import;
 @Configuration
 @ComponentScan(basePackages = {
   "com.mkhabibullin.application.service",
-  "com.mkhabibullin.infrastructure.persistence.repository"
+  "com.mkhabibullin.infrastructure.persistence.repository",
+  "com.mkhabibullin.application.mapper",
+  "com.mkhabibullin.application.validation"
 })
 @Import({
+  PropertyConfig.class,
+  AspectConfig.class,
   DatabaseConfig.class,
   LiquibaseConfig.class,
-  AspectConfig.class
+  WebConfig.class
 })
 public class RootConfig {
 }

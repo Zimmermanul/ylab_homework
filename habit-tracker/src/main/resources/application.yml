@@ -6,51 +6,30 @@ spring:
 # Default profile configuration
 ---
 spring:
-  config:
-    activate:
-      on-profile: default
-
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:habit-tracker-db}
-    username: ${DB_USER:habit-tracker-admin}
-    password: ${DB_PASSWORD:habittrackerpass123}
-    hikari:
-      maximum-pool-size: 10
-      minimum-idle: 5
-      idle-timeout: 300000
-      connection-timeout: 20000
-      validation-timeout: 5000
-      pool-name: HabitTrackerPool
-      auto-commit: true
-      connection-test-query: SELECT 1
-
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     show-sql: false
+    hibernate:
+      ddl-auto: validate
     properties:
       hibernate:
         format_sql: true
         jdbc:
           batch_size: 25
-          time_zone: UTC
-    open-in-view: false
+        dialect: org.hibernate.dialect.PostgreSQLDialect
 
   liquibase:
     enabled: true
     change-log: classpath:db/changelog/db.changelog-master.xml
     default-schema: public
-    liquibase-schema: service
-    parameters:
-      search-path: public,service
 
 logging:
   level:
     root: INFO
-    com.mkhabibullin: INFO
+    com.mkhabibullin: DEBUG
     org.springframework: INFO
-    org.hibernate.SQL: INFO
-    org.hibernate.type.descriptor.sql.BasicBinder: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
     com.zaxxer.hikari: INFO
 
 # Development profile configuration

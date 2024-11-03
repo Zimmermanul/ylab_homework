@@ -5,22 +5,21 @@ services:
     image: postgres:13-alpine
     container_name: habit-tracker-db
     environment:
-      POSTGRES_DB: ${DB_NAME:-habit-tracker-db}
-      POSTGRES_USER: ${DB_USER:-habit-tracker-admin}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-habittrackerpass123}
-      PGDATA: ${PGDATA:-/var/lib/postgresql/data}
+      POSTGRES_DB: habit-tracker-db
+      POSTGRES_USER: habit-tracker-admin
+      POSTGRES_PASSWORD: habittrackerpass123
+      PGDATA: /var/lib/postgresql/data
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "5432:5432"
     volumes:
-      - postgres_data:${PGDATA:-/var/lib/postgresql/data}
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER:-habit-tracker-admin} -d ${DB_NAME:-habit-tracker-db}" ]
+      test: [ "CMD-SHELL", "pg_isready -U habit-tracker-admin -d habit-tracker-db" ]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
       - habit-tracker-network
-    restart: unless-stopped
 
   app:
     build:
@@ -31,17 +30,15 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-dev}
       - DB_HOST=postgres
-      - DB_PORT=${DB_PORT:-5432}
-      - DB_NAME=${DB_NAME:-habit-tracker-db}
-      - DB_USER=${DB_USER:-habit-tracker-admin}
-      - DB_PASSWORD=${DB_PASSWORD:-habittrackerpass123}
+      - DB_PORT=5432
+      - DB_NAME=habit-tracker-db
+      - DB_USER=habit-tracker-admin
+      - DB_PASSWORD=habittrackerpass123
     ports:
-      - "${APP_PORT:-8080}:8080"
+      - "18080:8080"
     networks:
       - habit-tracker-network
-    restart: unless-stopped
 
 volumes:
   postgres_data:

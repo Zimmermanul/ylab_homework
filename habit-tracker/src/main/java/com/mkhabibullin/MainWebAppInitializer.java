@@ -1,5 +1,7 @@
-package com.mkhabibullin.infrastructure.config;
+package com.mkhabibullin;
 
+import com.mkhabibullin.infrastructure.config.RootConfig;
+import com.mkhabibullin.infrastructure.config.WebConfig;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRegistration;
@@ -20,5 +22,6 @@ public class MainWebAppInitializer implements WebApplicationInitializer {
       "dispatcher", new DispatcherServlet(dispatcherContext));
     dispatcher.setLoadOnStartup(1);
     dispatcher.addMapping("/");
+    servletContext.setInitParameter("contextPath", "/");
   }
 }
