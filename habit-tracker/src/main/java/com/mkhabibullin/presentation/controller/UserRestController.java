@@ -21,6 +21,8 @@ import com.mkhabibullin.presentation.dto.user.UserEmailDTO;
 import com.mkhabibullin.presentation.dto.user.UserResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -53,11 +55,11 @@ import java.util.List;
 @RequestMapping("/api/users")
 @Tag(name = "User Management", description = "API endpoints for user registration, authentication, and account management")
 public class UserRestController {
+  private static final Logger log = LoggerFactory.getLogger(UserRestController.class);
   private final UserService userService;
   private final UserMapper userMapper;
   private final UserMapperValidator userValidator;
   private final AuthenticationValidator authValidator;
-  private static final Logger log = LoggerFactory.getLogger(UserRestController.class);
   
   public UserRestController(UserService userService,
                             UserMapper userMapper,
@@ -69,16 +71,33 @@ public class UserRestController {
     this.authValidator = authValidator;
   }
   
+  @Operation(
+    summary = "Register new user",
+    description = "Creates a new user account with the provided information"
+  )
+  @ApiResponses(value = {
+    @ApiResponse(
+      responseCode = "201",
+      description = "User registered successfully",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = UserResponseDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "400",
+      description = "Invalid input data",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    )
+  })
   @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.CREATED)
-  @Operation(summary = "Register new user",
-    description = "Creates a new user account with the provided information")
-  @ApiResponses(value = {
-    @ApiResponse(responseCode = "201", description = "User registered successfully"),
-    @ApiResponse(responseCode = "400", description = "Invalid input data")
-  })
   @Audited(audited = "User Registration")
-  public ResponseEntity<UserResponseDTO> registerUser(@RequestBody RegisterUserDTO registerDTO) throws IOException, ValidationException {
+  public ResponseEntity<UserResponseDTO> registerUser(@RequestBody RegisterUserDTO registerDTO)
+    throws IOException, ValidationException {
     log.debug("Processing user registration request for email: {}", registerDTO.email());
     userValidator.validateRegisterUserDTO(registerDTO);
     User user = userMapper.registerDtoToUser(registerDTO);
@@ -88,39 +107,77 @@ public class UserRestController {
       .body(userMapper.userToResponseDto(user));
   }
   
-  @PostMapping(value = "/login", produces = MediaType.APPLICATION_JSON_VALUE)
-  @Operation(summary = "User login",
-    description = "Authenticates user credentials and creates a session")
+  @Operation(
+    summary = "User login",
+    description = "Authenticates user credentials and creates a session"
+  )
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "Login successful"),
-    @ApiResponse(responseCode = "401", description = "Invalid credentials"),
-    @ApiResponse(responseCode = "400", description = "Invalid input data")
+    @ApiResponse(
+      responseCode = "200",
+      description = "Login successful",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = UserResponseDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "Invalid credentials",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "400",
+      description = "Invalid input data",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    )
   })
+  @PostMapping(value = "/login", produces = MediaType.APPLICATION_JSON_VALUE)
   @Audited(audited = "User Login")
   public ResponseEntity<UserResponseDTO> login(
     @RequestBody LoginDTO loginDTO,
     HttpSession session) throws AuthenticationException, ValidationException, IOException {
     log.debug("Processing login request for email: {}", loginDTO.email());
     userValidator.validateLoginDTO(loginDTO);
+    
     if (!userService.authenticateUser(loginDTO.email(), loginDTO.password())) {
       throw new AuthenticationException("Invalid credentials");
     }
+    
     User user = userService.getUserByEmail(loginDTO.email());
     if (user.isBlocked()) {
       throw new AuthenticationException("Account is blocked");
     }
+    
     session.setAttribute("user", user);
     log.info("User logged in successfully: {}", user.getEmail());
     return ResponseEntity.ok(userMapper.userToResponseDto(user));
   }
   
-  @PostMapping("/logout")
-  @Operation(summary = "User logout",
-    description = "Invalidates the current user session")
+  @Operation(
+    summary = "User logout",
+    description = "Invalidates the current user session"
+  )
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "204", description = "Logout successful"),
-    @ApiResponse(responseCode = "401", description = "Not authenticated")
+    @ApiResponse(
+      responseCode = "204",
+      description = "Logout successful"
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "Not authenticated",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    )
   })
+  @PostMapping("/logout")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Audited(audited = "User Logout")
   public void logout(
@@ -132,15 +189,45 @@ public class UserRestController {
     log.info("User logged out successfully: {}", currentUser.getEmail());
   }
   
-  @PutMapping(value = "/email", produces = MediaType.APPLICATION_JSON_VALUE)
-  @Operation(summary = "Update user email",
-    description = "Updates the email address for the authenticated user")
+  @Operation(
+    summary = "Update user email",
+    description = "Updates the email address for the authenticated user"
+  )
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "Email updated successfully"),
-    @ApiResponse(responseCode = "400", description = "Invalid email format"),
-    @ApiResponse(responseCode = "401", description = "Not authenticated"),
-    @ApiResponse(responseCode = "409", description = "Email already in use")
+    @ApiResponse(
+      responseCode = "200",
+      description = "Email updated successfully",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = UserResponseDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "400",
+      description = "Invalid email format",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "Not authenticated",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "409",
+      description = "Email already in use",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    )
   })
+  @PutMapping(value = "/email", produces = MediaType.APPLICATION_JSON_VALUE)
   @Audited(audited = "Update Email")
   public ResponseEntity<UserResponseDTO> updateEmail(
     @RequestBody UpdateEmailDTO updateDTO,
@@ -153,14 +240,37 @@ public class UserRestController {
     return ResponseEntity.ok(userMapper.userToResponseDto(currentUser));
   }
   
-  @PutMapping(value = "/name", produces = MediaType.APPLICATION_JSON_VALUE)
-  @Operation(summary = "Update user name",
-    description = "Updates the display name for the authenticated user")
+  @Operation(
+    summary = "Update user name",
+    description = "Updates the display name for the authenticated user"
+  )
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "Name updated successfully"),
-    @ApiResponse(responseCode = "400", description = "Invalid name format"),
-    @ApiResponse(responseCode = "401", description = "Not authenticated")
+    @ApiResponse(
+      responseCode = "200",
+      description = "Name updated successfully",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = UserResponseDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "400",
+      description = "Invalid name format",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "Not authenticated",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    )
   })
+  @PutMapping(value = "/name", produces = MediaType.APPLICATION_JSON_VALUE)
   @Audited(audited = "Update Name")
   public ResponseEntity<UserResponseDTO> updateName(
     @RequestBody UpdateNameDTO updateDTO,
@@ -173,14 +283,37 @@ public class UserRestController {
     return ResponseEntity.ok(userMapper.userToResponseDto(currentUser));
   }
   
-  @PutMapping(value = "/password", produces = MediaType.APPLICATION_JSON_VALUE)
-  @Operation(summary = "Update user password",
-    description = "Updates the password for the authenticated user")
+  @Operation(
+    summary = "Update user password",
+    description = "Updates the password for the authenticated user"
+  )
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "Password updated successfully"),
-    @ApiResponse(responseCode = "400", description = "Invalid password format"),
-    @ApiResponse(responseCode = "401", description = "Not authenticated")
+    @ApiResponse(
+      responseCode = "200",
+      description = "Password updated successfully",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = MessageDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "400",
+      description = "Invalid password format",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "Not authenticated",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    )
   })
+  @PutMapping(value = "/password", produces = MediaType.APPLICATION_JSON_VALUE)
   @Audited(audited = "Update Password")
   public ResponseEntity<MessageDTO> updatePassword(
     @RequestBody UpdatePasswordDTO updateDTO,
@@ -192,19 +325,45 @@ public class UserRestController {
     return ResponseEntity.ok(new MessageDTO("Password updated successfully"));
   }
   
+  @Operation(
+    summary = "Delete user account",
+    description = "Permanently deletes a user account. Admin can delete any account, users can only delete their own"
+  )
+  @ApiResponses(value = {
+    @ApiResponse(
+      responseCode = "204",
+      description = "Account deleted successfully"
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "Not authenticated",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "403",
+      description = "Not authorized",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "404",
+      description = "User not found",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    )
+  })
   @DeleteMapping(value = "/{email}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  @Operation(summary = "Delete user account",
-    description = "Permanently deletes a user account. Admin can delete any account, users can only delete their own")
-  @ApiResponses(value = {
-    @ApiResponse(responseCode = "204", description = "Account deleted successfully"),
-    @ApiResponse(responseCode = "401", description = "Not authenticated"),
-    @ApiResponse(responseCode = "403", description = "Not authorized"),
-    @ApiResponse(responseCode = "404", description = "User not found")
-  })
   @Audited(audited = "Delete Account")
   public void deleteAccount(
-    @Parameter(description = "Email of the account to delete", required = true)
+    @Parameter(description = "Email of the account to delete", example = "user@example.com", required = true)
     @PathVariable String email,
     @Parameter(hidden = true) @SessionAttribute("user") User currentUser,
     HttpSession session) throws AuthenticationException, AuthorizationException {
@@ -217,14 +376,37 @@ public class UserRestController {
     log.info("Account deleted successfully: {}", email);
   }
   
-  @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-  @Operation(summary = "Get all users (Admin only)",
-    description = "Retrieves a list of all registered users. Requires administrator privileges")
+  @Operation(
+    summary = "Get all users (Admin only)",
+    description = "Retrieves a list of all registered users. Requires administrator privileges"
+  )
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "Users retrieved successfully"),
-    @ApiResponse(responseCode = "401", description = "Not authenticated"),
-    @ApiResponse(responseCode = "403", description = "Not authorized - Admin only")
+    @ApiResponse(
+      responseCode = "200",
+      description = "Users retrieved successfully",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = UserResponseDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "Not authenticated",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "403",
+      description = "Not authorized - Admin only",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    )
   })
+  @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   @Audited(audited = "View All Users")
   public ResponseEntity<List<UserResponseDTO>> getAllUsers(
     @Parameter(hidden = true) @SessionAttribute("user") User currentUser) throws AuthorizationException {
@@ -236,16 +418,53 @@ public class UserRestController {
     return ResponseEntity.ok(userDTOs);
   }
   
-  @PutMapping(value = "/block", produces = MediaType.APPLICATION_JSON_VALUE)
-  @Operation(summary = "Block user (Admin only)",
-    description = "Blocks a user account preventing them from logging in. Requires administrator privileges")
+  @Operation(
+    summary = "Block user (Admin only)",
+    description = "Blocks a user account preventing them from logging in. Requires administrator privileges"
+  )
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "User blocked successfully"),
-    @ApiResponse(responseCode = "400", description = "Invalid email"),
-    @ApiResponse(responseCode = "401", description = "Not authenticated"),
-    @ApiResponse(responseCode = "403", description = "Not authorized - Admin only"),
-    @ApiResponse(responseCode = "404", description = "User not found")
+    @ApiResponse(
+      responseCode = "200",
+      description = "User blocked successfully",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = MessageDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "400",
+      description = "Invalid email",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "Not authenticated",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "403",
+      description = "Not authorized - Admin only",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "404",
+      description = "User not found",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    )
   })
+  @PutMapping(value = "/block", produces = MediaType.APPLICATION_JSON_VALUE)
   @Audited(audited = "Block User")
   public ResponseEntity<MessageDTO> blockUser(
     @RequestBody UserEmailDTO userEmailDTO,
@@ -260,16 +479,53 @@ public class UserRestController {
     return ResponseEntity.ok(new MessageDTO("User blocked successfully"));
   }
   
-  @PutMapping(value = "/unblock", produces = MediaType.APPLICATION_JSON_VALUE)
-  @Operation(summary = "Unblock user (Admin only)",
-    description = "Unblocks a previously blocked user account. Requires administrator privileges")
+  @Operation(
+    summary = "Unblock user (Admin only)",
+    description = "Unblocks a previously blocked user account. Requires administrator privileges"
+  )
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "User unblocked successfully"),
-    @ApiResponse(responseCode = "400", description = "Invalid email"),
-    @ApiResponse(responseCode = "401", description = "Not authenticated"),
-    @ApiResponse(responseCode = "403", description = "Not authorized - Admin only"),
-    @ApiResponse(responseCode = "404", description = "User not found")
+    @ApiResponse(
+      responseCode = "200",
+      description = "User unblocked successfully",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = MessageDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "400",
+      description = "Invalid email",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "Not authenticated",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "403",
+      description = "Not authorized - Admin only",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "404",
+      description = "User not found",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    )
   })
+  @PutMapping(value = "/unblock", produces = MediaType.APPLICATION_JSON_VALUE)
   @Audited(audited = "Unblock User")
   public ResponseEntity<MessageDTO> unblockUser(
     @RequestBody UserEmailDTO userEmailDTO,
@@ -284,43 +540,43 @@ public class UserRestController {
     return ResponseEntity.ok(new MessageDTO("User unblocked successfully"));
   }
   
-  /**
-   * Validates that the current user has admin privileges.
-   *
-   * @param user the current user
-   * @throws AuthenticationException if the user is not an admin
-   */
-  private void validateAdminAccess(User user) throws AuthenticationException {
-    if (!user.isAdmin()) {
-      throw new AuthenticationException("Admin privileges required");
-    }
-  }
-  
   @ExceptionHandler(AuthenticationException.class)
   @ResponseStatus(HttpStatus.UNAUTHORIZED)
-  public ErrorDTO handleAuthenticationException(AuthenticationException ex) {
+  public ResponseEntity<ErrorDTO> handleAuthenticationException(AuthenticationException ex) {
     log.error("Authentication error: {}", ex.getMessage());
-    return new ErrorDTO(ex.getMessage(), System.currentTimeMillis());
+    return ResponseEntity
+      .status(HttpStatus.UNAUTHORIZED)
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(new ErrorDTO(ex.getMessage(), System.currentTimeMillis()));
   }
   
   @ExceptionHandler(ValidationException.class)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
-  public ErrorDTO handleValidationException(ValidationException ex) {
+  public ResponseEntity<ErrorDTO> handleValidationException(ValidationException ex) {
     log.error("Validation error: {}", ex.getMessage());
-    return new ErrorDTO(ex.getMessage(), System.currentTimeMillis());
+    return ResponseEntity
+      .status(HttpStatus.BAD_REQUEST)
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(new ErrorDTO(ex.getMessage(), System.currentTimeMillis()));
   }
   
   @ExceptionHandler(EntityNotFoundException.class)
   @ResponseStatus(HttpStatus.NOT_FOUND)
-  public ErrorDTO handleEntityNotFoundException(EntityNotFoundException ex) {
+  public ResponseEntity<ErrorDTO> handleEntityNotFoundException(EntityNotFoundException ex) {
     log.error("Entity not found: {}", ex.getMessage());
-    return new ErrorDTO(ex.getMessage(), System.currentTimeMillis());
+    return ResponseEntity
+      .status(HttpStatus.NOT_FOUND)
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(new ErrorDTO(ex.getMessage(), System.currentTimeMillis()));
   }
   
   @ExceptionHandler(Exception.class)
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-  public ErrorDTO handleException(Exception ex) {
+  public ResponseEntity<ErrorDTO> handleException(Exception ex) {
     log.error("Unexpected error: ", ex);
-    return new ErrorDTO("Internal server error", System.currentTimeMillis());
+    return ResponseEntity
+      .status(HttpStatus.INTERNAL_SERVER_ERROR)
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(new ErrorDTO("Internal server error", System.currentTimeMillis()));
   }
 }

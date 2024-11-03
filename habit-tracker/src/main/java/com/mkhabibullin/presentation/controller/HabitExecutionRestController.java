@@ -18,6 +18,8 @@ import com.mkhabibullin.presentation.dto.habitExecution.HabitProgressReportDTO;
 import com.mkhabibullin.presentation.dto.habitExecution.HabitStatisticsDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -55,10 +57,10 @@ import java.util.stream.Collectors;
 @Tag(name = "Habit Execution Management", description = "API endpoints for tracking and analyzing habit execution progress")
 @Validated
 public class HabitExecutionRestController {
+  private static final Logger log = LoggerFactory.getLogger(HabitExecutionRestController.class);
   private final HabitExecutionService executionService;
   private final HabitExecutionMapper executionMapper;
   private final HabitExecutionMapperValidator executionValidator;
-  private static final Logger log = LoggerFactory.getLogger(HabitExecutionRestController.class);
   
   public HabitExecutionRestController(HabitExecutionService executionService,
                                       HabitExecutionMapper executionMapper,
@@ -68,16 +70,46 @@ public class HabitExecutionRestController {
     this.executionValidator = executionValidator;
   }
   
+  @Operation(
+    summary = "Track habit execution",
+    description = "Records a new habit execution entry"
+  )
+  @ApiResponses(value = {
+    @ApiResponse(
+      responseCode = "201",
+      description = "Execution recorded successfully",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = MessageDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "400",
+      description = "Invalid input data",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "User not authenticated",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "404",
+      description = "Habit not found",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    )
+  })
   @PostMapping(value = "/track/{habitId}", produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.CREATED)
-  @Operation(summary = "Track habit execution",
-    description = "Records a new habit execution entry")
-  @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "Execution recorded successfully"),
-    @ApiResponse(responseCode = "400", description = "Invalid input data"),
-    @ApiResponse(responseCode = "401", description = "User not authenticated"),
-    @ApiResponse(responseCode = "404", description = "Habit not found")
-  })
   @Audited(audited = "Track Habit Execution")
   public ResponseEntity<MessageDTO> trackExecution(
     @Parameter(description = "Habit ID", required = true)
@@ -87,31 +119,49 @@ public class HabitExecutionRestController {
     log.debug("Recording execution for habit {} by user {}", habitId, currentUser.getEmail());
     executionValidator.validateHabitExecutionRequestDTO(executionDTO);
     HabitExecution execution = executionMapper.requestDtoToExecution(executionDTO, habitId);
-    executionService.markHabitExecution(
-      execution.getHabitId(),
-      execution.getDate(),
-      execution.isCompleted()
-    );
+    executionService.markHabitExecution(execution.getHabitId(), execution.getDate(), execution.isCompleted());
     log.info("Execution recorded for habit {} by user {}", habitId, currentUser.getEmail());
     return ResponseEntity.status(HttpStatus.CREATED)
       .body(new MessageDTO("Habit execution recorded successfully"));
   }
   
-  @GetMapping(value = "/history/{habitId}", produces = MediaType.APPLICATION_JSON_VALUE)
-  @Operation(summary = "Get execution history",
-    description = "Retrieves the complete execution history for a specific habit")
+  @Operation(
+    summary = "Get execution history",
+    description = "Retrieves the complete execution history for a specific habit"
+  )
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "History retrieved successfully"),
-    @ApiResponse(responseCode = "401", description = "User not authenticated"),
-    @ApiResponse(responseCode = "404", description = "Habit not found")
+    @ApiResponse(
+      responseCode = "200",
+      description = "History retrieved successfully",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = HabitExecutionResponseDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "User not authenticated",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "404",
+      description = "Habit not found",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    )
   })
+  @GetMapping(value = "/history/{habitId}", produces = MediaType.APPLICATION_JSON_VALUE)
   @Audited(audited = "Get Execution History")
   public ResponseEntity<List<HabitExecutionResponseDTO>> getExecutionHistory(
     @Parameter(description = "Habit ID", required = true)
     @PathVariable Long habitId,
     @Parameter(hidden = true) @SessionAttribute("user") User currentUser) {
-    log.debug("Retrieving execution history for habit {} by user {}",
-      habitId, currentUser.getEmail());
+    log.debug("Retrieving execution history for habit {} by user {}", habitId, currentUser.getEmail());
     List<HabitExecution> history = executionService.getHabitExecutionHistory(habitId);
     List<HabitExecutionResponseDTO> historyDTOs = executionMapper.executionsToResponseDtos(history);
     log.info("Retrieved {} execution records for habit {} by user {}",
@@ -119,15 +169,45 @@ public class HabitExecutionRestController {
     return ResponseEntity.ok(historyDTOs);
   }
   
-  @GetMapping(value = "/statistics/{habitId}", produces = MediaType.APPLICATION_JSON_VALUE)
-  @Operation(summary = "Get habit execution statistics",
-    description = "Retrieves detailed statistics for a habit within a specified date range")
+  @Operation(
+    summary = "Get habit execution statistics",
+    description = "Retrieves detailed statistics for a habit within a specified date range"
+  )
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "Statistics retrieved successfully"),
-    @ApiResponse(responseCode = "400", description = "Invalid date range"),
-    @ApiResponse(responseCode = "401", description = "User not authenticated"),
-    @ApiResponse(responseCode = "404", description = "Habit not found")
+    @ApiResponse(
+      responseCode = "200",
+      description = "Statistics retrieved successfully",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = HabitStatisticsDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "400",
+      description = "Invalid date range",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "User not authenticated",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "404",
+      description = "Habit not found",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    )
   })
+  @GetMapping(value = "/statistics/{habitId}", produces = MediaType.APPLICATION_JSON_VALUE)
   @Audited(audited = "Get Statistics")
   public ResponseEntity<HabitStatisticsDTO> getStatistics(
     @Parameter(description = "Habit ID", required = true)
@@ -140,11 +220,14 @@ public class HabitExecutionRestController {
     log.debug("Retrieving statistics for habit {} by user {} from {} to {}",
       habitId, currentUser.getEmail(), startDate, endDate);
     validateDateRange(startDate, endDate);
+    
     List<HabitExecution> history = executionService.getHabitExecutionHistory(habitId);
     List<HabitExecution> filteredHistory = filterHistoryByDateRange(history, startDate, endDate);
+    
     int currentStreak = executionService.getCurrentStreak(habitId);
     double successPercentage = executionService.getSuccessPercentage(habitId, startDate, endDate);
     Map<DayOfWeek, Long> completionsByDay = calculateCompletionsByDay(filteredHistory);
+    
     HabitStatisticsDTO statistics = executionMapper.createStatisticsDto(
       currentStreak,
       successPercentage,
@@ -153,19 +236,50 @@ public class HabitExecutionRestController {
       filteredHistory.stream().filter(e -> !e.isCompleted()).count(),
       completionsByDay
     );
+    
     log.info("Retrieved statistics for habit {} by user {}", habitId, currentUser.getEmail());
     return ResponseEntity.ok(statistics);
   }
   
-  @GetMapping(value = "/progress/{habitId}", produces = MediaType.APPLICATION_JSON_VALUE)
-  @Operation(summary = "Get habit progress report",
-    description = "Generates a comprehensive progress report for a habit within a specified date range")
+  @Operation(
+    summary = "Get habit progress report",
+    description = "Generates a comprehensive progress report for a habit within a specified date range"
+  )
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "Progress report retrieved successfully"),
-    @ApiResponse(responseCode = "400", description = "Invalid date range"),
-    @ApiResponse(responseCode = "401", description = "User not authenticated"),
-    @ApiResponse(responseCode = "404", description = "Habit not found")
+    @ApiResponse(
+      responseCode = "200",
+      description = "Progress report retrieved successfully",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = HabitProgressReportDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "400",
+      description = "Invalid date range",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "User not authenticated",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "404",
+      description = "Habit not found",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    )
   })
+  @GetMapping(value = "/progress/{habitId}", produces = MediaType.APPLICATION_JSON_VALUE)
   @Audited(audited = "Get Progress Report")
   public ResponseEntity<HabitProgressReportDTO> getProgressReport(
     @Parameter(description = "Habit ID", required = true)
@@ -178,52 +292,108 @@ public class HabitExecutionRestController {
     log.debug("Generating progress report for habit {} by user {} from {} to {}",
       habitId, currentUser.getEmail(), startDate, endDate);
     validateDateRange(startDate, endDate);
+    
     List<HabitExecution> history = executionService.getHabitExecutionHistory(habitId);
     List<HabitExecution> filteredHistory = filterHistoryByDateRange(history, startDate, endDate);
+    
     String report = executionService.generateProgressReport(habitId, startDate, endDate);
     boolean improving = executionService.isImprovingTrend(filteredHistory);
     int longestStreak = executionService.calculateLongestStreak(filteredHistory);
     List<String> suggestions = executionService.generateSuggestions(null, filteredHistory);
+    
     HabitProgressReportDTO progressReport = executionMapper.createProgressReportDto(
       report,
       improving,
       longestStreak,
       suggestions
     );
+    
     log.info("Generated progress report for habit {} by user {}", habitId, currentUser.getEmail());
     return ResponseEntity.ok(progressReport);
   }
   
-  @GetMapping(value = "/{habitId}/streak", produces = MediaType.APPLICATION_JSON_VALUE)
-  @Operation(summary = "Get current habit streak",
-    description = "Retrieves the current streak count for a specific habit")
+  @Operation(
+    summary = "Get current habit streak",
+    description = "Retrieves the current streak count for a specific habit"
+  )
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "Streak retrieved successfully"),
-    @ApiResponse(responseCode = "401", description = "User not authenticated"),
-    @ApiResponse(responseCode = "404", description = "Habit not found")
+    @ApiResponse(
+      responseCode = "200",
+      description = "Streak retrieved successfully",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = Integer.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "User not authenticated",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "404",
+      description = "Habit not found",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    )
   })
+  @GetMapping(value = "/{habitId}/streak", produces = MediaType.APPLICATION_JSON_VALUE)
   @Audited(audited = "Get Current Streak")
   public ResponseEntity<Integer> getCurrentStreak(
     @Parameter(description = "Habit ID", required = true)
     @PathVariable Long habitId,
     @Parameter(hidden = true) @SessionAttribute("user") User currentUser) {
-    log.debug("Retrieving current streak for habit {} by user {}",
-      habitId, currentUser.getEmail());
+    log.debug("Retrieving current streak for habit {} by user {}", habitId, currentUser.getEmail());
     int currentStreak = executionService.getCurrentStreak(habitId);
     log.info("Retrieved current streak of {} days for habit {} by user {}",
       currentStreak, habitId, currentUser.getEmail());
     return ResponseEntity.ok(currentStreak);
   }
   
-  @GetMapping(value = "/{habitId}/success-rate", produces = MediaType.APPLICATION_JSON_VALUE)
-  @Operation(summary = "Get habit success rate",
-    description = "Calculates the success rate for a habit within a specified date range")
+  @Operation(
+    summary = "Get habit success rate",
+    description = "Calculates the success rate for a habit within a specified date range"
+  )
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "Success rate retrieved successfully"),
-    @ApiResponse(responseCode = "400", description = "Invalid date range"),
-    @ApiResponse(responseCode = "401", description = "User not authenticated"),
-    @ApiResponse(responseCode = "404", description = "Habit not found")
+    @ApiResponse(
+      responseCode = "200",
+      description = "Success rate retrieved successfully",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = Double.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "400",
+      description = "Invalid date range",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "User not authenticated",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "404",
+      description = "Habit not found",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    )
   })
+  @GetMapping(value = "/{habitId}/success-rate", produces = MediaType.APPLICATION_JSON_VALUE)
   @Audited(audited = "Get Success Rate")
   public ResponseEntity<Double> getSuccessRate(
     @Parameter(description = "Habit ID", required = true)
@@ -272,36 +442,46 @@ public class HabitExecutionRestController {
   
   @ExceptionHandler(IllegalArgumentException.class)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
-  public ErrorDTO handleIllegalArgumentException(IllegalArgumentException ex) {
+  public ResponseEntity<ErrorDTO> handleIllegalArgumentException(IllegalArgumentException ex) {
     log.error("Validation error: {}", ex.getMessage());
-    return new ErrorDTO(ex.getMessage(), System.currentTimeMillis());
+    return ResponseEntity
+      .status(HttpStatus.BAD_REQUEST)
+      .body(new ErrorDTO(ex.getMessage(), System.currentTimeMillis()));
   }
   
   @ExceptionHandler(EntityNotFoundException.class)
   @ResponseStatus(HttpStatus.NOT_FOUND)
-  public ErrorDTO handleEntityNotFoundException(EntityNotFoundException ex) {
+  public ResponseEntity<ErrorDTO> handleEntityNotFoundException(EntityNotFoundException ex) {
     log.error("Entity not found: {}", ex.getMessage());
-    return new ErrorDTO(ex.getMessage(), System.currentTimeMillis());
+    return ResponseEntity
+      .status(HttpStatus.NOT_FOUND)
+      .body(new ErrorDTO(ex.getMessage(), System.currentTimeMillis()));
   }
   
   @ExceptionHandler(AuthenticationException.class)
   @ResponseStatus(HttpStatus.UNAUTHORIZED)
-  public ErrorDTO handleAuthenticationException(AuthenticationException ex) {
+  public ResponseEntity<ErrorDTO> handleAuthenticationException(AuthenticationException ex) {
     log.error("Authentication error: {}", ex.getMessage());
-    return new ErrorDTO(ex.getMessage(), System.currentTimeMillis());
-  }
-  
-  @ExceptionHandler(Exception.class)
-  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-  public ErrorDTO handleException(Exception ex) {
-    log.error("Unexpected error: ", ex);
-    return new ErrorDTO("Internal server error", System.currentTimeMillis());
+    return ResponseEntity
+      .status(HttpStatus.UNAUTHORIZED)
+      .body(new ErrorDTO(ex.getMessage(), System.currentTimeMillis()));
   }
   
   @ExceptionHandler(ConstraintViolationException.class)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
-  public ErrorDTO handleConstraintViolationException(ConstraintViolationException ex) {
+  public ResponseEntity<ErrorDTO> handleConstraintViolationException(ConstraintViolationException ex) {
     log.error("Validation error: {}", ex.getMessage());
-    return new ErrorDTO(ex.getMessage(), System.currentTimeMillis());
+    return ResponseEntity
+      .status(HttpStatus.BAD_REQUEST)
+      .body(new ErrorDTO(ex.getMessage(), System.currentTimeMillis()));
+  }
+  
+  @ExceptionHandler(Exception.class)
+  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+  public ResponseEntity<ErrorDTO> handleException(Exception ex) {
+    log.error("Unexpected error: ", ex);
+    return ResponseEntity
+      .status(HttpStatus.INTERNAL_SERVER_ERROR)
+      .body(new ErrorDTO("Internal server error", System.currentTimeMillis()));
   }
 }

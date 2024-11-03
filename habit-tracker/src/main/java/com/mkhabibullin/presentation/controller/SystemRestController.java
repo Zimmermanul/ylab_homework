@@ -2,10 +2,17 @@ package com.mkhabibullin.presentation.controller;
 
 import com.mkhabibullin.domain.model.User;
 import com.mkhabibullin.presentation.dto.ErrorDTO;
+import com.mkhabibullin.presentation.dto.system.ApplicationInfo;
+import com.mkhabibullin.presentation.dto.system.ComponentHealth;
+import com.mkhabibullin.presentation.dto.system.HealthResponse;
+import com.mkhabibullin.presentation.dto.system.SystemStatusResponse;
+import com.mkhabibullin.presentation.dto.system.UptimeInfo;
+import com.mkhabibullin.presentation.dto.system.UserInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,114 +48,179 @@ public class SystemRestController {
     this.startupTime = LocalDateTime.now();
   }
   
-  @GetMapping(value = {"/", "/status"}, produces = MediaType.APPLICATION_JSON_VALUE)
   @Operation(
     summary = "Get system status",
-    description = "Retrieves current system status including uptime and user information if authenticated"
+    description = "Retrieves current system status including uptime and user information if authenticated",
+    responses = {
+      @ApiResponse(
+        responseCode = "200",
+        description = "Status retrieved successfully",
+        content = @Content(
+          mediaType = MediaType.APPLICATION_JSON_VALUE,
+          schema = @Schema(implementation = SystemStatusResponse.class)
+        )
+      ),
+      @ApiResponse(
+        responseCode = "500",
+        description = "Internal server error",
+        content = @Content(
+          mediaType = MediaType.APPLICATION_JSON_VALUE,
+          schema = @Schema(implementation = ErrorDTO.class)
+        )
+      )
+    }
   )
-  @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "Status retrieved successfully"),
-    @ApiResponse(responseCode = "500", description = "Internal server error")
-  })
-  public ResponseEntity<Map<String, Object>> getStatus(
+  @GetMapping(value = {"/", "/status"}, produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<SystemStatusResponse> getStatus(
     @Parameter(hidden = true)
     @SessionAttribute(value = "user", required = false) User currentUser) {
     log.debug("Processing status request");
-    Map<String, Object> status = new HashMap<>();
-    status.put("status", "running");
-    status.put("timestamp", LocalDateTime.now());
-    status.put("startupTime", startupTime);
-    status.put("uptime", calculateUptime());
+    
+    UserInfo userInfo = null;
     if (currentUser != null) {
-      Map<String, Object> userInfo = new HashMap<>();
-      userInfo.put("id", currentUser.getId());
-      userInfo.put("email", currentUser.getEmail());
-      userInfo.put("name", currentUser.getName());
-      userInfo.put("isAdmin", currentUser.isAdmin());
-      status.put("user", userInfo);
+      userInfo = new UserInfo(
+        currentUser.getId(),
+        currentUser.getEmail(),
+        currentUser.getName(),
+        currentUser.isAdmin()
+      );
     }
-    status.put("authenticated", currentUser != null);
+    
+    SystemStatusResponse response = new SystemStatusResponse(
+      "running",
+      LocalDateTime.now(),
+      startupTime,
+      calculateUptime(),
+      userInfo,
+      currentUser != null
+    );
+    
     log.debug("Status request processed successfully");
-    return ResponseEntity.ok(status);
+    return ResponseEntity.ok(response);
   }
   
-  @GetMapping(value = "/health", produces = MediaType.APPLICATION_JSON_VALUE)
   @Operation(
     summary = "Get system health status",
-    description = "Checks the health of various system components including database, session, and memory usage"
+    description = "Checks the health of various system components including database, session, and memory usage",
+    responses = {
+      @ApiResponse(
+        responseCode = "200",
+        description = "System is healthy",
+        content = @Content(
+          mediaType = MediaType.APPLICATION_JSON_VALUE,
+          schema = @Schema(implementation = HealthResponse.class)
+        )
+      ),
+      @ApiResponse(
+        responseCode = "503",
+        description = "System is unhealthy",
+        content = @Content(
+          mediaType = MediaType.APPLICATION_JSON_VALUE,
+          schema = @Schema(implementation = HealthResponse.class)
+        )
+      )
+    }
   )
-  @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "System is healthy"),
-    @ApiResponse(responseCode = "503", description = "System is unhealthy")
-  })
-  public ResponseEntity<Map<String, Object>> getHealth() {
+  @GetMapping(value = "/health", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<HealthResponse> getHealth() {
     log.debug("Processing health check request");
-    Map<String, Object> health = new HashMap<>();
-    Map<String, Object> components = new HashMap<>();
+    
+    Map<String, ComponentHealth> components = new HashMap<>();
     boolean isHealthy = true;
+    
     try {
-      components.put("database", Map.of(
-        "status", "up",
-        "responseTime", 100
+      components.put("database", new ComponentHealth(
+        "up",
+        null,
+        Map.of("responseTime", 100)
       ));
     } catch (Exception e) {
-      components.put("database", Map.of(
-        "status", "down",
-        "error", e.getMessage()
+      components.put("database", new ComponentHealth(
+        "down",
+        e.getMessage(),
+        null
       ));
       isHealthy = false;
     }
+    
     try {
-      components.put("session", Map.of("status", "up"));
+      components.put("session", new ComponentHealth(
+        "up",
+        null,
+        null
+      ));
     } catch (Exception e) {
-      components.put("session", Map.of(
-        "status", "down",
-        "error", e.getMessage()
+      components.put("session", new ComponentHealth(
+        "down",
+        e.getMessage(),
+        null
       ));
       isHealthy = false;
     }
+    
     Runtime runtime = Runtime.getRuntime();
-    Map<String, Object> memory = new HashMap<>();
-    memory.put("total", runtime.totalMemory());
-    memory.put("free", runtime.freeMemory());
-    memory.put("max", runtime.maxMemory());
-    components.put("memory", memory);
-    health.put("status", isHealthy ? "healthy" : "unhealthy");
-    health.put("timestamp", LocalDateTime.now());
-    health.put("components", components);
+    components.put("memory", new ComponentHealth(
+      "up",
+      null,
+      Map.of(
+        "total", runtime.totalMemory(),
+        "free", runtime.freeMemory(),
+        "max", runtime.maxMemory()
+      )
+    ));
+    
+    HealthResponse health = new HealthResponse(
+      isHealthy ? "healthy" : "unhealthy",
+      LocalDateTime.now(),
+      components
+    );
+    
     if (!isHealthy) {
       log.warn("Health check failed: {}", health);
       return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(health);
     }
+    
     return ResponseEntity.ok(health);
   }
   
-  @GetMapping(value = "/info", produces = MediaType.APPLICATION_JSON_VALUE)
   @Operation(
     summary = "Get application information",
-    description = "Retrieves basic information about the application including name and version"
+    description = "Retrieves basic information about the application including name and version",
+    responses = {
+      @ApiResponse(
+        responseCode = "200",
+        description = "Information retrieved successfully",
+        content = @Content(
+          mediaType = MediaType.APPLICATION_JSON_VALUE,
+          schema = @Schema(implementation = ApplicationInfo.class)
+        )
+      ),
+      @ApiResponse(
+        responseCode = "500",
+        description = "Internal server error",
+        content = @Content(
+          mediaType = MediaType.APPLICATION_JSON_VALUE,
+          schema = @Schema(implementation = ErrorDTO.class)
+        )
+      )
+    }
   )
-  @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "Information retrieved successfully"),
-    @ApiResponse(responseCode = "500", description = "Internal server error")
-  })
-  public ResponseEntity<Map<String, Object>> getInfo() {
+  @GetMapping(value = "/info", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<ApplicationInfo> getInfo() {
     log.debug("Processing info request");
-    Map<String, Object> info = new HashMap<>();
-    info.put("name", "Habit Tracker");
-    info.put("version", "1.0");
+    ApplicationInfo info = new ApplicationInfo("Habit Tracker", "1.0");
     log.debug("Info request processed successfully");
     return ResponseEntity.ok(info);
   }
   
-  private Map<String, Long> calculateUptime() {
+  private UptimeInfo calculateUptime() {
     Duration duration = Duration.between(startupTime, LocalDateTime.now());
-    Map<String, Long> uptime = new HashMap<>();
-    uptime.put("days", duration.toDays());
-    uptime.put("hours", (long) duration.toHoursPart());
-    uptime.put("minutes", (long) duration.toMinutesPart());
-    uptime.put("seconds", (long) duration.toSecondsPart());
-    return uptime;
+    return new UptimeInfo(
+      duration.toDays(),
+      duration.toHoursPart(),
+      duration.toMinutesPart(),
+      duration.toSecondsPart()
+    );
   }
   
   @ExceptionHandler(Exception.class)

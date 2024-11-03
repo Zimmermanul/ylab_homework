@@ -133,15 +133,20 @@ logging:
 springdoc:
   api-docs:
     path: /v3/api-docs
-    enabled: ${SWAGGER_ENABLED:true}
+    enabled: true
   swagger-ui:
     path: /swagger-ui.html
-    enabled: ${SWAGGER_ENABLED:true}
-    doc-expansion: none
-    tags-sorter: alpha
-    operations-sorter: method
-  show-actuator: false
+    enabled: true
+    configUrl: /v3/api-docs/swagger-config
+    url: /v3/api-docs
+    disable-swagger-default-url: true
   paths-to-match: /api/**
+  packages-to-scan: com.mkhabibullin.presentation.controller
+
+server:
+  forward-headers-strategy: framework
+  servlet:
+    context-path: /
 
 # Application Specific Configuration
 application:

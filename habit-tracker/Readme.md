@@ -14,8 +14,10 @@
 #### Приложение будет доступно по адресу:
 
 * Health check: http://localhost:18080/api/system/health
-* API endpoints: http://localhost:18080/api/...
 * Swagger UI: http://localhost:18080/swagger-ui.html
+* OpenAPI Docs: http://localhost:18080/v3/api-docs
+* API endpoints: http://localhost:18080/api/...
+
 
 #### Учетные данные администратора:
 
@@ -43,6 +45,7 @@ docker-compose logs -f app
 
 ``` console
 docker-compose down -v
+docker system prune -f (optionally)
 ```
 
 4. При наличии проблем с занятостью порта на Windows

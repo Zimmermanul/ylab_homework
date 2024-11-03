@@ -15,6 +15,7 @@ public class MainWebAppInitializer implements WebApplicationInitializer {
   public void onStartup(ServletContext servletContext) throws ServletException {
     AnnotationConfigWebApplicationContext rootContext = new AnnotationConfigWebApplicationContext();
     rootContext.register(RootConfig.class);
+    servletContext.setInitParameter("spring.profiles.default", "dev");
     servletContext.addListener(new ContextLoaderListener(rootContext));
     AnnotationConfigWebApplicationContext dispatcherContext = new AnnotationConfigWebApplicationContext();
     dispatcherContext.register(WebConfig.class);
@@ -22,6 +23,5 @@ public class MainWebAppInitializer implements WebApplicationInitializer {
       "dispatcher", new DispatcherServlet(dispatcherContext));
     dispatcher.setLoadOnStartup(1);
     dispatcher.addMapping("/");
-    servletContext.setInitParameter("contextPath", "/");
   }
 }

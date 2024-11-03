@@ -15,6 +15,8 @@ import com.mkhabibullin.presentation.dto.habit.HabitResponseDTO;
 import com.mkhabibullin.presentation.dto.habit.UpdateHabitDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -53,10 +55,10 @@ import java.util.List;
 @Tag(name = "Habit Management", description = "API endpoints for managing habits")
 @Validated
 public class HabitRestController {
+  private static final Logger log = LoggerFactory.getLogger(HabitRestController.class);
   private final HabitService habitService;
   private final HabitMapper habitMapper;
   private final HabitMapperValidator habitValidator;
-  private static final Logger log = LoggerFactory.getLogger(HabitRestController.class);
   
   public HabitRestController(HabitService habitService,
                              HabitMapper habitMapper,
@@ -71,17 +73,38 @@ public class HabitRestController {
     binder.addValidators(habitValidator);
   }
   
-  @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-  @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Create a new habit",
     description = "Creates a new habit for the authenticated user"
   )
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "201", description = "Habit created successfully"),
-    @ApiResponse(responseCode = "400", description = "Invalid input data"),
-    @ApiResponse(responseCode = "401", description = "User not authenticated")
+    @ApiResponse(
+      responseCode = "201",
+      description = "Habit created successfully",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = MessageDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "400",
+      description = "Invalid input data",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "User not authenticated",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    )
   })
+  @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+  @ResponseStatus(HttpStatus.CREATED)
   @Audited(audited = "Create Habit")
   public ResponseEntity<MessageDTO> createHabit(
     @Parameter(hidden = true) @SessionAttribute("user") User currentUser,
@@ -99,15 +122,29 @@ public class HabitRestController {
       .body(new MessageDTO("Habit created successfully"));
   }
   
-  @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   @Operation(
     summary = "Get user habits",
     description = "Retrieves all habits for the authenticated user with optional filtering"
   )
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "Habits retrieved successfully"),
-    @ApiResponse(responseCode = "401", description = "User not authenticated")
+    @ApiResponse(
+      responseCode = "200",
+      description = "Habits retrieved successfully",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = HabitResponseDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "User not authenticated",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    )
   })
+  @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   @Audited(audited = "View Habits")
   public ResponseEntity<List<HabitResponseDTO>> getHabits(
     @Parameter(description = "Filter by date (YYYY-MM-DD)")
@@ -124,17 +161,45 @@ public class HabitRestController {
     return ResponseEntity.ok(habitDTOs);
   }
   
-  @PutMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
   @Operation(
     summary = "Update a habit",
     description = "Updates an existing habit's details"
   )
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "Habit updated successfully"),
-    @ApiResponse(responseCode = "400", description = "Invalid input data"),
-    @ApiResponse(responseCode = "401", description = "User not authenticated"),
-    @ApiResponse(responseCode = "404", description = "Habit not found")
+    @ApiResponse(
+      responseCode = "200",
+      description = "Habit updated successfully",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = MessageDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "400",
+      description = "Invalid input data",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "User not authenticated",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "404",
+      description = "Habit not found",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    )
   })
+  @PutMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
   @Audited(audited = "Update Habit")
   public ResponseEntity<MessageDTO> updateHabit(
     @Parameter(description = "Habit ID", required = true)
@@ -154,17 +219,34 @@ public class HabitRestController {
     return ResponseEntity.ok(new MessageDTO("Habit updated successfully"));
   }
   
-  @DeleteMapping("/{id}")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Delete a habit",
     description = "Permanently deletes a habit"
   )
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "204", description = "Habit deleted successfully"),
-    @ApiResponse(responseCode = "401", description = "User not authenticated"),
-    @ApiResponse(responseCode = "404", description = "Habit not found")
+    @ApiResponse(
+      responseCode = "204",
+      description = "Habit deleted successfully"
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "User not authenticated",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "404",
+      description = "Habit not found",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    )
   })
+  @DeleteMapping("/{id}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
   @Audited(audited = "Delete Habit")
   public void deleteHabit(
     @Parameter(description = "Habit ID", required = true)
@@ -181,13 +263,9 @@ public class HabitRestController {
     AuthenticationException ex,
     WebRequest request) {
     log.error("Authentication error: {}", ex.getMessage());
-    ErrorDTO errorDTO = new ErrorDTO(
-      ex.getMessage(),
-      System.currentTimeMillis()
-    );
     return ResponseEntity
       .status(HttpStatus.UNAUTHORIZED)
-      .body(errorDTO);
+      .body(new ErrorDTO(ex.getMessage(), System.currentTimeMillis()));
   }
   
   @ExceptionHandler(ValidationException.class)
@@ -196,13 +274,9 @@ public class HabitRestController {
     ValidationException ex,
     WebRequest request) {
     log.error("Validation error: {}", ex.getMessage());
-    ErrorDTO errorDTO = new ErrorDTO(
-      ex.getMessage(),
-      System.currentTimeMillis()
-    );
     return ResponseEntity
       .status(HttpStatus.BAD_REQUEST)
-      .body(errorDTO);
+      .body(new ErrorDTO(ex.getMessage(), System.currentTimeMillis()));
   }
   
   @ExceptionHandler(Exception.class)
@@ -211,12 +285,8 @@ public class HabitRestController {
     Exception ex,
     WebRequest request) {
     log.error("Unexpected error:", ex);
-    ErrorDTO errorDTO = new ErrorDTO(
-      "Internal server error",
-      System.currentTimeMillis()
-    );
     return ResponseEntity
       .status(HttpStatus.INTERNAL_SERVER_ERROR)
-      .body(errorDTO);
+      .body(new ErrorDTO("Internal server error", System.currentTimeMillis()));
   }
 }

@@ -1,5 +1,7 @@
 package com.mkhabibullin.presentation.dto.audit;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.time.LocalDateTime;
 import java.util.Map;
 
@@ -18,15 +20,36 @@ import java.util.Map;
  * @param periodStart Start of the time period for these statistics
  * @param periodEnd End of the time period for these statistics
  */
+@Schema(description = "Statistical analysis of audit logs")
 public record AuditStatisticsDTO(
+  @Schema(description = "Total number of operations performed")
   long totalOperations,
+  
+  @Schema(description = "Average execution time across all operations in milliseconds", example = "145.5")
   double averageExecutionTime,
+  
+  @Schema(description = "Count of each operation type",
+    example = "{\"Create Habit\": 50, \"Update Habit\": 30}")
   Map<String, Long> operationCounts,
+  
+  @Schema(description = "Count of activities by user",
+    example = "{\"john.doe\": 100, \"jane.smith\": 75}")
   Map<String, Long> userActivityCounts,
+  
+  @Schema(description = "Average execution time by operation type",
+    example = "{\"Create Habit\": 150.5, \"Update Habit\": 120.3}")
   Map<String, Double> averageTimeByOperation,
+  
+  @Schema(description = "Username of the most active user", example = "john.doe")
   String mostActiveUser,
+  
+  @Schema(description = "Most frequently performed operation", example = "Create Habit")
   String mostCommonOperation,
+  
+  @Schema(description = "Start of the analysis period", example = "2024-03-01T00:00:00")
   LocalDateTime periodStart,
+  
+  @Schema(description = "End of the analysis period", example = "2024-03-31T23:59:59")
   LocalDateTime periodEnd
 ) {
 }

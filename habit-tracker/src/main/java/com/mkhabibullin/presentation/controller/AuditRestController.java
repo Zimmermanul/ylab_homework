@@ -11,6 +11,8 @@ import com.mkhabibullin.presentation.dto.audit.AuditLogResponseDTO;
 import com.mkhabibullin.presentation.dto.audit.AuditStatisticsDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -43,10 +45,10 @@ import java.util.List;
 @Tag(name = "Audit Log Management", description = "API endpoints for managing and retrieving audit logs")
 @Validated
 public class AuditRestController {
+  private static final Logger log = LoggerFactory.getLogger(AuditRestController.class);
   private final AuditLogService auditLogService;
   private final AuditMapper auditMapper;
   private final AuditMapperValidator auditValidator;
-  private static final Logger log = LoggerFactory.getLogger(AuditRestController.class);
   
   public AuditRestController(AuditLogService auditLogService,
                              AuditMapper auditMapper,
@@ -56,14 +58,37 @@ public class AuditRestController {
     this.auditValidator = auditValidator;
   }
   
-  @GetMapping(value = "/recent", produces = MediaType.APPLICATION_JSON_VALUE)
-  @Operation(summary = "Get recent audit logs",
-    description = "Retrieves the most recent audit logs up to the specified limit")
+  @Operation(
+    summary = "Get recent audit logs",
+    description = "Retrieves the most recent audit logs up to the specified limit"
+  )
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "Recent logs retrieved successfully"),
-    @ApiResponse(responseCode = "400", description = "Invalid limit parameter"),
-    @ApiResponse(responseCode = "401", description = "User not authenticated")
+    @ApiResponse(
+      responseCode = "200",
+      description = "Recent logs retrieved successfully",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = AuditLogResponseDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "400",
+      description = "Invalid limit parameter",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "User not authenticated",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    )
   })
+  @GetMapping(value = "/recent", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<List<AuditLogResponseDTO>> getRecentLogs(
     @Parameter(description = "Maximum number of logs to retrieve (1-100)", example = "10")
     @RequestParam(defaultValue = "10") Integer limit,
@@ -81,16 +106,39 @@ public class AuditRestController {
     return ResponseEntity.ok(responseDtos);
   }
   
-  @GetMapping(value = "/user/{username}", produces = MediaType.APPLICATION_JSON_VALUE)
-  @Operation(summary = "Get audit logs for specific user",
-    description = "Retrieves all audit logs associated with the specified username")
+  @Operation(
+    summary = "Get audit logs for specific user",
+    description = "Retrieves all audit logs associated with the specified username"
+  )
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "User logs retrieved successfully"),
-    @ApiResponse(responseCode = "400", description = "Invalid username"),
-    @ApiResponse(responseCode = "401", description = "User not authenticated")
+    @ApiResponse(
+      responseCode = "200",
+      description = "User logs retrieved successfully",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = AuditLogResponseDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "400",
+      description = "Invalid username",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "User not authenticated",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    )
   })
+  @GetMapping(value = "/user/{username}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<List<AuditLogResponseDTO>> getUserLogs(
-    @Parameter(description = "Username to retrieve logs for", required = true)
+    @Parameter(description = "Username to retrieve logs for", example = "john.doe", required = true)
     @PathVariable String username,
     @Parameter(hidden = true) @SessionAttribute("user") User currentUser) throws ValidationException, IOException {
     log.debug("Retrieving audit logs for user {}", username);
@@ -107,16 +155,39 @@ public class AuditRestController {
     return ResponseEntity.ok(responseDtos);
   }
   
-  @GetMapping(value = "/operation/{operation}", produces = MediaType.APPLICATION_JSON_VALUE)
-  @Operation(summary = "Get audit logs for specific operation",
-    description = "Retrieves all audit logs for the specified operation type")
+  @Operation(
+    summary = "Get audit logs for specific operation",
+    description = "Retrieves all audit logs for the specified operation type"
+  )
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "Operation logs retrieved successfully"),
-    @ApiResponse(responseCode = "400", description = "Invalid operation"),
-    @ApiResponse(responseCode = "401", description = "User not authenticated")
+    @ApiResponse(
+      responseCode = "200",
+      description = "Operation logs retrieved successfully",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = AuditLogResponseDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "400",
+      description = "Invalid operation",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "User not authenticated",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    )
   })
+  @GetMapping(value = "/operation/{operation}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<List<AuditLogResponseDTO>> getOperationLogs(
-    @Parameter(description = "Operation to retrieve logs for", required = true)
+    @Parameter(description = "Operation to retrieve logs for", example = "Create Habit", required = true)
     @PathVariable String operation,
     @Parameter(hidden = true) @SessionAttribute("user") User currentUser) throws ValidationException, IOException {
     log.debug("Retrieving audit logs for operation {}", operation);
@@ -130,18 +201,41 @@ public class AuditRestController {
     return ResponseEntity.ok(responseDtos);
   }
   
-  @GetMapping(value = "/statistics", produces = MediaType.APPLICATION_JSON_VALUE)
-  @Operation(summary = "Get audit statistics for date range",
-    description = "Retrieves audit statistics for the specified date-time range")
+  @Operation(
+    summary = "Get audit statistics for date range",
+    description = "Retrieves audit statistics for the specified date-time range"
+  )
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "Statistics retrieved successfully"),
-    @ApiResponse(responseCode = "400", description = "Invalid date range"),
-    @ApiResponse(responseCode = "401", description = "User not authenticated")
+    @ApiResponse(
+      responseCode = "200",
+      description = "Statistics retrieved successfully",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = AuditStatisticsDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "400",
+      description = "Invalid date range",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "User not authenticated",
+      content = @Content(
+        mediaType = MediaType.APPLICATION_JSON_VALUE,
+        schema = @Schema(implementation = ErrorDTO.class)
+      )
+    )
   })
+  @GetMapping(value = "/statistics", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<AuditStatisticsDTO> getStatistics(
-    @Parameter(description = "Start date-time (ISO-8601 format)", required = true)
+    @Parameter(description = "Start date-time (ISO-8601 format)", example = "2024-03-01T00:00:00", required = true)
     @RequestParam LocalDateTime startDateTime,
-    @Parameter(description = "End date-time (ISO-8601 format)", required = true)
+    @Parameter(description = "End date-time (ISO-8601 format)", example = "2024-03-31T23:59:59", required = true)
     @RequestParam LocalDateTime endDateTime,
     @Parameter(hidden = true) @SessionAttribute("user") User currentUser) throws ValidationException, IOException {
     log.debug("Retrieving audit statistics from {} to {}", startDateTime, endDateTime);
@@ -169,29 +263,37 @@ public class AuditRestController {
   
   @ExceptionHandler(ValidationException.class)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
-  public ErrorDTO handleValidationException(ValidationException ex) {
+  public ResponseEntity<ErrorDTO> handleValidationException(ValidationException ex) {
     log.error("Validation error: {}", ex.getMessage());
-    return new ErrorDTO(ex.getMessage(), System.currentTimeMillis());
+    return ResponseEntity
+      .status(HttpStatus.BAD_REQUEST)
+      .body(new ErrorDTO(ex.getMessage(), System.currentTimeMillis()));
   }
   
   @ExceptionHandler(AuthenticationException.class)
   @ResponseStatus(HttpStatus.UNAUTHORIZED)
-  public ErrorDTO handleAuthenticationException(AuthenticationException ex) {
+  public ResponseEntity<ErrorDTO> handleAuthenticationException(AuthenticationException ex) {
     log.error("Authentication error: {}", ex.getMessage());
-    return new ErrorDTO(ex.getMessage(), System.currentTimeMillis());
+    return ResponseEntity
+      .status(HttpStatus.UNAUTHORIZED)
+      .body(new ErrorDTO(ex.getMessage(), System.currentTimeMillis()));
   }
   
   @ExceptionHandler(ConstraintViolationException.class)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
-  public ErrorDTO handleConstraintViolationException(ConstraintViolationException ex) {
+  public ResponseEntity<ErrorDTO> handleConstraintViolationException(ConstraintViolationException ex) {
     log.error("Validation error: {}", ex.getMessage());
-    return new ErrorDTO(ex.getMessage(), System.currentTimeMillis());
+    return ResponseEntity
+      .status(HttpStatus.BAD_REQUEST)
+      .body(new ErrorDTO(ex.getMessage(), System.currentTimeMillis()));
   }
   
   @ExceptionHandler(Exception.class)
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-  public ErrorDTO handleException(Exception ex) {
+  public ResponseEntity<ErrorDTO> handleException(Exception ex) {
     log.error("Unexpected error: ", ex);
-    return new ErrorDTO("Internal server error", System.currentTimeMillis());
+    return ResponseEntity
+      .status(HttpStatus.INTERNAL_SERVER_ERROR)
+      .body(new ErrorDTO("Internal server error", System.currentTimeMillis()));
   }
 }
