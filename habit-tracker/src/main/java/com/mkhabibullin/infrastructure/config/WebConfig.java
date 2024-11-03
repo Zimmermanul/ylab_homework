@@ -33,7 +33,7 @@ import java.util.List;
 })
 public class WebConfig implements WebMvcConfigurer {
   
-  @Value("${APP_PORT}")
+  @Value("${server.port:18080}")
   private String serverPort;
   
   @Override
