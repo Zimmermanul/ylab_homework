@@ -5,9 +5,8 @@
 ## Развернуть приложение в docker:
 
 1. Создайте копию файла .env-localexample, переименуйте его в .env
-2. Выполните
+2. Из директории с проектом выполните
 ```console
-    mvn clean package -DskipTests
     docker-compose up --build -d
 ```
 

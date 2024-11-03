@@ -37,7 +37,7 @@ spring:
     contexts: test
     parameters:
       search-path: public,service
-    test-rollback: true  # Rollback changes after test
+    test-rollback: true
 
 logging:
   level:
@@ -50,15 +50,38 @@ logging:
     org.testcontainers: INFO
     com.zaxxer.hikari: INFO
     liquibase: INFO
+    # Add logging for Spring Web and Security
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+    # Add swagger logging
+    org.springdoc: DEBUG
 
-# Disable Swagger for tests
+# Swagger/OpenAPI settings for test
 springdoc:
   api-docs:
-    enabled: false
+    enabled: false  # Disable API docs in test
   swagger-ui:
-    enabled: false
+    enabled: false  # Disable Swagger UI in test
+  paths-to-match: /api/**
+  packages-to-scan: com.mkhabibullin.presentation.controller
+  show-actuator: false
 
-# Test-specific application settings
+# Server configuration for tests
+server:
+  port: 0  # Random port for tests
+  servlet:
+    context-path: /
+  forward-headers-strategy: framework
+
+# Web configuration for tests
+web:
+  cors:
+    allowed-origins: "*"
+    allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+    allowed-headers: "*"
+    max-age: 3600
+
+# Application settings
 application:
   test:
     # Test data configuration
@@ -70,11 +93,13 @@ application:
     timeouts:
       global: 5000
       db-operation: 1000
+      http: 5000  # Added HTTP timeout
     # Test features toggles
     features:
       use-test-email: true
       mock-external-services: true
       cleanup-after-test: true
+      disable-security: true  # Added security disable flag
     # Test database settings
     database:
       schema: public
@@ -84,8 +109,9 @@ application:
     audit:
       enabled: true
       detailed-logging: true
+      exclude-paths: /v3/api-docs/**,/swagger-ui/**  # Exclude Swagger paths from audit
 
-# Test security settings
+# Security settings
 security:
   test:
     enabled: false
@@ -94,10 +120,14 @@ security:
       username: test-user
       password: test-password
       roles: ROLE_USER,ROLE_ADMIN
+  jwt:
+    enabled: false  # Disable JWT for tests
+    secret: test-secret-key
+    expiration: 3600
 
-# Test environment specific settings
+# Test environment settings
 test:
-  # TestContainers configuration (can be overridden by actual TestContainers setup)
+  # TestContainers configuration
   containers:
     postgres:
       docker-image: postgres:13
@@ -115,4 +145,17 @@ test:
       seed: 12345
     cleanup:
       enabled: true
-      strategy: AFTER_TEST  # Options: AFTER_TEST, AFTER_CLASS, AFTER_SUITE
+      strategy: AFTER_TEST
+
+# Aspect configuration for tests
+aspects:
+  logging:
+    enabled: true
+    exclude-patterns:
+      - /v3/api-docs/**
+      - /swagger-ui/**
+  audit:
+    enabled: true
+    exclude-patterns:
+      - /v3/api-docs/**
+      - /swagger-ui/**

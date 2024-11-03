@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 /**
  * Test environment configuration class.
@@ -28,6 +29,7 @@ import org.springframework.test.context.TestPropertySource;
  * Properties are loaded from application-test.yml
  */
 @Configuration
+@EnableWebMvc
 @Profile("test")
 @Import({AspectConfig.class, DatabaseConfig.class})
 @ComponentScan(basePackages = {

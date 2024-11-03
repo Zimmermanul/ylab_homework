@@ -19,7 +19,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringJUnitConfig(TestConfig.class)
-@ActiveProfiles("test")
+@ActiveProfiles(value = "test")
 @Testcontainers
 class HabitRepositoryTest extends BaseTest {
   
