@@ -25,6 +25,7 @@
         <aspectj.version>1.9.19</aspectj.version>
         <jackson.version>2.15.3</jackson.version>
         <jakarta.version>9.1.0</jakarta.version>
+        <jakarta-persistance-api.version>3.1.0</jakarta-persistance-api.version>
         <postgresql.version>42.7.4</postgresql.version>
         <liquibase.version>4.29.0</liquibase.version>
         <hikari.version>5.1.0</hikari.version>
@@ -49,7 +50,6 @@
             <artifactId>spring-orm</artifactId>
             <version>${springframework.version}</version>
         </dependency>
-
         <!-- Spring Security -->
         <dependency>
             <groupId>org.springframework.security</groupId>
@@ -61,7 +61,6 @@
             <artifactId>spring-security-config</artifactId>
             <version>${springframework.version}</version>
         </dependency>
-
         <!-- Database -->
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -78,19 +77,17 @@
             <artifactId>liquibase-core</artifactId>
             <version>${liquibase.version}</version>
         </dependency>
-
         <!-- JPA/Hibernate -->
         <dependency>
             <groupId>jakarta.persistence</groupId>
             <artifactId>jakarta.persistence-api</artifactId>
-            <version>3.1.0</version>
+            <version>${jakarta-persistance-api.version}</version>
         </dependency>
         <dependency>
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
             <version>${hibernate.version}</version>
         </dependency>
-
         <!-- Jakarta EE -->
         <dependency>
             <groupId>jakarta.platform</groupId>
@@ -98,7 +95,6 @@
             <version>${jakarta.version}</version>
             <scope>provided</scope>
         </dependency>
-
         <!-- Swagger/OpenAPI -->
         <dependency>
             <groupId>org.springdoc</groupId>
@@ -110,7 +106,6 @@
             <artifactId>springdoc-openapi-starter-common</artifactId>
             <version>${springdoc.version}</version>
         </dependency>
-
         <!-- MapStruct -->
         <dependency>
             <groupId>org.mapstruct</groupId>
@@ -123,7 +118,6 @@
             <version>${mapstruct.version}</version>
             <scope>provided</scope>
         </dependency>
-
         <!-- Jackson -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -140,14 +134,12 @@
             <artifactId>jackson-dataformat-yaml</artifactId>
             <version>${jackson.version}</version>
         </dependency>
-
         <!-- AspectJ -->
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjweaver</artifactId>
             <version>${aspectj.version}</version>
         </dependency>
-
         <!-- Logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -159,7 +151,6 @@
             <artifactId>logback-classic</artifactId>
             <version>${logback.version}</version>
         </dependency>
-
         <!-- Test Dependencies -->
         <dependency>
             <groupId>org.springframework</groupId>
@@ -198,7 +189,6 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
     <build>
         <finalName>habit-tracker</finalName>
         <testSourceDirectory>src/test/java</testSourceDirectory>

@@ -16,7 +16,10 @@ import java.util.List;
 
 /**
  * Implementation of HabitRepository interface.
- * Provides JPA-based implementation for managing habit entries.
+ * Provides JPA-based implementation for managing habit entries using EntityManager.
+ * Handles CRUD operations for habits with error handling and logging.
+ *
+ * @see HabitRepository
  */
 @Repository
 @Transactional
@@ -26,6 +29,13 @@ public class HabitRepositoryImpl implements HabitRepository {
   @PersistenceContext
   private EntityManager entityManager;
   
+  /**
+   * Creates a new habit record in the database.
+   * Performs a flush operation to ensure the habit is persisted and ID is generated.
+   *
+   * @param habit the habit entity to create
+   * @throws RuntimeException if there is an error during creation
+   */
   @Override
   public void create(Habit habit) {
     try {
@@ -37,6 +47,13 @@ public class HabitRepositoryImpl implements HabitRepository {
     }
   }
   
+  /**
+   * Updates an existing habit record with new information.
+   * If no habit is found with the given ID, a warning is logged.
+   *
+   * @param habit the habit entity containing updated information
+   * @throws RuntimeException if there is an error during update
+   */
   @Override
   public void update(Habit habit) {
     try {
@@ -57,6 +74,13 @@ public class HabitRepositoryImpl implements HabitRepository {
     }
   }
   
+  /**
+   * Deletes a habit record by its ID.
+   * If no habit is found with the given ID, a warning is logged.
+   *
+   * @param id the unique identifier of the habit to delete
+   * @throws RuntimeException if there is an error during deletion
+   */
   @Override
   public void delete(Long id) {
     try {
@@ -72,6 +96,11 @@ public class HabitRepositoryImpl implements HabitRepository {
     }
   }
   
+  /**
+   * Retrieves all habit records from the database.
+   *
+   * @return a list of all habits, or an empty list if none found or if an error occurs
+   */
   @Override
   public List<Habit> readAll() {
     try {
@@ -86,6 +115,12 @@ public class HabitRepositoryImpl implements HabitRepository {
     }
   }
   
+  /**
+   * Retrieves all habits associated with a specific user.
+   *
+   * @param userId the unique identifier of the user
+   * @return a list of habits belonging to the specified user, or an empty list if none found or if an error occurs
+   */
   @Override
   public List<Habit> getByUserId(Long userId) {
     try {
@@ -101,6 +136,12 @@ public class HabitRepositoryImpl implements HabitRepository {
     }
   }
   
+  /**
+   * Retrieves a specific habit by its ID.
+   *
+   * @param id the unique identifier of the habit
+   * @return the found habit entity, or null if not found or if an error occurs
+   */
   @Override
   public Habit getById(Long id) {
     try {

@@ -9,6 +9,24 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 import org.springframework.test.context.TestPropertySource;
 
+/**
+ * Test environment configuration class.
+ * Provides configuration specific to the test environment including:
+ * - Aspect-oriented programming setup
+ * - Database configuration
+ * - Component scanning for repositories and aspects
+ * - Test-specific property loading
+ * <p>
+ * This configuration is only active when the "test" profile is enabled.
+ * Imports necessary configurations from AspectConfig and DatabaseConfig while
+ * maintaining isolation from production configurations.
+ * <p>
+ * Component scanning is configured for:
+ * - Aspects package: com.mkhabibullin.aspect
+ * - Repository package: com.mkhabibullin.infrastructure.persistence.repository
+ * <p>
+ * Properties are loaded from application-test.yml
+ */
 @Configuration
 @Profile("test")
 @Import({AspectConfig.class, DatabaseConfig.class})

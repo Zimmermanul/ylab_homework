@@ -24,7 +24,10 @@ import java.time.LocalDateTime;
 /**
  * Test-specific aspect for auditing method executions in test environment.
  * This aspect is only active when the "test" profile is active.
+ * Provides audit logging functionality specifically tailored for test scenarios,
+ * capturing method execution details, timing, and results.
  */
+
 @Aspect
 @Component
 @Order(1)
@@ -34,14 +37,41 @@ public class TestAuditedAspect {
   
   private final AuditLogRepository auditLogRepository;
   
+  /**
+   * Constructs a new TestAuditedAspect with the required repository.
+   *
+   * @param auditLogRepository Repository for persisting audit log entries
+   */
   public TestAuditedAspect(AuditLogRepository auditLogRepository) {
     this.auditLogRepository = auditLogRepository;
   }
   
+  /**
+   * Defines pointcut for methods annotated with @Audited.
+   * This pointcut captures all method executions that should be audited.
+   *
+   * @param audited The Audited annotation instance
+   */
   @Pointcut("@annotation(audited)")
   public void auditedMethod(Audited audited) {
   }
   
+  /**
+   * Around advice that handles the audit logging for test method executions.
+   * Captures and logs:
+   * - Method execution timing
+   * - User information
+   * - Request details
+   * - Execution results or exceptions
+   * <p>
+   * Skips logging for non-test methods and handles exceptions during both
+   * method execution and audit logging.
+   *
+   * @param joinPoint The join point representing the intercepted method
+   * @param audited   The Audited annotation instance
+   * @return The result of the method execution
+   * @throws Throwable if the underlying method throws an exception
+   */
   @Around(value = "@annotation(audited)", argNames = "joinPoint,audited")
   public Object writeTestAuditLog(ProceedingJoinPoint joinPoint, Audited audited) throws Throwable {
     if (!isTestMethod(joinPoint)) {

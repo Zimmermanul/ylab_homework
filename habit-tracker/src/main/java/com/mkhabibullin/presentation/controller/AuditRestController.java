@@ -39,6 +39,15 @@ import java.util.List;
 /**
  * REST Controller for managing audit logs in the application.
  * Provides endpoints for retrieving and analyzing audit log data.
+ *
+ * This controller handles various audit log related operations including:
+ * - Retrieving recent audit logs
+ * - Fetching user-specific audit logs
+ * - Getting operation-specific audit logs
+ * - Generating audit statistics for specified time periods
+ *
+ * All endpoints require user authentication and include appropriate validation
+ * for input parameters.
  */
 @RestController
 @RequestMapping("/api/audit-logs")
@@ -50,6 +59,13 @@ public class AuditRestController {
   private final AuditMapper auditMapper;
   private final AuditMapperValidator auditValidator;
   
+  /**
+   * Constructs a new AuditRestController with required dependencies.
+   *
+   * @param auditLogService Service for handling audit log operations
+   * @param auditMapper     Mapper for converting between domain models and DTOs
+   * @param auditValidator  Validator for ensuring audit log data integrity
+   */
   public AuditRestController(AuditLogService auditLogService,
                              AuditMapper auditMapper,
                              AuditMapperValidator auditValidator) {
@@ -58,6 +74,15 @@ public class AuditRestController {
     this.auditValidator = auditValidator;
   }
   
+  /**
+   * Retrieves the most recent audit logs up to the specified limit.
+   *
+   * @param limit Maximum number of logs to retrieve (must be between 1 and 100)
+   * @param currentUser Currently authenticated user making the request
+   * @return ResponseEntity containing a list of recent audit logs
+   * @throws ValidationException if the limit parameter is invalid
+   * @throws IOException if there's an error retrieving the logs
+   */
   @Operation(
     summary = "Get recent audit logs",
     description = "Retrieves the most recent audit logs up to the specified limit"
@@ -106,6 +131,15 @@ public class AuditRestController {
     return ResponseEntity.ok(responseDtos);
   }
   
+  /**
+   * Retrieves all audit logs associated with the specified username.
+   *
+   * @param username Username whose logs are to be retrieved
+   * @param currentUser Currently authenticated user making the request
+   * @return ResponseEntity containing a list of audit logs for the specified user
+   * @throws ValidationException if the username is invalid or empty
+   * @throws IOException if there's an error retrieving the logs
+   */
   @Operation(
     summary = "Get audit logs for specific user",
     description = "Retrieves all audit logs associated with the specified username"
@@ -139,7 +173,7 @@ public class AuditRestController {
   @GetMapping(value = "/user/{username}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<List<AuditLogResponseDTO>> getUserLogs(
     @Parameter(description = "Username to retrieve logs for", example = "john.doe", required = true)
-    @PathVariable String username,
+    @PathVariable("username") String username,
     @Parameter(hidden = true) @SessionAttribute("user") User currentUser) throws ValidationException, IOException {
     log.debug("Retrieving audit logs for user {}", username);
     if (username == null || username.trim().isEmpty()) {
@@ -155,6 +189,15 @@ public class AuditRestController {
     return ResponseEntity.ok(responseDtos);
   }
   
+  /**
+   * Retrieves all audit logs for the specified operation type.
+   *
+   * @param operation Operation type to retrieve logs for
+   * @param currentUser Currently authenticated user making the request
+   * @return ResponseEntity containing a list of audit logs for the specified operation
+   * @throws ValidationException if the operation parameter is invalid or empty
+   * @throws IOException if there's an error retrieving the logs
+   */
   @Operation(
     summary = "Get audit logs for specific operation",
     description = "Retrieves all audit logs for the specified operation type"
@@ -188,7 +231,7 @@ public class AuditRestController {
   @GetMapping(value = "/operation/{operation}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<List<AuditLogResponseDTO>> getOperationLogs(
     @Parameter(description = "Operation to retrieve logs for", example = "Create Habit", required = true)
-    @PathVariable String operation,
+    @PathVariable("operation") String operation,
     @Parameter(hidden = true) @SessionAttribute("user") User currentUser) throws ValidationException, IOException {
     log.debug("Retrieving audit logs for operation {}", operation);
     if (operation == null || operation.trim().isEmpty()) {
@@ -201,6 +244,16 @@ public class AuditRestController {
     return ResponseEntity.ok(responseDtos);
   }
   
+  /**
+   * Retrieves audit statistics for the specified date-time range.
+   *
+   * @param startDateTime Start of the date range (ISO-8601 format)
+   * @param endDateTime End of the date range (ISO-8601 format)
+   * @param currentUser Currently authenticated user making the request
+   * @return ResponseEntity containing audit statistics for the specified period
+   * @throws ValidationException if the date range is invalid
+   * @throws IOException if there's an error retrieving the statistics
+   */
   @Operation(
     summary = "Get audit statistics for date range",
     description = "Retrieves audit statistics for the specified date-time range"
@@ -261,6 +314,12 @@ public class AuditRestController {
     }
   }
   
+  /**
+   * Handles validation exceptions thrown during request processing.
+   *
+   * @param ex The validation exception that was thrown
+   * @return ResponseEntity containing error details
+   */
   @ExceptionHandler(ValidationException.class)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   public ResponseEntity<ErrorDTO> handleValidationException(ValidationException ex) {
@@ -270,6 +329,12 @@ public class AuditRestController {
       .body(new ErrorDTO(ex.getMessage(), System.currentTimeMillis()));
   }
   
+  /**
+   * Handles authentication exceptions thrown during request processing.
+   *
+   * @param ex The authentication exception that was thrown
+   * @return ResponseEntity containing error details
+   */
   @ExceptionHandler(AuthenticationException.class)
   @ResponseStatus(HttpStatus.UNAUTHORIZED)
   public ResponseEntity<ErrorDTO> handleAuthenticationException(AuthenticationException ex) {
@@ -279,6 +344,12 @@ public class AuditRestController {
       .body(new ErrorDTO(ex.getMessage(), System.currentTimeMillis()));
   }
   
+  /**
+   * Handles constraint violation exceptions thrown during request processing.
+   *
+   * @param ex The constraint violation exception that was thrown
+   * @return ResponseEntity containing error details
+   */
   @ExceptionHandler(ConstraintViolationException.class)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   public ResponseEntity<ErrorDTO> handleConstraintViolationException(ConstraintViolationException ex) {
@@ -288,6 +359,12 @@ public class AuditRestController {
       .body(new ErrorDTO(ex.getMessage(), System.currentTimeMillis()));
   }
   
+  /**
+   * Handles any unexpected exceptions thrown during request processing.
+   *
+   * @param ex The unexpected exception that was thrown
+   * @return ResponseEntity containing error details
+   */
   @ExceptionHandler(Exception.class)
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
   public ResponseEntity<ErrorDTO> handleException(Exception ex) {

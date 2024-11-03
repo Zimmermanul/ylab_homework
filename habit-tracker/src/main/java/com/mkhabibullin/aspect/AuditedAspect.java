@@ -32,19 +32,39 @@ import java.util.Arrays;
 @Profile("!test")
 public class AuditedAspect {
   private static final Logger log = LoggerFactory.getLogger(AuditedAspect.class);
-  
   private final AuditLogRepository auditLogRepository;
   private final Environment environment;
   
+  /**
+   * Constructs a new AuditedAspect with required dependencies.
+   *
+   * @param auditLogRepository repository for persisting audit logs
+   * @param environment        Spring environment for profile detection
+   */
   public AuditedAspect(AuditLogRepository auditLogRepository, Environment environment) {
     this.auditLogRepository = auditLogRepository;
     this.environment = environment;
   }
   
+  /**
+   * Pointcut definition for methods annotated with @Audited.
+   *
+   * @param audited the Audited annotation instance
+   */
   @Pointcut("@annotation(audited)")
   public void auditedMethod(Audited audited) {
   }
   
+  /**
+   * Around advice that handles the audit logging process for annotated methods.
+   * Records method execution time, user information, and operation details.
+   * Saves the audit log entry after method execution, including any failure information.
+   *
+   * @param joinPoint the join point representing the intercepted method
+   * @param audited the Audited annotation instance containing audit configuration
+   * @return the result of the method execution
+   * @throws Throwable if the underlying method throws an exception
+   */
   @Around(value = "@annotation(audited)", argNames = "joinPoint,audited")
   public Object writeAuditLog(ProceedingJoinPoint joinPoint, Audited audited) throws Throwable {
     if (isTestEnvironment()) {

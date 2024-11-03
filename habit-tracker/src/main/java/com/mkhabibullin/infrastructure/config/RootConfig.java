@@ -4,6 +4,11 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
+/**
+ * Root configuration class for the application.
+ * Serves as the main configuration entry point, combining component scanning
+ * and importing other configuration classes.
+ */
 @Configuration
 @ComponentScan(basePackages = {
   "com.mkhabibullin.application.service",

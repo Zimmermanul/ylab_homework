@@ -5,6 +5,10 @@ import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.servers.Server;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Swagger configuration class for OpenAPI documentation.
+ * Defines basic API information and server configuration for Swagger UI.
+ */
 @Configuration
 @OpenAPIDefinition(
   info = @Info(

@@ -13,11 +13,25 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Controller responsible for handling various HTTP error scenarios in the application.
+ * Provides standardized error responses for common error cases such as 404 Not Found
+ * and 500 Internal Server Error.
+ * <p>
+ * Each endpoint returns a consistent error response structure using {@link ErrorDTO}
+ * with appropriate HTTP status codes and timestamps.
+ */
 @RestController
 @RequestMapping("/error")
 @Tag(name = "Error Handling", description = "Endpoints for handling various error scenarios")
 public class ErrorController {
   
+  /**
+   * Handles HTTP 404 Not Found errors.
+   * This endpoint is called when a requested resource cannot be found in the application.
+   *
+   * @return An {@link ErrorDTO} containing the error message and timestamp
+   */
   @Operation(
     summary = "Handle 404 Not Found",
     description = "Returns a standard error response for resources that cannot be found"
@@ -36,6 +50,12 @@ public class ErrorController {
     return new ErrorDTO("Resource not found", System.currentTimeMillis());
   }
   
+  /**
+   * Handles HTTP 500 Internal Server Error scenarios.
+   * This endpoint is called when an unexpected error occurs during request processing.
+   *
+   * @return An {@link ErrorDTO} containing the error message and timestamp
+   */
   @Operation(
     summary = "Handle 500 Internal Server Error",
     description = "Returns a standard error response for internal server errors"
@@ -54,6 +74,12 @@ public class ErrorController {
     return new ErrorDTO("Internal server error", System.currentTimeMillis());
   }
   
+  /**
+   * Handles generic error scenarios that don't fall into specific error categories.
+   * This is the default error handler when no specific error endpoint matches.
+   *
+   * @return An {@link ErrorDTO} containing a generic error message and timestamp
+   */
   @Operation(
     summary = "Handle Generic Error",
     description = "Returns a standard error response for unspecified error scenarios"

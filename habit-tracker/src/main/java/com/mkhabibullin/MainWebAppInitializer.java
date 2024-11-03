@@ -10,7 +10,30 @@ import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
 
+/**
+ * Primary web application initializer that configures the Spring MVC infrastructure.
+ * Implements programmatic configuration of the Servlet 3.0+ container in place of web.xml.
+ * <p>
+ * This initializer:
+ * - Creates the root application context
+ * - Sets up the dispatcher servlet
+ * - Configures default profile
+ * - Establishes URL mapping
+ */
 public class MainWebAppInitializer implements WebApplicationInitializer {
+  
+  /**
+   * Configures the Servlet context programmatically on container startup.
+   * <p>
+   * Creates and registers:
+   * - Root application context with {@link RootConfig}
+   * - Development profile as default
+   * - Dispatcher servlet with {@link WebConfig}
+   * - URL mapping for all requests to the dispatcher
+   *
+   * @param servletContext The servlet context to be initialized
+   * @throws ServletException if any error occurs during initialization
+   */
   @Override
   public void onStartup(ServletContext servletContext) throws ServletException {
     AnnotationConfigWebApplicationContext rootContext = new AnnotationConfigWebApplicationContext();

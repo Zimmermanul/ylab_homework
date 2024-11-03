@@ -33,9 +33,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * REST Controller that provides system status, health checks,
- * and basic application information.
+ * REST Controller for system monitoring and management functionality.
+ * Provides endpoints for checking system status, health, and application information.
+ * <p>
+ * This controller handles system-level operations including:
+ * - Overall system status monitoring
+ * - Component-level health checks
+ * - Application information retrieval
+ * <p>
+ * System monitoring is available to both authenticated and unauthenticated users,
+ * though authenticated users receive additional information.
  */
+
 @RestController
 @RequestMapping("/api/system")
 @Tag(name = "System Management", description = "API endpoints for system monitoring and management")
@@ -44,10 +53,21 @@ public class SystemRestController {
   private static final Logger log = LoggerFactory.getLogger(SystemRestController.class);
   private final LocalDateTime startupTime;
   
+  /**
+   * Constructs a new SystemRestController.
+   * Initializes the system startup time for uptime tracking.
+   */
   public SystemRestController() {
     this.startupTime = LocalDateTime.now();
   }
   
+  /**
+   * Retrieves the current system status including uptime and user information.
+   * If a user is authenticated, includes detailed user information in the response.
+   *
+   * @param currentUser Optional currently authenticated user
+   * @return ResponseEntity containing system status information
+   */
   @Operation(
     summary = "Get system status",
     description = "Retrieves current system status including uptime and user information if authenticated",
@@ -75,7 +95,6 @@ public class SystemRestController {
     @Parameter(hidden = true)
     @SessionAttribute(value = "user", required = false) User currentUser) {
     log.debug("Processing status request");
-    
     UserInfo userInfo = null;
     if (currentUser != null) {
       userInfo = new UserInfo(
@@ -85,7 +104,6 @@ public class SystemRestController {
         currentUser.isAdmin()
       );
     }
-    
     SystemStatusResponse response = new SystemStatusResponse(
       "running",
       LocalDateTime.now(),
@@ -94,11 +112,21 @@ public class SystemRestController {
       userInfo,
       currentUser != null
     );
-    
     log.debug("Status request processed successfully");
     return ResponseEntity.ok(response);
   }
   
+  /**
+   * Performs a comprehensive health check of various system components.
+   * Checks the status of:
+   * - Database connectivity
+   * - Session management
+   * - Memory usage
+   *
+   * @return ResponseEntity containing health status of all components
+   * Returns HTTP 200 if all components are healthy
+   * Returns HTTP 503 if any component is unhealthy
+   */
   @Operation(
     summary = "Get system health status",
     description = "Checks the health of various system components including database, session, and memory usage",
@@ -142,7 +170,6 @@ public class SystemRestController {
       ));
       isHealthy = false;
     }
-    
     try {
       components.put("session", new ComponentHealth(
         "up",
@@ -157,7 +184,6 @@ public class SystemRestController {
       ));
       isHealthy = false;
     }
-    
     Runtime runtime = Runtime.getRuntime();
     components.put("memory", new ComponentHealth(
       "up",
@@ -168,21 +194,24 @@ public class SystemRestController {
         "max", runtime.maxMemory()
       )
     ));
-    
     HealthResponse health = new HealthResponse(
       isHealthy ? "healthy" : "unhealthy",
       LocalDateTime.now(),
       components
     );
-    
     if (!isHealthy) {
       log.warn("Health check failed: {}", health);
       return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(health);
     }
-    
     return ResponseEntity.ok(health);
   }
   
+  /**
+   * Retrieves basic application information.
+   * Returns static information about the application including its name and version.
+   *
+   * @return ResponseEntity containing application information
+   */
   @Operation(
     summary = "Get application information",
     description = "Retrieves basic information about the application including name and version",
@@ -223,6 +252,13 @@ public class SystemRestController {
     );
   }
   
+  /**
+   * Global exception handler for the system controller.
+   * Handles any unexpected exceptions during request processing.
+   *
+   * @param ex The exception that was thrown
+   * @return ErrorDTO containing error details
+   */
   @ExceptionHandler(Exception.class)
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
   public ErrorDTO handleException(Exception ex) {

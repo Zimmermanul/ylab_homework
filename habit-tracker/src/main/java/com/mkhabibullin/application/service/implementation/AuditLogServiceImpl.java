@@ -131,7 +131,6 @@ public class AuditLogServiceImpl implements AuditLogService {
     );
   }
   
-  // Private helper methods remain unchanged as they don't depend on the repository
   private void validateDateRange(LocalDateTime startDateTime, LocalDateTime endDateTime) {
     Objects.requireNonNull(startDateTime, "startDateTime must not be null");
     Objects.requireNonNull(endDateTime, "endDateTime must not be null");

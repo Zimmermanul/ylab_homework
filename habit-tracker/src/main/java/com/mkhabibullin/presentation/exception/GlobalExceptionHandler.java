@@ -16,13 +16,23 @@ import org.springframework.web.context.request.WebRequest;
 
 /**
  * Global exception handler for the application.
- * Provides centralized exception handling across all @RequestMapping methods.
+ * Provides centralized exception handling across all controllers
+ * by translating exceptions into appropriate HTTP responses with
+ * standardized error messages.
  */
 @ControllerAdvice
 public class GlobalExceptionHandler {
   
   private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
   
+  /**
+   * Handles authentication-related exceptions.
+   * Translates AuthenticationException into HTTP 401 Unauthorized responses.
+   *
+   * @param ex      The authentication exception that was thrown
+   * @param request The web request during which the exception occurred
+   * @return ResponseEntity containing error details
+   */
   @ExceptionHandler(AuthenticationException.class)
   @ResponseStatus(HttpStatus.UNAUTHORIZED)
   @ResponseBody
@@ -39,6 +49,15 @@ public class GlobalExceptionHandler {
       .body(errorDTO);
   }
   
+  /**
+   * Handles validation-related exceptions.
+   * Translates ValidationException into HTTP 400 Bad Request responses.
+   * Used when request data fails validation checks.
+   *
+   * @param ex The validation exception that was thrown
+   * @param request The web request during which the exception occurred
+   * @return ResponseEntity containing error details
+   */
   @ExceptionHandler(ValidationException.class)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   @ResponseBody
@@ -56,7 +75,13 @@ public class GlobalExceptionHandler {
   }
   
   /**
-   * Handles EntityNotFoundException. Created to encapsulate errors with more detail than ValidationException.
+   * Handles entity not found exceptions.
+   * Translates EntityNotFoundException into HTTP 404 Not Found responses.
+   * Used when requested resources cannot be found.
+   *
+   * @param ex The entity not found exception that was thrown
+   * @param request The web request during which the exception occurred
+   * @return ResponseEntity containing error details
    */
   @ExceptionHandler(EntityNotFoundException.class)
   @ResponseStatus(HttpStatus.NOT_FOUND)
@@ -75,7 +100,13 @@ public class GlobalExceptionHandler {
   }
   
   /**
-   * Handle all other exceptions that don't have specific handlers
+   * Handles all unhandled exceptions.
+   * Translates any unexpected exceptions into HTTP 500 Internal Server Error responses.
+   * Provides a generic error message to avoid exposing internal details.
+   *
+   * @param ex The unexpected exception that was thrown
+   * @param request The web request during which the exception occurred
+   * @return ResponseEntity containing error details
    */
   @ExceptionHandler(Exception.class)
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

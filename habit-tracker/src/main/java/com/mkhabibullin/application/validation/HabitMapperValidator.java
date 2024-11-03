@@ -51,54 +51,6 @@ public class HabitMapperValidator implements Validator {
   }
   
   /**
-   * Validates a CreateHabitDTO object.
-   * Checks for required fields and their validity.
-   *
-   * @param dto    the CreateHabitDTO to validate
-   * @param errors validation errors holder
-   */
-  private void validateCreateHabitDTO(CreateHabitDTO dto, Errors errors) {
-    if (dto.name() == null || dto.name().trim().isEmpty()) {
-      errors.rejectValue(NAME_FIELD, "habit.name.required",
-        "Habit name is required");
-    } else if (dto.name().trim().length() < 2) {
-      errors.rejectValue(NAME_FIELD, "habit.name.tooShort",
-        "Habit name must be at least 2 characters long");
-    }
-    if (dto.frequency() == null) {
-      errors.rejectValue(FREQUENCY_FIELD, "habit.frequency.required",
-        "Habit frequency is required");
-    }
-    if (dto.description() != null && dto.description().trim().length() > 500) {
-      errors.rejectValue(DESCRIPTION_FIELD, "habit.description.tooLong",
-        "Description must not exceed 500 characters");
-    }
-  }
-  
-  /**
-   * Validates an UpdateHabitDTO object.
-   * Checks for valid field values when present.
-   *
-   * @param dto the UpdateHabitDTO to validate
-   * @param errors validation errors holder
-   */
-  private void validateUpdateHabitDTO(UpdateHabitDTO dto, Errors errors) {
-    if (dto.name() != null) {
-      if (dto.name().trim().isEmpty()) {
-        errors.rejectValue(NAME_FIELD, "habit.name.empty",
-          "Habit name cannot be empty");
-      } else if (dto.name().trim().length() < 2) {
-        errors.rejectValue(NAME_FIELD, "habit.name.tooShort",
-          "Habit name must be at least 2 characters long");
-      }
-    }
-    if (dto.description() != null && dto.description().trim().length() > 500) {
-      errors.rejectValue(DESCRIPTION_FIELD, "habit.description.tooLong",
-        "Description must not exceed 500 characters");
-    }
-  }
-  
-  /**
    * Convenience method to validate CreateHabitDTO and throw exception if invalid.
    *
    * @param dto the CreateHabitDTO to validate
@@ -127,12 +79,40 @@ public class HabitMapperValidator implements Validator {
     }
   }
   
-  /**
-   * Builds a validation error message from the Errors object.
-   *
-   * @param errors the Errors object containing validation errors
-   * @return formatted error message string
-   */
+  private void validateCreateHabitDTO(CreateHabitDTO dto, Errors errors) {
+    if (dto.name() == null || dto.name().trim().isEmpty()) {
+      errors.rejectValue(NAME_FIELD, "habit.name.required",
+        "Habit name is required");
+    } else if (dto.name().trim().length() < 2) {
+      errors.rejectValue(NAME_FIELD, "habit.name.tooShort",
+        "Habit name must be at least 2 characters long");
+    }
+    if (dto.frequency() == null) {
+      errors.rejectValue(FREQUENCY_FIELD, "habit.frequency.required",
+        "Habit frequency is required");
+    }
+    if (dto.description() != null && dto.description().trim().length() > 500) {
+      errors.rejectValue(DESCRIPTION_FIELD, "habit.description.tooLong",
+        "Description must not exceed 500 characters");
+    }
+  }
+  
+  private void validateUpdateHabitDTO(UpdateHabitDTO dto, Errors errors) {
+    if (dto.name() != null) {
+      if (dto.name().trim().isEmpty()) {
+        errors.rejectValue(NAME_FIELD, "habit.name.empty",
+          "Habit name cannot be empty");
+      } else if (dto.name().trim().length() < 2) {
+        errors.rejectValue(NAME_FIELD, "habit.name.tooShort",
+          "Habit name must be at least 2 characters long");
+      }
+    }
+    if (dto.description() != null && dto.description().trim().length() > 500) {
+      errors.rejectValue(DESCRIPTION_FIELD, "habit.description.tooLong",
+        "Description must not exceed 500 characters");
+    }
+  }
+  
   private String buildValidationErrorMessage(Errors errors) {
     StringBuilder message = new StringBuilder();
     errors.getAllErrors().forEach(error -> {

@@ -18,7 +18,10 @@ import java.util.List;
 
 /**
  * Implementation of HabitExecutionRepository interface.
- * Provides JPA-based implementation for managing habit execution entries.
+ * Provides JPA-based implementation for managing habit execution entries using EntityManager.
+ * Handles CRUD operations for habit execution records with error handling and logging.
+ *
+ * @see HabitExecutionRepository
  */
 @Repository
 @Transactional
@@ -28,6 +31,13 @@ public class HabitExecutionRepositoryImpl implements HabitExecutionRepository {
   @PersistenceContext
   private EntityManager entityManager;
   
+  /**
+   * Persists a new habit execution record to the database.
+   * Performs a flush operation to retrieve the generated ID.
+   *
+   * @param execution the habit execution record to save
+   * @throws RuntimeException if there is an error during persistence
+   */
   @Override
   public void save(HabitExecution execution) {
     try {
@@ -39,6 +49,12 @@ public class HabitExecutionRepositoryImpl implements HabitExecutionRepository {
     }
   }
   
+  /**
+   * Retrieves all execution records for a specific habit.
+   *
+   * @param habitId the unique identifier of the habit
+   * @return a list of habit execution records, or an empty list if none found or if an error occurs
+   */
   @Override
   public List<HabitExecution> getByHabitId(Long habitId) {
     try {
@@ -54,6 +70,13 @@ public class HabitExecutionRepositoryImpl implements HabitExecutionRepository {
     }
   }
   
+  /**
+   * Updates an existing habit execution record.
+   * If no record is found with the given ID, a warning is logged.
+   *
+   * @param execution the habit execution record with updated values
+   * @throws RuntimeException if there is an error during update
+   */
   @Override
   public void update(HabitExecution execution) {
     try {
@@ -75,6 +98,13 @@ public class HabitExecutionRepositoryImpl implements HabitExecutionRepository {
     }
   }
   
+  /**
+   * Deletes a habit execution record by its ID.
+   * If no record is found with the given ID, a warning is logged.
+   *
+   * @param executionId the unique identifier of the execution record to delete
+   * @throws RuntimeException if there is an error during deletion
+   */
   @Override
   public void delete(Long executionId) {
     try {
@@ -90,6 +120,12 @@ public class HabitExecutionRepositoryImpl implements HabitExecutionRepository {
     }
   }
   
+  /**
+   * Retrieves a habit execution record by its ID.
+   *
+   * @param id the unique identifier of the execution record
+   * @return the found habit execution record, or null if not found or if an error occurs
+   */
   @Override
   public HabitExecution getById(Long id) {
     try {
@@ -106,6 +142,14 @@ public class HabitExecutionRepositoryImpl implements HabitExecutionRepository {
     }
   }
   
+  /**
+   * Retrieves all habit execution records for a specific habit within a date range.
+   *
+   * @param habitId   the unique identifier of the habit
+   * @param startDate the start date of the range (inclusive)
+   * @param endDate   the end date of the range (inclusive)
+   * @return a list of habit execution records within the specified date range, or an empty list if none found or if an error occurs
+   */
   @Override
   public List<HabitExecution> getByHabitAndDateRange(Long habitId, LocalDate startDate, LocalDate endDate) {
     try {

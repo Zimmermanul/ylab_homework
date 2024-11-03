@@ -49,8 +49,16 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * REST Controller for managing habit executions in the habit tracking application.
- * Provides endpoints for tracking, analyzing, and reporting habit execution progress.
+ * REST Controller for managing habit execution tracking and analysis.
+ * Provides endpoints for recording habit completions, retrieving execution history,
+ * and generating various statistics and progress reports.
+ *
+ * This controller handles all aspects of habit execution tracking including:
+ * - Recording individual habit executions
+ * - Retrieving execution history
+ * - Calculating statistics and progress metrics
+ * - Generating detailed progress reports
+ * - Tracking streaks and success rates
  */
 @RestController
 @RequestMapping("/api/habit-executions")
@@ -62,6 +70,13 @@ public class HabitExecutionRestController {
   private final HabitExecutionMapper executionMapper;
   private final HabitExecutionMapperValidator executionValidator;
   
+  /**
+   * Constructs a new HabitExecutionRestController with required dependencies.
+   *
+   * @param executionService   Service for handling habit execution operations
+   * @param executionMapper    Mapper for converting between domain models and DTOs
+   * @param executionValidator Validator for ensuring execution data integrity
+   */
   public HabitExecutionRestController(HabitExecutionService executionService,
                                       HabitExecutionMapper executionMapper,
                                       HabitExecutionMapperValidator executionValidator) {
@@ -70,6 +85,16 @@ public class HabitExecutionRestController {
     this.executionValidator = executionValidator;
   }
   
+  
+  /**
+   * Records a new habit execution entry.
+   *
+   * @param habitId ID of the habit being tracked
+   * @param executionDTO Details of the habit execution
+   * @param currentUser Currently authenticated user
+   * @return ResponseEntity containing confirmation message
+   * @throws ValidationException if the execution data is invalid
+   */
   @Operation(
     summary = "Track habit execution",
     description = "Records a new habit execution entry"
@@ -113,7 +138,7 @@ public class HabitExecutionRestController {
   @Audited(audited = "Track Habit Execution")
   public ResponseEntity<MessageDTO> trackExecution(
     @Parameter(description = "Habit ID", required = true)
-    @PathVariable Long habitId,
+    @PathVariable("habitId") Long habitId,
     @RequestBody HabitExecutionRequestDTO executionDTO,
     @Parameter(hidden = true) @SessionAttribute("user") User currentUser) throws ValidationException {
     log.debug("Recording execution for habit {} by user {}", habitId, currentUser.getEmail());
@@ -125,6 +150,13 @@ public class HabitExecutionRestController {
       .body(new MessageDTO("Habit execution recorded successfully"));
   }
   
+  /**
+   * Retrieves the complete execution history for a specific habit.
+   *
+   * @param habitId ID of the habit to retrieve history for
+   * @param currentUser Currently authenticated user
+   * @return ResponseEntity containing list of execution records
+   */
   @Operation(
     summary = "Get execution history",
     description = "Retrieves the complete execution history for a specific habit"
@@ -159,7 +191,7 @@ public class HabitExecutionRestController {
   @Audited(audited = "Get Execution History")
   public ResponseEntity<List<HabitExecutionResponseDTO>> getExecutionHistory(
     @Parameter(description = "Habit ID", required = true)
-    @PathVariable Long habitId,
+    @PathVariable("habitId") Long habitId,
     @Parameter(hidden = true) @SessionAttribute("user") User currentUser) {
     log.debug("Retrieving execution history for habit {} by user {}", habitId, currentUser.getEmail());
     List<HabitExecution> history = executionService.getHabitExecutionHistory(habitId);
@@ -169,6 +201,15 @@ public class HabitExecutionRestController {
     return ResponseEntity.ok(historyDTOs);
   }
   
+  /**
+   * Retrieves detailed statistics for a habit within a specified date range.
+   *
+   * @param habitId ID of the habit to analyze
+   * @param startDate Beginning of the date range
+   * @param endDate End of the date range
+   * @param currentUser Currently authenticated user
+   * @return ResponseEntity containing habit statistics
+   */
   @Operation(
     summary = "Get habit execution statistics",
     description = "Retrieves detailed statistics for a habit within a specified date range"
@@ -211,7 +252,7 @@ public class HabitExecutionRestController {
   @Audited(audited = "Get Statistics")
   public ResponseEntity<HabitStatisticsDTO> getStatistics(
     @Parameter(description = "Habit ID", required = true)
-    @PathVariable Long habitId,
+    @PathVariable("habitId") Long habitId,
     @Parameter(description = "Start date (YYYY-MM-DD)", required = true)
     @RequestParam LocalDate startDate,
     @Parameter(description = "End date (YYYY-MM-DD)", required = true)
@@ -220,14 +261,11 @@ public class HabitExecutionRestController {
     log.debug("Retrieving statistics for habit {} by user {} from {} to {}",
       habitId, currentUser.getEmail(), startDate, endDate);
     validateDateRange(startDate, endDate);
-    
     List<HabitExecution> history = executionService.getHabitExecutionHistory(habitId);
     List<HabitExecution> filteredHistory = filterHistoryByDateRange(history, startDate, endDate);
-    
     int currentStreak = executionService.getCurrentStreak(habitId);
     double successPercentage = executionService.getSuccessPercentage(habitId, startDate, endDate);
     Map<DayOfWeek, Long> completionsByDay = calculateCompletionsByDay(filteredHistory);
-    
     HabitStatisticsDTO statistics = executionMapper.createStatisticsDto(
       currentStreak,
       successPercentage,
@@ -236,11 +274,19 @@ public class HabitExecutionRestController {
       filteredHistory.stream().filter(e -> !e.isCompleted()).count(),
       completionsByDay
     );
-    
     log.info("Retrieved statistics for habit {} by user {}", habitId, currentUser.getEmail());
     return ResponseEntity.ok(statistics);
   }
   
+  /**
+   * Generates a comprehensive progress report for a habit within a specified date range.
+   *
+   * @param habitId ID of the habit to analyze
+   * @param startDate Beginning of the date range
+   * @param endDate End of the date range
+   * @param currentUser Currently authenticated user
+   * @return ResponseEntity containing detailed progress report
+   */
   @Operation(
     summary = "Get habit progress report",
     description = "Generates a comprehensive progress report for a habit within a specified date range"
@@ -283,7 +329,7 @@ public class HabitExecutionRestController {
   @Audited(audited = "Get Progress Report")
   public ResponseEntity<HabitProgressReportDTO> getProgressReport(
     @Parameter(description = "Habit ID", required = true)
-    @PathVariable Long habitId,
+    @PathVariable("habitId") Long habitId,
     @Parameter(description = "Start date (YYYY-MM-DD)", required = true)
     @RequestParam LocalDate startDate,
     @Parameter(description = "End date (YYYY-MM-DD)", required = true)
@@ -292,26 +338,29 @@ public class HabitExecutionRestController {
     log.debug("Generating progress report for habit {} by user {} from {} to {}",
       habitId, currentUser.getEmail(), startDate, endDate);
     validateDateRange(startDate, endDate);
-    
     List<HabitExecution> history = executionService.getHabitExecutionHistory(habitId);
     List<HabitExecution> filteredHistory = filterHistoryByDateRange(history, startDate, endDate);
-    
     String report = executionService.generateProgressReport(habitId, startDate, endDate);
     boolean improving = executionService.isImprovingTrend(filteredHistory);
     int longestStreak = executionService.calculateLongestStreak(filteredHistory);
     List<String> suggestions = executionService.generateSuggestions(null, filteredHistory);
-    
     HabitProgressReportDTO progressReport = executionMapper.createProgressReportDto(
       report,
       improving,
       longestStreak,
       suggestions
     );
-    
     log.info("Generated progress report for habit {} by user {}", habitId, currentUser.getEmail());
     return ResponseEntity.ok(progressReport);
   }
   
+  /**
+   * Retrieves the current streak count for a specific habit.
+   *
+   * @param habitId ID of the habit to check
+   * @param currentUser Currently authenticated user
+   * @return ResponseEntity containing current streak count
+   */
   @Operation(
     summary = "Get current habit streak",
     description = "Retrieves the current streak count for a specific habit"
@@ -346,7 +395,7 @@ public class HabitExecutionRestController {
   @Audited(audited = "Get Current Streak")
   public ResponseEntity<Integer> getCurrentStreak(
     @Parameter(description = "Habit ID", required = true)
-    @PathVariable Long habitId,
+    @PathVariable("habitId") Long habitId,
     @Parameter(hidden = true) @SessionAttribute("user") User currentUser) {
     log.debug("Retrieving current streak for habit {} by user {}", habitId, currentUser.getEmail());
     int currentStreak = executionService.getCurrentStreak(habitId);
@@ -355,6 +404,15 @@ public class HabitExecutionRestController {
     return ResponseEntity.ok(currentStreak);
   }
   
+  /**
+   * Calculates the success rate for a habit within a specified date range.
+   *
+   * @param habitId ID of the habit to analyze
+   * @param startDate Beginning of the date range
+   * @param endDate End of the date range
+   * @param currentUser Currently authenticated user
+   * @return ResponseEntity containing success rate percentage
+   */
   @Operation(
     summary = "Get habit success rate",
     description = "Calculates the success rate for a habit within a specified date range"
@@ -397,7 +455,7 @@ public class HabitExecutionRestController {
   @Audited(audited = "Get Success Rate")
   public ResponseEntity<Double> getSuccessRate(
     @Parameter(description = "Habit ID", required = true)
-    @PathVariable Long habitId,
+    @PathVariable("habitId") Long habitId,
     @Parameter(description = "Start date (YYYY-MM-DD)", required = true)
     @RequestParam LocalDate startDate,
     @Parameter(description = "End date (YYYY-MM-DD)", required = true)
@@ -440,6 +498,12 @@ public class HabitExecutionRestController {
       ));
   }
   
+  /**
+   * Handles illegal argument exceptions thrown during request processing.
+   *
+   * @param ex The illegal argument exception that was thrown
+   * @return ResponseEntity containing error details
+   */
   @ExceptionHandler(IllegalArgumentException.class)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   public ResponseEntity<ErrorDTO> handleIllegalArgumentException(IllegalArgumentException ex) {
@@ -449,6 +513,12 @@ public class HabitExecutionRestController {
       .body(new ErrorDTO(ex.getMessage(), System.currentTimeMillis()));
   }
   
+  /**
+   * Handles entity not found exceptions thrown during request processing.
+   *
+   * @param ex The entity not found exception that was thrown
+   * @return ResponseEntity containing error details
+   */
   @ExceptionHandler(EntityNotFoundException.class)
   @ResponseStatus(HttpStatus.NOT_FOUND)
   public ResponseEntity<ErrorDTO> handleEntityNotFoundException(EntityNotFoundException ex) {
@@ -458,6 +528,12 @@ public class HabitExecutionRestController {
       .body(new ErrorDTO(ex.getMessage(), System.currentTimeMillis()));
   }
   
+  /**
+   * Handles authentication exceptions thrown during request processing.
+   *
+   * @param ex The authentication exception that was thrown
+   * @return ResponseEntity containing error details
+   */
   @ExceptionHandler(AuthenticationException.class)
   @ResponseStatus(HttpStatus.UNAUTHORIZED)
   public ResponseEntity<ErrorDTO> handleAuthenticationException(AuthenticationException ex) {
@@ -467,6 +543,12 @@ public class HabitExecutionRestController {
       .body(new ErrorDTO(ex.getMessage(), System.currentTimeMillis()));
   }
   
+  /**
+   * Handles constraint violation exceptions thrown during request processing.
+   *
+   * @param ex The constraint violation exception that was thrown
+   * @return ResponseEntity containing error details
+   */
   @ExceptionHandler(ConstraintViolationException.class)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   public ResponseEntity<ErrorDTO> handleConstraintViolationException(ConstraintViolationException ex) {
@@ -476,6 +558,12 @@ public class HabitExecutionRestController {
       .body(new ErrorDTO(ex.getMessage(), System.currentTimeMillis()));
   }
   
+  /**
+   * Handles any unexpected exceptions thrown during request processing.
+   *
+   * @param ex The unexpected exception that was thrown
+   * @return ResponseEntity containing error details
+   */
   @ExceptionHandler(Exception.class)
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
   public ResponseEntity<ErrorDTO> handleException(Exception ex) {

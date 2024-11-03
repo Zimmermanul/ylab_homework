@@ -23,6 +23,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.List;
 
+/**
+ * Web configuration class for the application.
+ * Configures web-related components including CORS, resource handlers,
+ * message converters, and OpenAPI documentation.
+ */
 @Configuration
 @EnableWebMvc
 @ComponentScan(basePackages = {
@@ -36,6 +41,12 @@ public class WebConfig implements WebMvcConfigurer {
   @Value("${server.port:18080}")
   private String serverPort;
   
+  /**
+   * Configures CORS mappings for the application.
+   * Allows cross-origin requests from any origin with standard HTTP methods.
+   *
+   * @param registry the CORS registry to configure
+   */
   @Override
   public void addCorsMappings(CorsRegistry registry) {
     registry.addMapping("/**")
@@ -45,6 +56,11 @@ public class WebConfig implements WebMvcConfigurer {
       .maxAge(3600);
   }
   
+  /**
+   * Configures resource handlers for Swagger UI and related resources.
+   *
+   * @param registry the resource handler registry to configure
+   */
   @Override
   public void addResourceHandlers(ResourceHandlerRegistry registry) {
     registry.addResourceHandler("/swagger-ui/**")
@@ -53,18 +69,33 @@ public class WebConfig implements WebMvcConfigurer {
       .addResourceLocations("classpath:/META-INF/resources/webjars/");
   }
   
+  /**
+   * Configures view controllers for redirecting to Swagger UI.
+   *
+   * @param registry the view controller registry to configure
+   */
   @Override
   public void addViewControllers(ViewControllerRegistry registry) {
     registry.addRedirectViewController("/swagger-ui", "/swagger-ui/index.html");
     registry.addRedirectViewController("/", "/swagger-ui/index.html");
   }
   
+  /**
+   * Configures HTTP message converters for handling request/response body conversions.
+   *
+   * @param converters the list of converters to configure
+   */
   @Override
   public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
     converters.add(new ByteArrayHttpMessageConverter());
     converters.add(new MappingJackson2HttpMessageConverter(objectMapper()));
   }
   
+  /**
+   * Creates a grouped OpenAPI configuration for public endpoints.
+   *
+   * @return configured GroupedOpenApi instance
+   */
   @Bean
   public GroupedOpenApi publicApi() {
     return GroupedOpenApi.builder()
@@ -73,6 +104,11 @@ public class WebConfig implements WebMvcConfigurer {
       .build();
   }
   
+  /**
+   * Creates a custom OpenAPI configuration with detailed API information.
+   *
+   * @return configured OpenAPI instance
+   */
   @Bean
   public OpenAPI customOpenAPI() {
     return new OpenAPI()
@@ -90,6 +126,12 @@ public class WebConfig implements WebMvcConfigurer {
       ));
   }
   
+  /**
+   * Creates and configures an ObjectMapper for JSON serialization/deserialization.
+   * Configures Java 8 date/time module and disables timestamp writing for dates.
+   *
+   * @return configured ObjectMapper instance
+   */
   @Bean
   public ObjectMapper objectMapper() {
     ObjectMapper mapper = new ObjectMapper();

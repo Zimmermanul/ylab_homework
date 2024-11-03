@@ -15,11 +15,23 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
 import java.util.Properties;
+
+/**
+ * Configuration class for database-related setup.
+ * Configures the data source, entity manager factory, and transaction manager
+ * for the application's database connectivity.
+ */
 @Configuration
 @EnableTransactionManagement
 public class DatabaseConfig {
   private static final Logger logger = LoggerFactory.getLogger(DatabaseConfig.class);
   
+  /**
+   * Creates and configures the application's data source using HikariCP.
+   * Configuration values are read from environment variables with defaults provided.
+   *
+   * @return configured HikariDataSource instance
+   */
   @Bean
   public DataSource dataSource() {
     HikariConfig config = new HikariConfig();
@@ -44,6 +56,13 @@ public class DatabaseConfig {
     return new HikariDataSource(config);
   }
   
+  /**
+   * Creates and configures the JPA EntityManagerFactory.
+   * Sets up Hibernate as the JPA provider with specific configuration properties.
+   *
+   * @param dataSource the configured data source to use
+   * @return configured EntityManagerFactory
+   */
   @Bean
   public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource) {
     LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
@@ -60,6 +79,13 @@ public class DatabaseConfig {
     return em;
   }
   
+  /**
+   * Creates and configures the transaction manager.
+   * Uses JPA-based transaction management for the application.
+   *
+   * @param emf the entity manager factory to use for transactions
+   * @return configured PlatformTransactionManager
+   */
   @Bean
   public PlatformTransactionManager transactionManager(EntityManagerFactory emf) {
     JpaTransactionManager transactionManager = new JpaTransactionManager();
