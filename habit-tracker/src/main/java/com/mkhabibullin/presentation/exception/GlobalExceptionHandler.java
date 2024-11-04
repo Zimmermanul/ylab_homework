@@ -3,11 +3,19 @@ package com.mkhabibullin.presentation.exception;
 import com.mkhabibullin.domain.exception.AuthenticationException;
 import com.mkhabibullin.domain.exception.ValidationException;
 import com.mkhabibullin.presentation.dto.ErrorDTO;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -21,6 +29,7 @@ import org.springframework.web.context.request.WebRequest;
  * standardized error messages.
  */
 @ControllerAdvice
+@Tag(name = "Error Handling", description = "Global exception handling for all endpoints")
 public class GlobalExceptionHandler {
   
   private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
@@ -36,6 +45,16 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(AuthenticationException.class)
   @ResponseStatus(HttpStatus.UNAUTHORIZED)
   @ResponseBody
+  @Operation(summary = "Handle Authentication Errors",
+    description = "Handles failed authentication attempts and unauthorized access")
+  @ApiResponse(
+    responseCode = "401",
+    description = "Unauthorized - Authentication failed or not provided",
+    content = @Content(
+      mediaType = MediaType.APPLICATION_JSON_VALUE,
+      schema = @Schema(implementation = ErrorDTO.class)
+    )
+  )
   public ResponseEntity<ErrorDTO> handleAuthenticationException(
     AuthenticationException ex,
     WebRequest request) {
@@ -61,6 +80,16 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(ValidationException.class)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   @ResponseBody
+  @Operation(summary = "Handle Validation Errors",
+    description = "Handles invalid input data and validation failures")
+  @ApiResponse(
+    responseCode = "400",
+    description = "Bad Request - Invalid input data",
+    content = @Content(
+      mediaType = MediaType.APPLICATION_JSON_VALUE,
+      schema = @Schema(implementation = ErrorDTO.class)
+    )
+  )
   public ResponseEntity<ErrorDTO> handleValidationException(
     ValidationException ex,
     WebRequest request) {
@@ -86,6 +115,15 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(EntityNotFoundException.class)
   @ResponseStatus(HttpStatus.NOT_FOUND)
   @ResponseBody
+  @Operation(summary = "Handle Not Found Errors")
+  @ApiResponse(
+    responseCode = "404",
+    description = "Resource not found",
+    content = @Content(
+      mediaType = MediaType.APPLICATION_JSON_VALUE,
+      schema = @Schema(implementation = ErrorDTO.class)
+    )
+  )
   public ResponseEntity<ErrorDTO> handleEntityNotFoundException(
     EntityNotFoundException ex,
     WebRequest request) {
@@ -111,6 +149,16 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(Exception.class)
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
   @ResponseBody
+  @Operation(summary = "Handle Unexpected Errors",
+    description = "Handles any unexpected errors that occur during request processing")
+  @ApiResponse(
+    responseCode = "500",
+    description = "Internal Server Error - An unexpected error occurred",
+    content = @Content(
+      mediaType = MediaType.APPLICATION_JSON_VALUE,
+      schema = @Schema(implementation = ErrorDTO.class)
+    )
+  )
   public ResponseEntity<ErrorDTO> handleGlobalException(
     Exception ex,
     WebRequest request) {
@@ -121,6 +169,54 @@ public class GlobalExceptionHandler {
     );
     return ResponseEntity
       .status(HttpStatus.INTERNAL_SERVER_ERROR)
+      .body(errorDTO);
+  }
+  
+  /**
+   * Handles HTTP method not allowed exceptions.
+   * Returns HTTP 405 Method Not Allowed response.
+   *
+   * @param ex      The HttpRequestMethodNotSupportedException that was thrown
+   * @param request The web request during which the exception occurred
+   * @return ResponseEntity containing error details
+   */
+  @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+  @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
+  @ResponseBody
+  public ResponseEntity<ErrorDTO> handleMethodNotAllowed(
+    HttpRequestMethodNotSupportedException ex,
+    WebRequest request) {
+    log.error("Method not allowed: {}", ex.getMessage());
+    ErrorDTO errorDTO = new ErrorDTO(
+      ex.getMessage(),
+      System.currentTimeMillis()
+    );
+    return ResponseEntity
+      .status(HttpStatus.METHOD_NOT_ALLOWED)
+      .body(errorDTO);
+  }
+  
+  /**
+   * Handles missing servlet request parameter exceptions.
+   * Returns HTTP 400 Bad Request response.
+   *
+   * @param ex      The MissingServletRequestParameterException that was thrown
+   * @param request The web request during which the exception occurred
+   * @return ResponseEntity containing error details
+   */
+  @ExceptionHandler(MissingServletRequestParameterException.class)
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  @ResponseBody
+  public ResponseEntity<ErrorDTO> handleMissingParams(
+    MissingServletRequestParameterException ex,
+    WebRequest request) {
+    log.error("Missing parameter: {}", ex.getMessage());
+    ErrorDTO errorDTO = new ErrorDTO(
+      ex.getMessage(),
+      System.currentTimeMillis()
+    );
+    return ResponseEntity
+      .status(HttpStatus.BAD_REQUEST)
       .body(errorDTO);
   }
 }

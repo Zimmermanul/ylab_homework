@@ -23,10 +23,6 @@ RUN apt-get update && \
     apt-get install -y curl && \
     rm -rf /var/lib/apt/lists/*
 
-# Optional: Copy custom Tomcat configuration if needed
-# COPY conf/server.xml /usr/local/tomcat/conf/
-# COPY conf/context.xml /usr/local/tomcat/conf/
-
 # Create directory for logs
 RUN mkdir -p /usr/local/tomcat/logs && \
     chmod 777 /usr/local/tomcat/logs

@@ -2,10 +2,25 @@
 spring:
   application:
     name: habit-tracker
+  profiles:
+    default: dev
+  mvc:
+    contentnegotiation:
+      media-types:
+        json: application/json
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/habit-tracker-db
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    hikari:
+      auto-commit: true
+      validation-query: SELECT 1
+      connection-test-query: SELECT 1
+      connection-timeout: 30000  # 30 seconds
+      validation-timeout: 5000   # 5 seconds
+      max-lifetime: 1800000      # 30 minutes
 
-# Default profile configuration
----
-spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     show-sql: false
@@ -23,6 +38,39 @@ spring:
     change-log: classpath:db/changelog/db.changelog-master.xml
     default-schema: public
 
+server:
+  servlet:
+    session:
+      timeout: 30m
+      cookie:
+        http-only: true
+        secure: true
+    context-path: /
+  error:
+    whitelabel:
+      enabled: false
+    path: /error
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: never
+    include-exception: false
+  forward-headers-strategy: framework
+  compression:
+    enabled: true
+  tomcat:
+    max-threads: 200
+    min-spare-threads: 20
+    max-connections: 10000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+
 logging:
   level:
     root: INFO
@@ -39,20 +87,37 @@ spring:
     activate:
       on-profile: dev
 
+  datasource:
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 300000
+      pool-name: DevHabitTrackerPool
+
   jpa:
     show-sql: true
     properties:
       hibernate:
         format_sql: true
 
+  devtools:
+    restart:
+      enabled: true
+    livereload:
+      enabled: true
+
 logging:
   level:
-    root: INFO
-    com.mkhabibullin: DEBUG
-    org.springframework: INFO
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-    com.zaxxer.hikari: DEBUG
+    com.zaxxer.hikari: DEBUG  # Only override hikari logging for dev
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"  # Expose all endpoints in dev
+  endpoint:
+    health:
+      show-details: always
 
 # Test profile configuration
 ---
@@ -66,29 +131,98 @@ spring:
       maximum-pool-size: 5
       minimum-idle: 1
       idle-timeout: 30000
-      connection-timeout: 20000
       pool-name: TestHabitTrackerPool
+      validation-timeout: 5000
 
   jpa:
     show-sql: true
+    hibernate:
+      ddl-auto: create-drop
     properties:
       hibernate:
         format_sql: true
-    hibernate:
-      ddl-auto: create-drop
+        jdbc:
+          batch_size: 10
+          time_zone: UTC
+        order_inserts: true
+        order_updates: true
+    open-in-view: false
 
   liquibase:
     enabled: true
     contexts: test
+    liquibase-schema: service
+    parameters:
+      search-path: public,service
+    test-rollback: true
 
 logging:
   level:
-    root: INFO
-    com.mkhabibullin: DEBUG
-    org.springframework: INFO
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.test: DEBUG
     org.testcontainers: INFO
+    liquibase: INFO
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+    org.springdoc: DEBUG
+
+server:
+  port: 0  # Random port for tests
+
+management:
+  endpoints:
+    enabled-by-default: false  # Disable actuator in tests
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+# Test-specific configurations
+test:
+  containers:
+    postgres:
+      docker-image: postgres:13
+      init-script: db/init-test-db.sql
+  mocks:
+    enabled: true
+    endpoints:
+      base-url: http://localhost
+      port: 9561
+  data:
+    generation:
+      enabled: true
+      seed: 12345
+    cleanup:
+      enabled: true
+      strategy: AFTER_TEST
+
+security:
+  test:
+    enabled: false
+    mock-auth: true
+    test-user:
+      username: test-user
+      password: test-password
+      roles: ROLE_USER,ROLE_ADMIN
+  jwt:
+    enabled: false
+
+application:
+  test:
+    data:
+      users:
+        default-password: test123
+        batch-size: 10
+    timeouts:
+      global: 5000
+      db-operation: 1000
+      http: 5000
+    features:
+      use-test-email: true
+      mock-external-services: true
+      cleanup-after-test: true
+      disable-security: true
 
 # Production profile configuration
 ---
@@ -102,17 +236,45 @@ spring:
       maximum-pool-size: 20
       minimum-idle: 10
       idle-timeout: 300000
-      connection-timeout: 20000
-      validation-timeout: 5000
+      pool-name: ProdHabitTrackerPool
+      max-lifetime: 1800000  # 30 minutes
 
   jpa:
     show-sql: false
     properties:
       hibernate:
         format_sql: false
+        jdbc:
+          batch_size: 50  # Increased for production
 
   liquibase:
     contexts: prod
+
+  devtools:
+    restart:
+      enabled: false
+    livereload:
+      enabled: false
+
+server:
+  tomcat:
+    max-threads: 400          # Increased for production
+    min-spare-threads: 40
+    max-connections: 20000
+    accept-count: 100
+    connection-timeout: 20000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: never     # Hide details in production
+  server:
+    port: 8081               # Separate port for actuator in production
+    address: 127.0.0.1       # Only allow local access to actuator
 
 logging:
   level:
@@ -125,28 +287,23 @@ logging:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
   file:
-    name: ${catalina.base}/logs/habit-tracker.log
+    name: /logs/habit-tracker.log
     max-size: 10MB
     max-history: 30
 
-# Swagger/OpenAPI Configuration (available in all profiles except prod)
+# Swagger/OpenAPI Configuration (disabled in production by default)
 springdoc:
   api-docs:
     path: /v3/api-docs
-    enabled: true
+    enabled: ${SWAGGER_ENABLED:false}
   swagger-ui:
     path: /swagger-ui.html
-    enabled: true
+    enabled: ${SWAGGER_ENABLED:false}
     configUrl: /v3/api-docs/swagger-config
     url: /v3/api-docs
     disable-swagger-default-url: true
   paths-to-match: /api/**
   packages-to-scan: com.mkhabibullin.presentation.controller
-
-server:
-  forward-headers-strategy: framework
-  servlet:
-    context-path: /
 
 # Application Specific Configuration
 application:
