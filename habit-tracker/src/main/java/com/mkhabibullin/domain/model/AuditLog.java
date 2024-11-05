@@ -1,5 +1,13 @@
 package com.mkhabibullin.domain.model;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
+
 import java.time.LocalDateTime;
 
 /**
@@ -7,15 +15,30 @@ import java.time.LocalDateTime;
  * This class encapsulates information about method executions, including user details,
  * timing information, and operation metadata.
  */
+@Entity
+@Table(name = "audit_logs", schema = "audit")
 public class AuditLog {
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "audit_seq")
+  @SequenceGenerator(name = "audit_seq", sequenceName = "entity.global_seq", allocationSize = 1)
   private Long id;
+  @Column(nullable = false)
   private String username;
+  @Column(name = "method_name", nullable = false)
   private String methodName;
+  @Column(nullable = false)
   private String operation;
+  @Column(nullable = false)
   private LocalDateTime timestamp;
+  @Column(name = "execution_time_ms", nullable = false)
   private Long executionTimeMs;
+  @Column(name = "request_uri")
   private String requestUri;
+  @Column(name = "request_method")
   private String requestMethod;
+  
+  protected AuditLog() {
+  }
   
   /**
    * Constructs a new AuditLog with the specified details.

@@ -176,7 +176,7 @@ public class GlobalExceptionHandler {
    * Handles HTTP method not allowed exceptions.
    * Returns HTTP 405 Method Not Allowed response.
    *
-   * @param ex      The HttpRequestMethodNotSupportedException that was thrown
+   * @param ex The HttpRequestMethodNotSupportedException that was thrown
    * @param request The web request during which the exception occurred
    * @return ResponseEntity containing error details
    */
@@ -200,7 +200,7 @@ public class GlobalExceptionHandler {
    * Handles missing servlet request parameter exceptions.
    * Returns HTTP 400 Bad Request response.
    *
-   * @param ex      The MissingServletRequestParameterException that was thrown
+   * @param ex The MissingServletRequestParameterException that was thrown
    * @param request The web request during which the exception occurred
    * @return ResponseEntity containing error details
    */

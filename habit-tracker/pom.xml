@@ -18,7 +18,7 @@
         <spring-data-jpa.version>3.3.0</spring-data-jpa.version>
         <hibernate.version>6.4.1.Final</hibernate.version>
         <swagger.version>2.2.19</swagger.version>
-        <springdoc.version>2.3.0</springdoc.version>
+        <springdoc.version>2.2.0</springdoc.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <slf4j.version>2.0.9</slf4j.version>
         <logback.version>1.4.11</logback.version>
@@ -33,6 +33,7 @@
         <assertj.version>3.22.0</assertj.version>
         <mockito.version>5.4.0</mockito.version>
         <testcontainers.version>1.20.2</testcontainers.version>
+        <harmcrest.version>2.2</harmcrest.version>
         <java.version>17</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
@@ -186,6 +187,12 @@
             <groupId>org.testcontainers</groupId>
             <artifactId>junit-jupiter</artifactId>
             <version>${testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest</artifactId>
+            <version>${harmcrest.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

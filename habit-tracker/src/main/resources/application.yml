@@ -20,7 +20,13 @@ spring:
       connection-timeout: 30000  # 30 seconds
       validation-timeout: 5000   # 5 seconds
       max-lifetime: 1800000      # 30 minutes
-
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.xml
+    default-schema: public
+    parameters:
+      search-path: public,entity,audit
+    contexts: default
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     show-sql: false
@@ -33,12 +39,8 @@ spring:
           batch_size: 25
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
-  liquibase:
-    enabled: true
-    change-log: classpath:db/changelog/db.changelog-master.xml
-    default-schema: public
-
 server:
+  port: ${APP_PORT:18080}
   servlet:
     session:
       timeout: 30m
@@ -79,6 +81,35 @@ logging:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
     com.zaxxer.hikari: INFO
+    org.springdoc: DEBUG
+    org.springframework.web: DEBUG
+
+# Swagger/OpenAPI Configuration (move to top level, before profiles)
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+    groups:
+      enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    config-url: /v3/api-docs/swagger-config
+    urls:
+      - url: /v3/api-docs
+        name: Habit Tracker API v1
+    doc-expansion: none
+    tags-sorter: alpha
+    operations-sorter: alpha
+    disable-swagger-default-url: true
+    display-request-duration: true
+  cache:
+    disabled: true
+  default-produces-media-type: application/json
+  default-consumes-media-type: application/json
+  paths-to-match: /api/**
+  packages-to-scan: com.mkhabibullin.presentation.controller
+  show-actuator: false
 
 # Development profile configuration
 ---
@@ -171,12 +202,6 @@ server:
 management:
   endpoints:
     enabled-by-default: false  # Disable actuator in tests
-
-springdoc:
-  api-docs:
-    enabled: false
-  swagger-ui:
-    enabled: false
 
 # Test-specific configurations
 test:
@@ -290,20 +315,6 @@ logging:
     name: /logs/habit-tracker.log
     max-size: 10MB
     max-history: 30
-
-# Swagger/OpenAPI Configuration (disabled in production by default)
-springdoc:
-  api-docs:
-    path: /v3/api-docs
-    enabled: ${SWAGGER_ENABLED:false}
-  swagger-ui:
-    path: /swagger-ui.html
-    enabled: ${SWAGGER_ENABLED:false}
-    configUrl: /v3/api-docs/swagger-config
-    url: /v3/api-docs
-    disable-swagger-default-url: true
-  paths-to-match: /api/**
-  packages-to-scan: com.mkhabibullin.presentation.controller
 
 # Application Specific Configuration
 application:

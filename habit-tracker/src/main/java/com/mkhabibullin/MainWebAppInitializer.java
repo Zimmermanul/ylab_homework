@@ -2,12 +2,14 @@ package com.mkhabibullin;
 
 import com.mkhabibullin.infrastructure.config.RootConfig;
 import com.mkhabibullin.infrastructure.config.WebConfig;
+import jakarta.servlet.FilterRegistration;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRegistration;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.servlet.DispatcherServlet;
 
 /**
@@ -46,5 +48,10 @@ public class MainWebAppInitializer implements WebApplicationInitializer {
       "dispatcher", new DispatcherServlet(dispatcherContext));
     dispatcher.setLoadOnStartup(1);
     dispatcher.addMapping("/");
+    FilterRegistration.Dynamic characterEncodingFilter = servletContext.addFilter(
+      "characterEncodingFilter", new CharacterEncodingFilter());
+    characterEncodingFilter.setInitParameter("encoding", "UTF-8");
+    characterEncodingFilter.setInitParameter("forceEncoding", "true");
+    characterEncodingFilter.addMappingForUrlPatterns(null, true, "/*");
   }
 }

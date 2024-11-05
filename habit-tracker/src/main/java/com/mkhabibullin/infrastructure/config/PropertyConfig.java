@@ -1,9 +1,14 @@
 package com.mkhabibullin.infrastructure.config;
 
+import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
+import org.springframework.boot.env.YamlPropertySourceLoader;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.Ordered;
 import org.springframework.core.io.ClassPathResource;
+
+import java.util.Objects;
 
 /**
  * Configuration class for property sources handling.
@@ -24,9 +29,17 @@ public class PropertyConfig {
   @Bean
   public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
     PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
-    configurer.setLocation(new ClassPathResource("application.yml"));
+    YamlPropertiesFactoryBean yaml = new YamlPropertiesFactoryBean();
+    yaml.setResources(new ClassPathResource("application.yml"));
+    configurer.setProperties(Objects.requireNonNull(yaml.getObject()));
     configurer.setIgnoreResourceNotFound(false);
     configurer.setIgnoreUnresolvablePlaceholders(false);
+    configurer.setOrder(Ordered.HIGHEST_PRECEDENCE);
     return configurer;
+  }
+  
+  @Bean
+  public static YamlPropertySourceLoader yamlPropertySourceLoader() {
+    return new YamlPropertySourceLoader();
   }
 }

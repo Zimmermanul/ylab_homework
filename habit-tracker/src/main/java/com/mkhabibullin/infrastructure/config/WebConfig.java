@@ -135,7 +135,6 @@ public class WebConfig implements WebMvcConfigurer {
   
   /**
    * Configures view resolvers for the application.
-   *
    * @param registry ViewResolverRegistry to configure
    */
   @Override

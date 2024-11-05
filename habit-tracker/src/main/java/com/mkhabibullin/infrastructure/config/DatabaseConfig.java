@@ -3,10 +3,13 @@ package com.mkhabibullin.infrastructure.config;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import jakarta.persistence.EntityManagerFactory;
+import liquibase.integration.spring.SpringLiquibase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Primary;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
@@ -23,7 +26,8 @@ import java.util.Properties;
  */
 @Configuration
 @EnableTransactionManagement
-public class DatabaseConfig {
+public class
+DatabaseConfig {
   private static final Logger logger = LoggerFactory.getLogger(DatabaseConfig.class);
   
   /**
@@ -32,7 +36,8 @@ public class DatabaseConfig {
    *
    * @return configured HikariDataSource instance
    */
-  @Bean
+  @Bean(name = "dataSource")
+  @Primary
   public DataSource dataSource() {
     HikariConfig config = new HikariConfig();
     String host = System.getenv().getOrDefault("DB_HOST", "postgres");
@@ -52,29 +57,43 @@ public class DatabaseConfig {
     config.setConnectionTimeout(20000);
     config.setValidationTimeout(5000);
     config.setPoolName("HabitTrackerPool");
-    config.setConnectionTestQuery("SELECT 1");
     return new HikariDataSource(config);
+  }
+  
+  @Bean
+  public SpringLiquibase liquibase(DataSource dataSource) {
+    SpringLiquibase liquibase = new SpringLiquibase();
+    liquibase.setDataSource(dataSource);
+    liquibase.setChangeLog("classpath:db/changelog/db.changelog-master.xml");
+    liquibase.setDefaultSchema("public");
+    liquibase.setContexts("default");
+    liquibase.setDropFirst(false);
+    return liquibase;
   }
   
   /**
    * Creates and configures the JPA EntityManagerFactory.
    * Sets up Hibernate as the JPA provider with specific configuration properties.
    *
-   * @param dataSource the configured data source to use
    * @return configured EntityManagerFactory
    */
   @Bean
-  public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource) {
+  @DependsOn("liquibase")
+  public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
     LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
-    em.setDataSource(dataSource);
+    em.setDataSource(dataSource());
     em.setPackagesToScan("com.mkhabibullin.domain.model");
     HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
     vendorAdapter.setShowSql(true);
     vendorAdapter.setGenerateDdl(false);
     em.setJpaVendorAdapter(vendorAdapter);
     Properties props = new Properties();
+    props.setProperty("hibernate.hbm2ddl.auto", "none");
+    props.setProperty("hibernate.physical_naming_strategy",
+      "org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl");
+    props.setProperty("hibernate.implicit_naming_strategy",
+      "org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl");
     props.setProperty("hibernate.format_sql", "true");
-    props.setProperty("hibernate.hbm2ddl.auto", "validate");
     em.setJpaProperties(props);
     return em;
   }
@@ -88,8 +107,6 @@ public class DatabaseConfig {
    */
   @Bean
   public PlatformTransactionManager transactionManager(EntityManagerFactory emf) {
-    JpaTransactionManager transactionManager = new JpaTransactionManager();
-    transactionManager.setEntityManagerFactory(emf);
-    return transactionManager;
+    return new JpaTransactionManager(emf);
   }
 }
