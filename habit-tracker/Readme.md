@@ -2,42 +2,21 @@
 
 Приложение для отслеживания и управления личными привычками.
 
-## Развернуть на Tomcat:
+## Развернуть приложение в docker:
 
 1. Создайте копию файла .env-localexample, переименуйте его в .env
-2. Запустите контейнер с базой данных
-
+2. Из директории с проектом выполните
 ```console
-docker-compose up -d
-```
-
-3. Соберите приложение
-
-```console
-mvn clean package
-```
-
-4. Скопируйте сгенерированный файл WAR из target/habit-tracker.war в каталог webapps Tomcat
-
-5. Запустите Tomcat:
-
-#### Windows
-
-``` console
-%CATALINA_HOME%\bin\startup.bat
-```
-
-#### Linux/Mac
-
-``` console
-$CATALINA_HOME/bin/startup.sh
+    docker-compose up --build -d
 ```
 
 #### Приложение будет доступно по адресу:
 
-http://localhost:8080/habit-tracker
+* Swagger UI: http://localhost:18080/swagger-ui.html
+* OpenAPI Docs: http://localhost:18080/v3/api-docs
 
-#### Учетные данные для доступа в админ-меню:
+
+#### Учетные данные администратора:
 
 - Электронная почта: admin@example.com
 - Пароль: adminpassword
@@ -46,6 +25,39 @@ http://localhost:8080/habit-tracker
 
 - Электронная почта: userOne@example.com
 - Пароль: hashedpassword1
+
+3. Проверить, что все контейнеры поднялись:
+
+``` console
+docker-compose ps
+```
+
+3. Просмотреть логи приложения
+
+``` console
+docker-compose logs -f app
+```
+
+4. Остановка приложения и очистка контейнеров
+
+``` console
+docker-compose down -v
+docker system prune -f (опционально)
+```
+
+4. При наличии проблем с занятостью порта на Windows
+
+- остановить приложение и очистить контейнеры
+- выполнить:
+
+``` console
+netsh winsock reset
+netsh int ip reset
+net stop winnat
+net start winnat
+```
+
+- запустить приложение
 
 ## Обзор функциональности
 

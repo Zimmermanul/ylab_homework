@@ -1,5 +1,12 @@
 package com.mkhabibullin.domain.model;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
 import java.io.Serializable;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -13,14 +20,27 @@ import java.util.Objects;
  * authentication details and user status.
  * It implements Serializable to allow for easy saving and transmission of user objects.
  */
+@Entity
+@Table(name = "users", schema = "entity")
 public class User implements Serializable {
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
+  @Column(unique = true, nullable = false)
   private String email;
+  @Column(name = "password_hash")
   private String passwordHash;
+  @Column
   private String salt;
+  @Column(nullable = false)
   private String name;
+  @Column
   private boolean admin;
+  @Column
   private boolean blocked;
+  
+  protected User() {
+  }
   
   /**
    * Constructs a new User with the given email, and name.

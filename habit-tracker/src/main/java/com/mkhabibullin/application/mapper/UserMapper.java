@@ -1,45 +1,26 @@
 package com.mkhabibullin.application.mapper;
 
-import com.mkhabibullin.application.validation.UserMapperValidator;
 import com.mkhabibullin.domain.model.User;
 import com.mkhabibullin.presentation.dto.user.RegisterUserDTO;
 import com.mkhabibullin.presentation.dto.user.UserResponseDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+
+import java.util.List;
 
 /**
  * MapStruct mapper interface for converting between User entities and DTOs.
- * This mapper handles user data transformations while performing validation
- * through {@link UserMapperValidator}. It ensures sensitive information
- * like passwords and salts are properly handled during conversions.
- *
- * <p>The mapper is configured with:</p>
- * <ul>
- *   <li>Default component model for simple instantiation</li>
- *   <li>Integration with {@link UserMapperValidator} for field validation</li>
- *   <li>A singleton INSTANCE for stateless mapping operations</li>
- * </ul>
- *
- * @see org.mapstruct.Mapper
- * @see UserMapperValidator
- * @see User
- * @see RegisterUserDTO
- * @see UserResponseDTO
+ * Provides mapping functionality for user-related data transformations.
  */
-@Mapper(componentModel = "default", uses = UserMapperValidator.class)
+@Mapper(componentModel = "spring")
 public interface UserMapper {
-  /**
-   * Singleton instance of the mapper.
-   * Use this instance for all mapping operations to ensure consistent behavior
-   * and optimal resource usage.
-   */
-  UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
   
   /**
    * Converts a registration DTO to a user entity.
-   * This method creates a new user entity with default security settings
-   * while explicitly ignoring sensitive fields that should be handled separately.
+   * Creates a new user entity with default security settings.
+   *
+   * @param dto the registration DTO
+   * @return the mapped User entity
    */
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "passwordHash", ignore = true)
@@ -50,10 +31,20 @@ public interface UserMapper {
   
   /**
    * Converts a user entity to a response DTO.
-   * This method creates a safe representation of user data for client responses,
-   * excluding sensitive information and mapping boolean flags to their proper names.
+   * Creates a safe representation of user data for client responses.
+   *
+   * @param user the User entity
+   * @return the mapped UserResponseDTO
    */
   @Mapping(target = "isAdmin", source = "admin")
   @Mapping(target = "isBlocked", source = "blocked")
   UserResponseDTO userToResponseDto(User user);
+  
+  /**
+   * Converts a list of users to response DTOs.
+   *
+   * @param users list of User entities
+   * @return list of UserResponseDTOs
+   */
+  List<UserResponseDTO> usersToResponseDtos(List<User> users);
 }

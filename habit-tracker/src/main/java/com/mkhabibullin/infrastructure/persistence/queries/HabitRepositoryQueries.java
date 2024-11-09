@@ -1,9 +1,8 @@
 package com.mkhabibullin.infrastructure.persistence.queries;
 
 /**
- * Contains SQL query constants used by the HabitDbRepository.
- * This class provides centralized storage for all SQL queries related to habit operations.
- * It cannot be instantiated as it only serves as a container for static constants.
+ * Contains JPQL query constants used by the HabitRepository.
+ * This class provides centralized storage for all JPQL queries related to habit operations.
  */
 public final class HabitRepositoryQueries {
   
@@ -12,67 +11,33 @@ public final class HabitRepositoryQueries {
   }
   
   /**
-   * SQL query for creating a new habit record.
-   * This query inserts a new record into the habits table and returns the generated ID.
-   * Required parameters:
-   * 1. user_id (Long)
-   * 2. name (String)
-   * 3. description (String)
-   * 4. frequency (String)
-   * 5. creation_date (Date)
-   * 6. is_active (Boolean)
-   */
-  public static final String CREATE_HABIT =
-    "INSERT INTO entity.habits (user_id, name, description, frequency, creation_date, is_active) " +
-    "VALUES (?, ?, ?, ?, ?, ?) RETURNING id";
-  
-  /**
-   * SQL query for updating an existing habit record.
-   * This query updates the mutable fields of a habit record identified by its ID.
-   * Required parameters:
-   * 1. name (String)
-   * 2. description (String)
-   * 3. frequency (String)
-   * 4. is_active (Boolean)
-   * 5. id (Long)
-   */
-  public static final String UPDATE_HABIT =
-    "UPDATE entity.habits " +
-    "SET name = ?, description = ?, frequency = ?, is_active = ? " +
-    "WHERE id = ?";
-  
-  /**
-   * SQL query for deleting a habit record.
-   * This query removes a habit record from the database based on its ID.
-   * Required parameters:
-   * 1. id (Long)
-   */
-  public static final String DELETE_HABIT =
-    "DELETE FROM entity.habits WHERE id = ?";
-  
-  /**
-   * SQL query for retrieving all habit records.
-   * This query selects all columns from all habit records in the database.
-   * No parameters required.
+   * JPQL query for retrieving all habits.
    */
   public static final String READ_ALL_HABITS =
-    "SELECT * FROM entity.habits";
+    "SELECT h FROM Habit h";
   
   /**
-   * SQL query for retrieving all habits belonging to a specific user.
-   * This query selects all habit records associated with a given user ID.
-   * Required parameters:
-   * 1. user_id (Long)
+   * JPQL query for retrieving habits by user ID.
    */
   public static final String GET_HABITS_BY_USER_ID =
-    "SELECT * FROM entity.habits WHERE user_id = ?";
+    "SELECT h FROM Habit h WHERE h.userId = :userId";
   
   /**
-   * SQL query for retrieving a specific habit by its ID.
-   * This query selects a single habit record matching the provided ID.
-   * Required parameters:
-   * 1. id (Long)
+   * JPQL query for retrieving a habit by ID.
    */
   public static final String GET_HABIT_BY_ID =
-    "SELECT * FROM entity.habits WHERE id = ?";
+    "SELECT h FROM Habit h WHERE h.id = :id";
+  
+  /**
+   * JPQL query for updating a habit.
+   */
+  public static final String UPDATE_HABIT =
+    "UPDATE Habit h SET h.name = :name, h.description = :description, " +
+    "h.frequency = :frequency, h.active = :active WHERE h.id = :id";
+  
+  /**
+   * JPQL query for getting active habits.
+   */
+  public static final String GET_ACTIVE_HABITS =
+    "SELECT h FROM Habit h WHERE h.active = true";
 }

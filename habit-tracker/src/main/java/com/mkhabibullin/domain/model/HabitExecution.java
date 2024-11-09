@@ -1,16 +1,33 @@
 package com.mkhabibullin.domain.model;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
 import java.time.LocalDate;
 
 /**
  * Represents the execution or tracking of a habit on a specific date.
  * This class encapsulates information about when a habit was performed and whether it was completed.
  */
+@Entity
+@Table(name = "habit_executions", schema = "entity")
 public class HabitExecution {
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
+  @Column(name = "habit_id", nullable = false)
   private Long habitId;
+  @Column(nullable = false)
   private LocalDate date;
+  @Column
   private boolean completed;
+  
+  protected HabitExecution() {
+  }
   
   /**
    * Constructs a new HabitExecution with the specified details.

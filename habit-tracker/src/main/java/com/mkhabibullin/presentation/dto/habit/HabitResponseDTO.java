@@ -1,9 +1,9 @@
 package com.mkhabibullin.presentation.dto.habit;
 
 import com.mkhabibullin.domain.model.Habit;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDate;
-
 /**
  * Data Transfer Object representing a habit's complete information in responses.
  * This record contains all relevant details about a habit, including its metadata.
@@ -16,13 +16,27 @@ import java.time.LocalDate;
  * @param creationDate The date when the habit was created
  * @param active       Flag indicating whether the habit is currently active
  */
+@Schema(description = "Habit information response")
 public record HabitResponseDTO(
+  @Schema(description = "Unique identifier of the habit")
   Long id,
+  
+  @Schema(description = "ID of the user who owns this habit")
   Long userId,
+  
+  @Schema(description = "Name of the habit", example = "Morning Exercise")
   String name,
+  
+  @Schema(description = "Detailed description of the habit", example = "30 minutes of cardio exercise every morning")
   String description,
+  
+  @Schema(description = "Frequency of the habit", example = "DAILY")
   Habit.Frequency frequency,
+  
+  @Schema(description = "Date when the habit was created")
   LocalDate creationDate,
+  
+  @Schema(description = "Whether the habit is currently active")
   boolean active
 ) {
 }

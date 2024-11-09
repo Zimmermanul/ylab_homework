@@ -1,6 +1,5 @@
 package com.mkhabibullin.application.mapper;
 
-import com.mkhabibullin.application.validation.HabitExecutionMapperValidator;
 import com.mkhabibullin.domain.model.HabitExecution;
 import com.mkhabibullin.presentation.dto.habitExecution.HabitExecutionRequestDTO;
 import com.mkhabibullin.presentation.dto.habitExecution.HabitExecutionResponseDTO;
@@ -8,8 +7,6 @@ import com.mkhabibullin.presentation.dto.habitExecution.HabitProgressReportDTO;
 import com.mkhabibullin.presentation.dto.habitExecution.HabitStatisticsDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
-import org.mapstruct.factory.Mappers;
 
 import java.time.DayOfWeek;
 import java.util.List;
@@ -17,73 +14,60 @@ import java.util.Map;
 
 /**
  * MapStruct mapper interface for converting between Habit Execution DTOs and entities.
- * This mapper handles the conversion of habit execution data while performing validation
- * through {@link HabitExecutionMapperValidator}.
- *
- * <p>The mapper is configured with:</p>
- * <ul>
- *   <li>Default component model for simple instantiation</li>
- *   <li>Integration with {@link HabitExecutionMapperValidator} for field validation</li>
- *   <li>A singleton INSTANCE for stateless mapping operations</li>
- * </ul>
- *
- * @see org.mapstruct.Mapper
- * @see HabitExecutionMapperValidator
- * @see HabitExecutionRequestDTO
- * @see HabitExecution
+ * Provides mapping functionality for habit execution data transformations, including
+ * request/response DTOs, statistics, and progress reports.
  */
-@Mapper(componentModel = "default", uses = HabitExecutionMapperValidator.class)
+@Mapper(componentModel = "spring")
 public interface HabitExecutionMapper {
-  /**
-   * Singleton instance of the mapper.
-   * Use this instance for all mapping operations to ensure consistent behavior
-   * and optimal resource usage.
-   */
-  HabitExecutionMapper INSTANCE = Mappers.getMapper(HabitExecutionMapper.class);
   
   /**
-   * Converts a habit execution request DTO to a habit execution entity.
-   * This method performs validation on all mapped fields using {@link HabitExecutionMapperValidator}.
+   * Converts a habit execution request DTO to a HabitExecution entity.
+   * The ID field is ignored during mapping as it will be generated.
+   *
+   * @param dto     the habit execution request DTO to convert
+   * @param habitId the ID of the parent habit
+   * @return the mapped HabitExecution entity
    */
   @Mapping(target = "id", ignore = true)
-  @Mapping(target = "date", source = "dto.date", qualifiedByName = "validateDate")
-  @Mapping(target = "completed", source = "dto.completed", qualifiedByName = "validateCompleted")
-  @Mapping(target = "habitId", source = "habitId", qualifiedByName = "validateHabitId")
   HabitExecution requestDtoToExecution(HabitExecutionRequestDTO dto, Long habitId);
   
+  /**
+   * Converts a list of HabitExecution entities to response DTOs.
+   *
+   * @param executions the list of habit execution entities to convert
+   * @return list of mapped habit execution response DTOs
+   */
   List<HabitExecutionResponseDTO> executionsToResponseDtos(List<HabitExecution> executions);
   
-  @Named("createStatistics")
-  default HabitStatisticsDTO createStatisticsDto(
+  
+  /**
+   * Creates a statistics DTO containing habit execution metrics.
+   *
+   * @param currentStreak       the current streak of completed executions
+   * @param successPercentage   the percentage of successful executions
+   * @param totalExecutions     the total number of executions
+   * @param completedExecutions the number of completed executions
+   * @param missedExecutions    the number of missed executions
+   * @param completionsByDay    map of completions grouped by day of week
+   * @return the habit statistics DTO containing the compiled metrics
+   */
+  HabitStatisticsDTO createStatisticsDto(
     int currentStreak,
     double successPercentage,
     long totalExecutions,
     long completedExecutions,
     long missedExecutions,
     Map<DayOfWeek, Long> completionsByDay
-  ) {
-    return new HabitStatisticsDTO(
-      currentStreak,
-      successPercentage,
-      totalExecutions,
-      completedExecutions,
-      missedExecutions,
-      completionsByDay
-    );
-  }
+  );
   
-  @Named("createProgressReport")
-  default HabitProgressReportDTO createProgressReportDto(
-    String report,
+  @Mapping(target = "report", source = "reportData")
+  @Mapping(target = "improvingTrend", source = "improvingTrend")
+  @Mapping(target = "longestStreak", source = "longestStreak")
+  @Mapping(target = "suggestions", source = "suggestions")
+  HabitProgressReportDTO createProgressReportDto(
+    Map<String, String> reportData,
     boolean improvingTrend,
     int longestStreak,
     List<String> suggestions
-  ) {
-    return new HabitProgressReportDTO(
-      report,
-      improvingTrend,
-      longestStreak,
-      suggestions
-    );
-  }
+  );
 }

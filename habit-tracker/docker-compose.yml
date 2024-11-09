@@ -1,12 +1,50 @@
+version: '3.8'
+
 services:
   postgres:
-    image: postgres:13
+    image: postgres:13-alpine
     container_name: habit-tracker-db
+    environment:
+      POSTGRES_DB: habit-tracker-db
+      POSTGRES_USER: habit-tracker-admin
+      POSTGRES_PASSWORD: habittrackerpass123
+      PGDATA: /var/lib/postgresql/data
     ports:
       - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U habit-tracker-admin -d habit-tracker-db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - habit-tracker-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: habit-tracker-app
+    depends_on:
+      postgres:
+        condition: service_healthy
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_USER: ${POSTGRES_USER}
-      PGDATA: ${PGDATA_PATH}
-    restart: on-failure
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=habit-tracker-db
+      - DB_USER=habit-tracker-admin
+      - DB_PASSWORD=habittrackerpass123
+    ports:
+      - "18080:8080"
+    networks:
+      - habit-tracker-network
+
+volumes:
+  postgres_data:
+    name: habit-tracker-postgres-data
+
+networks:
+  habit-tracker-network:
+    name: habit-tracker-network
+    driver: bridge

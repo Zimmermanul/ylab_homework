@@ -1,94 +1,52 @@
 package com.mkhabibullin.application.service;
 
 import com.mkhabibullin.domain.model.Habit;
-import com.mkhabibullin.domain.model.User;
-import com.mkhabibullin.infrastructure.persistence.repository.HabitDbRepository;
-import com.mkhabibullin.infrastructure.persistence.repository.UserDbRepository;
+import com.mkhabibullin.presentation.dto.habit.CreateHabitDTO;
+import com.mkhabibullin.presentation.dto.habit.UpdateHabitDTO;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
- * Service class for managing habits in a habit tracking application.
- * This class provides methods for creating, editing, deleting, and viewing habits.
- * It interacts with HabitRepository for habit data persistence and UserRepository for user information.
+ * Service interface for managing habits in a habit tracking application.
+ * This interface defines the contract for creating, editing, deleting, and viewing habits.
+ * It is designed to work with user data and habit persistence layers.
  */
-public class HabitService {
-  private HabitDbRepository habitRepository;
-  private UserDbRepository userRepository;
+public interface HabitService {
+  /**
+   * Creates a new habit for a specified user.
+   * The habit is persisted in the database and associated with the user identified by the email.
+   *
+   * @param userEmail       the email of the user creating the habit
+   * @param createHabitDTO  the DTO containing habit creation data: name, description, frequency of the habit
+   */
+  void create(String userEmail, CreateHabitDTO createHabitDTO);
   
   /**
-   * Constructs a new HabitService with the specified repositories.
+   * Updates an existing habit with new information.
+   * All fields of the habit will be updated to the provided values.
    *
-   * @param habitRepository the repository for habit data
-   * @param userRepository  the repository for user data
+   * @param id          the unique identifier of the habit to edit
+   * @param updateDTO   the DTO containing habit edition data: name, description, frequency of the habit
    */
-  public HabitService(HabitDbRepository habitRepository, UserDbRepository userRepository) {
-    this.habitRepository = habitRepository;
-    this.userRepository = userRepository;
-  }
+  void edit(String id, UpdateHabitDTO updateDTO);
   
   /**
-   * Creates a new habit for a user.
+   * Deletes a habit from the system.
+   * Once deleted, the habit cannot be recovered.
    *
-   * @param userEmail   the email of the user creating the habit
-   * @param name        the name of the habit
-   * @param description the description of the habit
-   * @param frequency   the frequency of the habit
-   * @throws IllegalArgumentException if the user is not found
+   * @param id the unique identifier of the habit to delete
    */
-  public void createHabit(String userEmail, String name, String description, Habit.Frequency frequency) {
-    User user = userRepository.readUserByEmail(userEmail);
-    Habit habit = new Habit();
-    habit.setUserId(user.getId());
-    habit.setName(name);
-    habit.setDescription(description);
-    habit.setFrequency(frequency);
-    habitRepository.create(habit);
-  }
+  void delete(Long id);
   
   /**
-   * Edits an existing habit.
+   * Retrieves a filtered list of habits for a specific user.
+   * The results can be filtered by creation date and active status.
    *
-   * @param id          the ID of the habit to edit
-   * @param name        the new name of the habit
-   * @param description the new description of the habit
-   * @param frequency   the new frequency of the habit
-   * @throws IllegalArgumentException if the habit is not found
+   * @param userId     the unique identifier of the user whose habits to retrieve
+   * @param filterDate optional date filter - if provided, only habits created on or after this date will be included
+   * @param active     optional status filter - if provided, only habits matching this active status will be included
+   * @return a List of habits matching the specified criteria, empty list if no habits are found
    */
-  public void editHabit(String id, String name, String description, Habit.Frequency frequency) {
-    Habit habit = habitRepository.readAll().stream()
-      .filter(h -> h.getId().equals(id))
-      .findFirst()
-      .orElseThrow(() -> new IllegalArgumentException("Habit not found"));
-    habit.setName(name);
-    habit.setDescription(description);
-    habit.setFrequency(frequency);
-    habitRepository.update(habit);
-  }
-  
-  /**
-   * Deletes a habit.
-   *
-   * @param id the ID of the habit to delete
-   */
-  public void deleteHabit(Long id) {
-    habitRepository.delete(id);
-  }
-  
-  /**
-   * Retrieves a list of habits for a user, optionally filtered by date and active status.
-   *
-   * @param userId     the ID of the user whose habits to retrieve
-   * @param filterDate the date to filter habits by (habits created on or after this date will be included), can be null
-   * @param active     whether to retrieve only active habits, can be null to retrieve all habits
-   * @return a list of habits matching the specified criteria
-   */
-  public List<Habit> viewHabits(Long userId, LocalDate filterDate, Boolean active) {
-    return habitRepository.getByUserId(userId).stream()
-      .filter(h -> filterDate == null || !h.getCreationDate().isBefore(filterDate))
-      .filter(h -> active == null || h.isActive() == active)
-      .collect(Collectors.toList());
-  }
+  List<Habit> getAll(Long userId, LocalDate filterDate, Boolean active);
 }

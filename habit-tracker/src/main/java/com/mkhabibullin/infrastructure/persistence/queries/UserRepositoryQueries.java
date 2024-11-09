@@ -1,9 +1,7 @@
 package com.mkhabibullin.infrastructure.persistence.queries;
-
 /**
- * Contains SQL query constants used by the UserDbRepository.
- * This class provides centralized storage for all SQL queries related to user operations.
- * It cannot be instantiated as it only serves as a container for static constants.
+ * Contains JPQL query constants used by the UserRepository.
+ * This class provides centralized storage for all JPQL queries related to user operations.
  */
 public final class UserRepositoryQueries {
   
@@ -12,69 +10,65 @@ public final class UserRepositoryQueries {
   }
   
   /**
-   * SQL query for retrieving all users from the database.
-   * This query selects all columns from the users table.
+   * JPQL query for retrieving all users.
    * No parameters required.
    */
   public static final String GET_ALL_USERS =
-    "SELECT * FROM entity.users";
+    "SELECT u FROM User u";
   
   /**
-   * SQL query for creating a new user record.
-   * This query inserts a new record into the users table and returns the generated ID.
+   * JPQL query for retrieving a user by ID.
    * Required parameters:
-   * 1. email (String)
-   * 2. password_hash (String)
-   * 3. salt (String)
-   * 4. name (String)
-   * 5. is_admin (Boolean)
-   * 6. is_blocked (Boolean)
-   */
-  public static final String CREATE_USER =
-    "INSERT INTO entity.users (email, password_hash, salt, name, is_admin, is_blocked) " +
-    "VALUES (?, ?, ?, ?, ?, ?) RETURNING id";
-  
-  /**
-   * SQL query for retrieving a user by their ID.
-   * This query selects a single user record matching the provided ID.
-   * Required parameters:
-   * 1. id (Long)
+   * - id (Long)
    */
   public static final String GET_USER_BY_ID =
-    "SELECT * FROM entity.users WHERE id = ?";
+    "SELECT u FROM User u WHERE u.id = :id";
   
   /**
-   * SQL query for retrieving a user by their email address.
-   * This query selects a single user record matching the provided email.
+   * JPQL query for retrieving a user by email.
    * Required parameters:
-   * 1. email (String)
+   * - email (String)
    */
   public static final String GET_USER_BY_EMAIL =
-    "SELECT * FROM entity.users WHERE email = ?";
+    "SELECT u FROM User u WHERE u.email = :email";
   
   /**
-   * SQL query for updating an existing user record.
-   * This query updates all mutable fields of a user record identified by its ID.
+   * JPQL query for updating a user.
    * Required parameters:
-   * 1. email (String)
-   * 2. password_hash (String)
-   * 3. salt (String)
-   * 4. name (String)
-   * 5. is_admin (Boolean)
-   * 6. is_blocked (Boolean)
-   * 7. id (Long)
+   * - email (String)
+   * - passwordHash (String)
+   * - salt (String)
+   * - name (String)
+   * - admin (Boolean)
+   * - blocked (Boolean)
+   * - id (Long)
    */
   public static final String UPDATE_USER =
-    "UPDATE entity.users " +
-    "SET email = ?, password_hash = ?, salt = ?, name = ?, is_admin = ?, is_blocked = ? " +
-    "WHERE id = ?";
+    "UPDATE User u SET u.email = :email, u.passwordHash = :passwordHash, " +
+    "u.salt = :salt, u.name = :name, u.admin = :admin, u.blocked = :blocked " +
+    "WHERE u.id = :id";
   
   /**
-   * SQL query for deleting a user by their email address.
-   * This query removes a user record from the database based on the email address.
+   * JPQL query for deleting a user by email.
    * Required parameters:
-   * 1. email (String)
+   * - email (String)
    */
   public static final String DELETE_USER_BY_EMAIL =
-    "DELETE FROM entity.users WHERE email = ?";
+    "DELETE FROM User u WHERE u.email = :email";
+  
+  /**
+   * JPQL query for checking if email exists.
+   * Required parameters:
+   * - email (String)
+   */
+  public static final String CHECK_EMAIL_EXISTS =
+    "SELECT COUNT(u) > 0 FROM User u WHERE u.email = :email";
+  
+  /**
+   * JPQL query for retrieving active users.
+   * Required parameters:
+   * - blocked (Boolean = false)
+   */
+  public static final String GET_ACTIVE_USERS =
+    "SELECT u FROM User u WHERE u.blocked = :blocked";
 }
