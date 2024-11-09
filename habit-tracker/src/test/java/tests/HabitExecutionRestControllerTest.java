@@ -2,21 +2,24 @@ package tests;
 
 import com.mkhabibullin.application.mapper.HabitExecutionMapper;
 import com.mkhabibullin.application.service.HabitExecutionService;
-import com.mkhabibullin.application.validation.HabitExecutionMapperValidator;
+import com.mkhabibullin.application.validation.HabitExecutionValidator;
 import com.mkhabibullin.domain.exception.ValidationException;
 import com.mkhabibullin.domain.model.HabitExecution;
+import com.mkhabibullin.infrastructure.persistence.repository.HabitRepository;
 import com.mkhabibullin.presentation.controller.HabitExecutionRestController;
 import com.mkhabibullin.presentation.dto.habitExecution.HabitExecutionRequestDTO;
 import com.mkhabibullin.presentation.dto.habitExecution.HabitExecutionResponseDTO;
 import com.mkhabibullin.presentation.dto.habitExecution.HabitProgressReportDTO;
 import com.mkhabibullin.presentation.dto.habitExecution.HabitStatisticsDTO;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -35,15 +38,21 @@ class HabitExecutionRestControllerTest extends BaseTest {
   @Mock
   private HabitExecutionMapper executionMapper;
   @Mock
-  private HabitExecutionMapperValidator executionValidator;
-  private HabitExecutionRestController executionController;
+  private HabitExecutionValidator executionValidator;
+  @Mock
+  private HabitRepository habitRepository;
   
   @Override
   protected void setupMockMvc() {
-    executionController = new HabitExecutionRestController(
-      executionService, executionMapper, executionValidator);
+    HabitExecutionRestController executionController = new HabitExecutionRestController(
+      executionService,
+      executionMapper,
+      executionValidator,
+      habitRepository
+    );
     mockMvc = buildMockMvc(executionController);
   }
+  
   
   @Test
   void trackExecutionWithValidDataShouldRecordExecution() throws Exception {
@@ -77,7 +86,7 @@ class HabitExecutionRestControllerTest extends BaseTest {
       createTestExecutionDTO(1L, habitId, true),
       createTestExecutionDTO(2L, habitId, false)
     );
-    given(executionService.getHabitExecutionHistory(habitId))
+    given(executionService.getAll(habitId))
       .willReturn(executions);
     given(executionMapper.executionsToResponseDtos(executions))
       .willReturn(responseDTOs);
@@ -157,40 +166,53 @@ class HabitExecutionRestControllerTest extends BaseTest {
     Long habitId = 1L;
     LocalDate startDate = LocalDate.now().minusDays(30);
     LocalDate endDate = LocalDate.now();
-    List<String> suggestions = Arrays.asList(
-      "Try setting a reminder",
-      "Start with smaller goals"
-    );
+    Map<String, String> reportData = new LinkedHashMap<>();
+    reportData.put("habitName", "Test Habit");
+    reportData.put("startDate", startDate.toString());
+    reportData.put("endDate", endDate.toString());
+    reportData.put("currentStreak", "5 days");
+    reportData.put("successRate", "85.50%");
+    reportData.put("executionHistory", "2024-01-01: Completed\n2024-01-02: Not completed\n");
+    List<String> suggestions = Arrays.asList("Try setting a reminder", "Start with smaller goals");
     HabitProgressReportDTO reportDTO = new HabitProgressReportDTO(
-      "Good progress over the last month",
+      reportData,
       true,
       7,
       suggestions
     );
     given(executionService.generateProgressReport(habitId, startDate, endDate))
-      .willReturn("Good progress over the last month");
+      .willReturn(reportData);
     given(executionService.isImprovingTrend(any())).willReturn(true);
     given(executionService.calculateLongestStreak(any())).willReturn(7);
-    given(executionService.generateSuggestions(any(), any())).willReturn(suggestions);
+    given(executionService.generateSuggestions(any(), any()))
+      .willReturn(suggestions);
     given(executionMapper.createProgressReportDto(
-      anyString(), anyBoolean(), anyInt(), anyList()))
+      ArgumentMatchers.any(),
+      anyBoolean(),
+      anyInt(),
+      ArgumentMatchers.any()))
       .willReturn(reportDTO);
     performRequest(get("/api/habit-executions/progress/" + habitId)
       .param("startDate", startDate.toString())
       .param("endDate", endDate.toString()))
       .andExpect(status().isOk())
-      .andExpect(jsonPath("$.report").value("Good progress over the last month"))
+      .andExpect(jsonPath("$.report.habitName").value("Test Habit"))
+      .andExpect(jsonPath("$.report.currentStreak").value("5 days"))
+      .andExpect(jsonPath("$.report.successRate").value("85.50%"))
       .andExpect(jsonPath("$.improvingTrend").value(true))
       .andExpect(jsonPath("$.longestStreak").value(7))
-      .andExpect(jsonPath("$.suggestions").isArray())
-      .andExpect(jsonPath("$.suggestions[0]").value("Try setting a reminder"))
-      .andExpect(jsonPath("$.suggestions[1]").value("Start with smaller goals"));
+      .andExpect(jsonPath("$.suggestions.introduction")
+        .value("Suggestions for improving your habit:"))
+      .andExpect(jsonPath("$.suggestions.performanceSuggestions[0]")
+        .value("Try setting a reminder"))
+      .andExpect(jsonPath("$.suggestions.performanceSuggestions[1]")
+        .value("Start with smaller goals"));
     verify(executionService).generateProgressReport(habitId, startDate, endDate);
     verify(executionService).isImprovingTrend(any());
     verify(executionService).calculateLongestStreak(any());
     verify(executionService).generateSuggestions(any(), any());
     verify(executionMapper).createProgressReportDto(
-      eq("Good progress over the last month"),
+      eq(reportData),
       eq(true),
       eq(7),
       eq(suggestions)

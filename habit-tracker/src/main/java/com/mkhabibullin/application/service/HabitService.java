@@ -1,6 +1,8 @@
 package com.mkhabibullin.application.service;
 
 import com.mkhabibullin.domain.model.Habit;
+import com.mkhabibullin.presentation.dto.habit.CreateHabitDTO;
+import com.mkhabibullin.presentation.dto.habit.UpdateHabitDTO;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -15,23 +17,19 @@ public interface HabitService {
    * Creates a new habit for a specified user.
    * The habit is persisted in the database and associated with the user identified by the email.
    *
-   * @param userEmail   the email of the user creating the habit
-   * @param name        the name of the habit
-   * @param description the description of the habit
-   * @param frequency   the frequency at which the habit should be performed
+   * @param userEmail       the email of the user creating the habit
+   * @param createHabitDTO  the DTO containing habit creation data: name, description, frequency of the habit
    */
-  void createHabit(String userEmail, String name, String description, Habit.Frequency frequency);
+  void create(String userEmail, CreateHabitDTO createHabitDTO);
   
   /**
    * Updates an existing habit with new information.
    * All fields of the habit will be updated to the provided values.
    *
    * @param id          the unique identifier of the habit to edit
-   * @param name        the new name for the habit
-   * @param description the new description for the habit
-   * @param frequency   the new frequency for the habit
+   * @param updateDTO   the DTO containing habit edition data: name, description, frequency of the habit
    */
-  void editHabit(String id, String name, String description, Habit.Frequency frequency);
+  void edit(String id, UpdateHabitDTO updateDTO);
   
   /**
    * Deletes a habit from the system.
@@ -39,7 +37,7 @@ public interface HabitService {
    *
    * @param id the unique identifier of the habit to delete
    */
-  void deleteHabit(Long id);
+  void delete(Long id);
   
   /**
    * Retrieves a filtered list of habits for a specific user.
@@ -50,5 +48,5 @@ public interface HabitService {
    * @param active     optional status filter - if provided, only habits matching this active status will be included
    * @return a List of habits matching the specified criteria, empty list if no habits are found
    */
-  List<Habit> viewHabits(Long userId, LocalDate filterDate, Boolean active);
+  List<Habit> getAll(Long userId, LocalDate filterDate, Boolean active);
 }

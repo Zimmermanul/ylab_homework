@@ -1,10 +1,16 @@
 package com.mkhabibullin.application.service.implementation;
 
+import com.mkhabibullin.application.mapper.HabitMapper;
 import com.mkhabibullin.application.service.HabitService;
+import com.mkhabibullin.common.MessageConstants;
+import com.mkhabibullin.domain.exception.HabitNotFoundException;
+import com.mkhabibullin.domain.exception.InvalidHabitIdException;
 import com.mkhabibullin.domain.model.Habit;
 import com.mkhabibullin.domain.model.User;
 import com.mkhabibullin.infrastructure.persistence.repository.HabitRepository;
 import com.mkhabibullin.infrastructure.persistence.repository.UserRepository;
+import com.mkhabibullin.presentation.dto.habit.CreateHabitDTO;
+import com.mkhabibullin.presentation.dto.habit.UpdateHabitDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +32,7 @@ import java.util.stream.Collectors;
 public class HabitServiceImpl implements HabitService {
   private final HabitRepository habitRepository;
   private final UserRepository userRepository;
+  private final HabitMapper habitMapper;
   
   /**
    * Constructs a new HabitServiceImpl with the required repositories.
@@ -35,53 +42,47 @@ public class HabitServiceImpl implements HabitService {
    * @param userRepository  repository for user data operations
    */
   
-  public HabitServiceImpl(HabitRepository habitRepository, UserRepository userRepository) {
+  public HabitServiceImpl(HabitRepository habitRepository, UserRepository userRepository, HabitMapper habitMapper) {
     this.habitRepository = habitRepository;
     this.userRepository = userRepository;
+    this.habitMapper = habitMapper;
   }
   
   /**
-   * Creates a new habit for a user.
+   * Creates a new habit for a user using the provided DTO and user email.
    *
-   * @param userEmail   the email of the user creating the habit
-   * @param name        the name of the habit
-   * @param description the description of the habit
-   * @param frequency   the frequency of the habit
-   * @throws IllegalArgumentException if the user is not found
+   * @param userEmail the email of the user creating the habit
+   * @param createHabitDTO the DTO containing habit creation data
    */
   @Override
-  public void createHabit(String userEmail, String name, String description, Habit.Frequency frequency) {
+  public void create(String userEmail, CreateHabitDTO createHabitDTO) {
     User user = userRepository.readUserByEmail(userEmail);
-    Habit habit = new Habit();
+    Habit habit = habitMapper.createDtoToHabit(createHabitDTO);
     habit.setUserId(user.getId());
-    habit.setName(name);
-    habit.setDescription(description);
-    habit.setFrequency(frequency);
-    
     habitRepository.create(habit);
   }
   
   /**
-   * Edits an existing habit.
+   * Edits an existing habit using the provided update DTO.
    *
-   * @param id          the ID of the habit to edit
-   * @param name        the new name of the habit
-   * @param description the new description of the habit
-   * @param frequency   the new frequency of the habit
-   * @throws IllegalArgumentException if the habit is not found
+   * @param id         the ID of the habit to edit
+   * @param updateDTO  the DTO containing the updated habit data
+   * @throws InvalidHabitIdException if the habit ID format is invalid
+   * @throws HabitNotFoundException if no habit exists with the given ID
    */
   @Override
-  public void editHabit(String id, String name, String description, Habit.Frequency frequency) {
-    Habit habit = habitRepository.readAll().stream()
-      .filter(h -> h.getId().equals(id))
-      .findFirst()
-      .orElseThrow(() -> new IllegalArgumentException("Habit not found"));
-    
-    habit.setName(name);
-    habit.setDescription(description);
-    habit.setFrequency(frequency);
-    
-    habitRepository.update(habit);
+  public void edit(String id, UpdateHabitDTO updateDTO) {
+    try {
+      Long habitId = Long.parseLong(id);
+      Habit habit = habitRepository.getById(habitId);
+      if (habit == null) {
+        throw new HabitNotFoundException(String.format(MessageConstants.HABIT_NOT_FOUND, habitId));
+      }
+      habitMapper.updateHabitFromDto(updateDTO, habit);
+      habitRepository.update(habit);
+    } catch (NumberFormatException e) {
+      throw new InvalidHabitIdException(String.format(MessageConstants.HABIT_NOT_FOUND, id), e);
+    }
   }
   
   /**
@@ -90,7 +91,7 @@ public class HabitServiceImpl implements HabitService {
    * @param id the ID of the habit to delete
    */
   @Override
-  public void deleteHabit(Long id) {
+  public void delete(Long id) {
     habitRepository.delete(id);
   }
   
@@ -103,7 +104,7 @@ public class HabitServiceImpl implements HabitService {
    * @return a list of habits matching the specified criteria
    */
   @Override
-  public List<Habit> viewHabits(Long userId, LocalDate filterDate, Boolean active) {
+  public List<Habit> getAll(Long userId, LocalDate filterDate, Boolean active) {
     return habitRepository.getByUserId(userId).stream()
       .filter(h -> filterDate == null || !h.getCreationDate().isBefore(filterDate))
       .filter(h -> active == null || h.isActive() == active)

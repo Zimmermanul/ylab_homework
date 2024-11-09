@@ -2,7 +2,7 @@ package tests;
 
 import com.mkhabibullin.application.mapper.AuditMapper;
 import com.mkhabibullin.application.service.AuditLogService;
-import com.mkhabibullin.application.validation.AuditMapperValidator;
+import com.mkhabibullin.application.validation.AuditValidator;
 import com.mkhabibullin.domain.model.AuditLog;
 import com.mkhabibullin.domain.model.AuditStatistics;
 import com.mkhabibullin.presentation.controller.AuditRestController;
@@ -29,7 +29,7 @@ class AuditRestControllerTest extends BaseTest {
   @Mock
   private AuditMapper auditMapper;
   @Mock
-  private AuditMapperValidator auditValidator;
+  private AuditValidator auditValidator;
   private AuditRestController auditController;
   
   @Override

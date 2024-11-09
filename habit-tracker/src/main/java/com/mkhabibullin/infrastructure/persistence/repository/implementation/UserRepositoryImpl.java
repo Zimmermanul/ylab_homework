@@ -1,5 +1,9 @@
 package com.mkhabibullin.infrastructure.persistence.repository.implementation;
 
+import com.mkhabibullin.common.MessageConstants;
+import com.mkhabibullin.domain.exception.DuplicateEmailException;
+import com.mkhabibullin.domain.exception.EntityNotFoundException;
+import com.mkhabibullin.domain.exception.RepositoryException;
 import com.mkhabibullin.domain.model.User;
 import com.mkhabibullin.infrastructure.persistence.queries.UserRepositoryQueries;
 import com.mkhabibullin.infrastructure.persistence.repository.UserRepository;
@@ -11,8 +15,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Implementation of UserRepository interface.
@@ -25,6 +29,7 @@ import java.util.List;
 @Transactional
 public class UserRepositoryImpl implements UserRepository {
   private static final Logger log = LoggerFactory.getLogger(UserRepositoryImpl.class);
+  private static final String ENTITY_NAME = "user";
   
   @PersistenceContext
   private EntityManager entityManager;
@@ -44,7 +49,10 @@ public class UserRepositoryImpl implements UserRepository {
       return query.getResultList();
     } catch (Exception e) {
       log.error("Error retrieving all users: ", e);
-      return new ArrayList<>();
+      throw new RepositoryException(
+        String.format(MessageConstants.ERROR_RETRIEVING, ENTITY_NAME),
+        e
+      );
     }
   }
   
@@ -54,21 +62,27 @@ public class UserRepositoryImpl implements UserRepository {
    * Performs a flush operation to ensure the user is persisted and ID is generated.
    *
    * @param user the user entity to create
-   * @throws RuntimeException if a user with the same email already exists or if there is an error during creation
+   * @throws RepositoryException if a user with the same email already exists or if there is an error during creation
    */
   @Override
   public void createUser(User user) {
     try {
+      Objects.requireNonNull(user, MessageConstants.USER_REQUIRED);
       if (checkEmailExists(user.getEmail())) {
-        String message = "User with email " + user.getEmail() + " already exists";
-        log.error(message);
-        throw new RuntimeException(message);
+        throw new DuplicateEmailException(
+          String.format(MessageConstants.EMAIL_IN_USE, user.getEmail())
+        );
       }
       entityManager.persist(user);
-      entityManager.flush(); // to get the generated ID
+      entityManager.flush();
+    } catch (NullPointerException | DuplicateEmailException e) {
+      throw e;
     } catch (Exception e) {
       log.error("Error creating user: ", e);
-      throw new RuntimeException("Error creating user", e);
+      throw new RepositoryException(
+        String.format(MessageConstants.ERROR_SAVING, ENTITY_NAME),
+        e
+      );
     }
   }
   
@@ -87,10 +101,20 @@ public class UserRepositoryImpl implements UserRepository {
       );
       query.setParameter("id", id);
       List<User> results = query.getResultList();
-      return results.isEmpty() ? null : results.get(0);
+      if (results.isEmpty()) {
+        throw new EntityNotFoundException(
+          String.format(MessageConstants.NOT_FOUND_WITH_ID, ENTITY_NAME, id)
+        );
+      }
+      return results.get(0);
+    } catch (EntityNotFoundException e) {
+      throw e;
     } catch (Exception e) {
       log.error("Error reading user by ID: ", e);
-      return null;
+      throw new RepositoryException(
+        String.format(MessageConstants.ERROR_RETRIEVING, ENTITY_NAME),
+        e
+      );
     }
   }
   
@@ -109,10 +133,20 @@ public class UserRepositoryImpl implements UserRepository {
       );
       query.setParameter("email", email);
       List<User> results = query.getResultList();
-      return results.isEmpty() ? null : results.get(0);
+      if (results.isEmpty()) {
+        throw new EntityNotFoundException(
+          String.format(MessageConstants.NOT_FOUND_WITH_EMAIL, ENTITY_NAME, email)
+        );
+      }
+      return results.get(0);
+    } catch (EntityNotFoundException e) {
+      throw e;
     } catch (Exception e) {
       log.error("Error reading user by email: ", e);
-      return null;
+      throw new RepositoryException(
+        String.format(MessageConstants.ERROR_RETRIEVING_BY_EMAIL, ENTITY_NAME, email),
+        e
+      );
     }
   }
   
@@ -122,17 +156,18 @@ public class UserRepositoryImpl implements UserRepository {
    * is not already in use by another user.
    *
    * @param updatedUser the user entity containing updated information
-   * @throws RuntimeException if the email is already in use by another user,
+   * @throws RepositoryException if the email is already in use by another user,
    *                          if the user is not found, or if there is an error during update
    */
   @Override
   public void updateUser(User updatedUser) {
     try {
+      Objects.requireNonNull(updatedUser, MessageConstants.USER_REQUIRED);
       User existingUser = readUserByEmail(updatedUser.getEmail());
       if (existingUser != null && !existingUser.getId().equals(updatedUser.getId())) {
-        String message = "Email address already in use: " + updatedUser.getEmail();
-        log.error(message);
-        throw new RuntimeException(message);
+        throw new DuplicateEmailException(
+          String.format(MessageConstants.EMAIL_IN_USE, updatedUser.getEmail())
+        );
       }
       TypedQuery<User> query = entityManager.createQuery(
         UserRepositoryQueries.UPDATE_USER,
@@ -147,13 +182,18 @@ public class UserRepositoryImpl implements UserRepository {
       query.setParameter("id", updatedUser.getId());
       int rowsAffected = query.executeUpdate();
       if (rowsAffected == 0) {
-        String message = "User not found with ID: " + updatedUser.getId();
-        log.warn(message);
-        throw new RuntimeException(message);
+        throw new EntityNotFoundException(
+          String.format(MessageConstants.NOT_FOUND_WITH_ID, ENTITY_NAME, updatedUser.getId())
+        );
       }
+    } catch (EntityNotFoundException | DuplicateEmailException | NullPointerException e) {
+      throw e;
     } catch (Exception e) {
       log.error("Error updating user: ", e);
-      throw new RuntimeException("Error updating user", e);
+      throw new RepositoryException(
+        String.format(MessageConstants.ERROR_UPDATING, ENTITY_NAME),
+        e
+      );
     }
   }
   
@@ -162,7 +202,7 @@ public class UserRepositoryImpl implements UserRepository {
    * If no user is found with the given email, a warning is logged.
    *
    * @param email the email address of the user to delete
-   * @throws RuntimeException if there is an error during deletion
+   * @throws RepositoryException if there is an error during deletion
    */
   @Override
   public void deleteUser(String email) {
@@ -175,11 +215,18 @@ public class UserRepositoryImpl implements UserRepository {
       
       int rowsAffected = query.executeUpdate();
       if (rowsAffected == 0) {
-        log.warn("User not found with email: {}", email);
+        throw new EntityNotFoundException(
+          String.format(MessageConstants.NOT_FOUND_WITH_EMAIL, ENTITY_NAME, email)
+        );
       }
+    } catch (EntityNotFoundException e) {
+      throw e;
     } catch (Exception e) {
       log.error("Error deleting user: ", e);
-      throw new RuntimeException("Error deleting user", e);
+      throw new RepositoryException(
+        String.format(MessageConstants.ERROR_DELETING, ENTITY_NAME),
+        e
+      );
     }
   }
   
@@ -199,7 +246,10 @@ public class UserRepositoryImpl implements UserRepository {
       return query.getSingleResult();
     } catch (Exception e) {
       log.error("Error checking email existence: ", e);
-      return false;
+      throw new RepositoryException(
+        String.format(MessageConstants.ERROR_CHECKING_EMAIL, email),
+        e
+      );
     }
   }
 }

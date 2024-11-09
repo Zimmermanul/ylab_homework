@@ -1,6 +1,9 @@
 package com.mkhabibullin.infrastructure.persistence.repository.implementation;
 
 
+import com.mkhabibullin.common.MessageConstants;
+import com.mkhabibullin.domain.exception.EntityNotFoundException;
+import com.mkhabibullin.domain.exception.RepositoryException;
 import com.mkhabibullin.domain.model.HabitExecution;
 import com.mkhabibullin.infrastructure.persistence.queries.HabitExecutionRepositoryQueries;
 import com.mkhabibullin.infrastructure.persistence.repository.HabitExecutionRepository;
@@ -13,7 +16,6 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -28,6 +30,8 @@ import java.util.List;
 public class HabitExecutionRepositoryImpl implements HabitExecutionRepository {
   private static final Logger log = LoggerFactory.getLogger(HabitExecutionRepositoryImpl.class);
   
+  private static final String ENTITY_NAME = "habit execution";
+  
   @PersistenceContext
   private EntityManager entityManager;
   
@@ -36,16 +40,19 @@ public class HabitExecutionRepositoryImpl implements HabitExecutionRepository {
    * Performs a flush operation to retrieve the generated ID.
    *
    * @param execution the habit execution record to save
-   * @throws RuntimeException if there is an error during persistence
+   * @throws RepositoryException if there is an error during persistence
    */
   @Override
   public void save(HabitExecution execution) {
     try {
       entityManager.persist(execution);
-      entityManager.flush(); // to get the generated ID
+      entityManager.flush();
     } catch (Exception e) {
       log.error("Error saving habit execution: ", e);
-      throw new RuntimeException("Error saving habit execution", e);
+      throw new RepositoryException(
+        String.format(MessageConstants.ERROR_SAVING, ENTITY_NAME),
+        e
+      );
     }
   }
   
@@ -66,7 +73,10 @@ public class HabitExecutionRepositoryImpl implements HabitExecutionRepository {
       return query.getResultList();
     } catch (Exception e) {
       log.error("Error retrieving habit executions: ", e);
-      return new ArrayList<>();
+      throw new RepositoryException(
+        String.format(MessageConstants.ERROR_RETRIEVING, ENTITY_NAME),
+        e
+      );
     }
   }
   
@@ -87,14 +97,20 @@ public class HabitExecutionRepositoryImpl implements HabitExecutionRepository {
       query.setParameter("date", execution.getDate());
       query.setParameter("completed", execution.isCompleted());
       query.setParameter("id", execution.getId());
-      
       int rowsAffected = query.executeUpdate();
       if (rowsAffected == 0) {
-        log.warn("Habit execution not found with ID: {}", execution.getId());
+        throw new EntityNotFoundException(
+          String.format(MessageConstants.NOT_FOUND_WITH_ID, ENTITY_NAME, execution.getId())
+        );
       }
+    } catch (EntityNotFoundException e) {
+      throw e;
     } catch (Exception e) {
       log.error("Error updating habit execution: ", e);
-      throw new RuntimeException("Error updating habit execution", e);
+      throw new RepositoryException(
+        String.format(MessageConstants.ERROR_UPDATING, ENTITY_NAME),
+        e
+      );
     }
   }
   
@@ -112,11 +128,18 @@ public class HabitExecutionRepositoryImpl implements HabitExecutionRepository {
       if (execution != null) {
         entityManager.remove(execution);
       } else {
-        log.warn("Habit execution not found with ID: {}", executionId);
+        throw new EntityNotFoundException(
+          String.format(MessageConstants.NOT_FOUND_WITH_ID, ENTITY_NAME, executionId)
+        );
       }
+    } catch (EntityNotFoundException e) {
+      throw e;
     } catch (Exception e) {
       log.error("Error deleting habit execution: ", e);
-      throw new RuntimeException("Error deleting habit execution", e);
+      throw new RepositoryException(
+        String.format(MessageConstants.ERROR_DELETING, ENTITY_NAME),
+        e
+      );
     }
   }
   
@@ -135,10 +158,20 @@ public class HabitExecutionRepositoryImpl implements HabitExecutionRepository {
       );
       query.setParameter("id", id);
       List<HabitExecution> results = query.getResultList();
-      return results.isEmpty() ? null : results.get(0);
+      if (results.isEmpty()) {
+        throw new EntityNotFoundException(
+          String.format(MessageConstants.NOT_FOUND_WITH_ID, ENTITY_NAME, id)
+        );
+      }
+      return results.get(0);
+    } catch (EntityNotFoundException e) {
+      throw e;
     } catch (Exception e) {
       log.error("Error getting habit execution by ID: ", e);
-      return null;
+      throw new RepositoryException(
+        String.format(MessageConstants.ERROR_RETRIEVING, ENTITY_NAME),
+        e
+      );
     }
   }
   
@@ -163,7 +196,10 @@ public class HabitExecutionRepositoryImpl implements HabitExecutionRepository {
       return query.getResultList();
     } catch (Exception e) {
       log.error("Error retrieving habit executions by date range: ", e);
-      return new ArrayList<>();
+      throw new RepositoryException(
+        String.format(MessageConstants.ERROR_RETRIEVING_BY_DATE, ENTITY_NAME),
+        e
+      );
     }
   }
 }

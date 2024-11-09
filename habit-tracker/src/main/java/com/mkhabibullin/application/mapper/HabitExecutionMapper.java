@@ -60,17 +60,12 @@ public interface HabitExecutionMapper {
     Map<DayOfWeek, Long> completionsByDay
   );
   
-  /**
-   * Creates a progress report DTO containing habit performance analysis.
-   *
-   * @param report         textual analysis of habit progress
-   * @param improvingTrend indicates if the habit shows an improving trend
-   * @param longestStreak  the longest streak achieved for this habit
-   * @param suggestions    list of suggestions for habit improvement
-   * @return the habit progress report DTO
-   */
+  @Mapping(target = "report", source = "reportData")
+  @Mapping(target = "improvingTrend", source = "improvingTrend")
+  @Mapping(target = "longestStreak", source = "longestStreak")
+  @Mapping(target = "suggestions", source = "suggestions")
   HabitProgressReportDTO createProgressReportDto(
-    String report,
+    Map<String, String> reportData,
     boolean improvingTrend,
     int longestStreak,
     List<String> suggestions

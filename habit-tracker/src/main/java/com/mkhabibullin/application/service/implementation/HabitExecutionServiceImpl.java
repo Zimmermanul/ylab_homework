@@ -1,6 +1,8 @@
 package com.mkhabibullin.application.service.implementation;
 
 import com.mkhabibullin.application.service.HabitExecutionService;
+import com.mkhabibullin.common.MessageConstants;
+import com.mkhabibullin.domain.exception.HabitNotFoundException;
 import com.mkhabibullin.domain.model.Habit;
 import com.mkhabibullin.domain.model.HabitExecution;
 import com.mkhabibullin.infrastructure.persistence.repository.HabitExecutionRepository;
@@ -12,7 +14,10 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * Implementation of the HabitExecutionService interface that provides functionality
@@ -59,7 +64,7 @@ public class HabitExecutionServiceImpl implements HabitExecutionService {
    * @return a list of HabitExecution objects representing the execution history
    */
   @Override
-  public List<HabitExecution> getHabitExecutionHistory(Long habitId) {
+  public List<HabitExecution> getAll(Long habitId) {
     return executionRepository.getByHabitId(habitId);
   }
   
@@ -121,33 +126,33 @@ public class HabitExecutionServiceImpl implements HabitExecutionService {
    * @param startDate the start date of the range
    * @param endDate   the end date of the range
    * @return a string containing the progress report
-   * @throws IllegalArgumentException if the habit is not found
+   * @throws HabitNotFoundException if the habit is not found
    */
   @Override
-  public String generateProgressReport(Long habitId, LocalDate startDate, LocalDate endDate) {
+  public Map<String, String> generateProgressReport(Long habitId, LocalDate startDate, LocalDate endDate) {
     Habit habit = habitRepository.getById(habitId);
     if (habit == null) {
-      throw new IllegalArgumentException("Habit not found");
+      throw new HabitNotFoundException(String.format(MessageConstants.HABIT_NOT_FOUND, habitId));
     }
-    
     int currentStreak = getCurrentStreak(habitId);
     double successPercentage = getSuccessPercentage(habitId, startDate, endDate);
-    List<HabitExecution> executions = executionRepository.getByHabitId(habitId);
-    
-    StringBuilder report = new StringBuilder();
-    report.append("Progress Report for: ").append(habit.getName()).append("\n");
-    report.append("Period: ").append(startDate).append(" to ").append(endDate).append("\n");
-    report.append("Current Streak: ").append(currentStreak).append(" days\n");
-    report.append("Success Rate: ").append(String.format("%.2f%%", successPercentage)).append("\n");
-    report.append("Execution History:\n");
-    
-    executions.stream()
+    List<HabitExecution> executions = executionRepository.getByHabitId(habitId).stream()
       .filter(e -> !e.getDate().isBefore(startDate) && !e.getDate().isAfter(endDate))
       .sorted(Comparator.comparing(HabitExecution::getDate))
-      .forEach(e -> report.append(e.getDate()).append(": ")
-        .append(e.isCompleted() ? "Completed" : "Not completed").append("\n"));
-    
-    return report.toString();
+      .toList();
+    StringBuilder history = new StringBuilder();
+    executions.forEach(e ->
+      history.append(e.getDate()).append(": ")
+        .append(e.isCompleted() ? "Completed" : "Not completed").append("\n")
+    );
+    Map<String, String> reportData = new LinkedHashMap<>();
+    reportData.put("habitName", habit.getName());
+    reportData.put("startDate", startDate.toString());
+    reportData.put("endDate", endDate.toString());
+    reportData.put("currentStreak", currentStreak + " days");
+    reportData.put("successRate", String.format("%.2f%%", successPercentage));
+    reportData.put("executionHistory", history.toString());
+    return reportData;
   }
   
   /**
@@ -215,49 +220,78 @@ public class HabitExecutionServiceImpl implements HabitExecutionService {
                               .count() / (double) history.size();
     
     suggestions.add("Suggestions for improving your '" + habit.getName() + "' habit:");
-    
-    if (completionRate < 0.5) {
-      suggestions.add("- Your completion rate is below 50%. Let's work on improving that!");
-      suggestions.add("- Consider breaking down '" + habit.getName() + "' into smaller, more manageable tasks.");
-      suggestions.add("- Set reminders on your phone or leave notes to help you remember to " + habit.getName() + ".");
-      if (habit.getFrequency() == Habit.Frequency.DAILY) {
-        suggestions.add("- For daily habits like this, try linking it to an existing daily routine.");
-      }
-    } else if (completionRate < 0.8) {
-      suggestions.add("- You're doing well with a completion rate above 50%! Let's aim even higher.");
-      suggestions.add("- Reflect on what's working well when you successfully complete '" + habit.getName() + "'.");
-      suggestions.add("- Consider rewarding yourself after each successful week to reinforce the habit.");
-      if (habit.getFrequency() == Habit.Frequency.WEEKLY) {
-        suggestions.add("- For weekly habits, try to establish a specific day and time for '" + habit.getName() + "'.");
-      }
-    } else {
-      suggestions.add("- Excellent work! You're consistently keeping up with '" + habit.getName() + "'.");
-      suggestions.add("- Consider increasing the challenge. Can you extend the duration or intensity of '" + habit.getName() + "'?");
-      suggestions.add("- Share your success with friends or family to stay motivated and inspire others.");
-      if (habit.getFrequency() == Habit.Frequency.DAILY) {
-        suggestions.add("- For daily habits you're mastering, consider adding a related habit to build upon your success.");
-      }
-    }
-    
-    if (habit.getDescription().toLowerCase().contains("exercise") ||
-        habit.getDescription().toLowerCase().contains("workout")) {
-      suggestions.add("- For exercise habits, remember to vary your routine to stay engaged and work different muscle groups.");
-      suggestions.add("- Consider tracking additional metrics like duration or intensity to see your progress over time.");
-    }
-    
-    if (habit.getDescription().toLowerCase().contains("read") ||
-        habit.getDescription().toLowerCase().contains("study")) {
-      suggestions.add("- For reading or studying habits, try the Pomodoro Technique: 25 minutes of focused work followed by a 5-minute break.");
-      suggestions.add("- Keep a log of what you've read or learned to see your progress and stay motivated.");
-    }
-    
+    List<String> performanceSuggestions = switch (CompletionLevel.fromRate(completionRate)) {
+      case LOW -> List.of(
+        "- Your completion rate is below 50%. Let's work on improving that!",
+        "- Consider breaking down '" + habit.getName() + "' into smaller, more manageable tasks.",
+        "- Set reminders on your phone or leave notes to help you remember to " + habit.getName() + "."
+      );
+      case MEDIUM -> List.of(
+        "- You're doing well with a completion rate above 50%! Let's aim even higher.",
+        "- Reflect on what's working well when you successfully complete '" + habit.getName() + "'.",
+        "- Consider rewarding yourself after each successful week to reinforce the habit."
+      );
+      case HIGH -> List.of(
+        "- Excellent work! You're consistently keeping up with '" + habit.getName() + "'.",
+        "- Consider increasing the challenge. Can you extend the duration or intensity of '" + habit.getName() + "'?",
+        "- Share your success with friends or family to stay motivated and inspire others."
+      );
+    };
+    List<String> frequencySuggestions = switch (habit.getFrequency()) {
+      case DAILY -> switch (CompletionLevel.fromRate(completionRate)) {
+        case LOW, MEDIUM -> List.of("- For daily habits like this, try linking it to an existing daily routine.");
+        case HIGH ->
+          List.of("- For daily habits you're mastering, consider adding a related habit to build upon your success.");
+      };
+      case WEEKLY ->
+        List.of("- For weekly habits, try to establish a specific day and time for '" + habit.getName() + "'.");
+    };
+    List<String> categorySuggestions = Pattern.compile("\\b(exercise|workout|read|study)\\b")
+      .matcher(habit.getDescription().toLowerCase())
+      .results()
+      .map(result -> switch (result.group().toLowerCase()) {
+        case "exercise", "workout" -> List.of(
+          "- For exercise habits, remember to vary your routine to stay engaged and work different muscle groups.",
+          "- Consider tracking additional metrics like duration or intensity to see your progress over time."
+        );
+        case "read", "study" -> List.of(
+          "- For reading or studying habits, try the Pomodoro Technique: 25 minutes of focused work followed by a 5-minute break.",
+          "- Keep a log of what you've read or learned to see your progress and stay motivated."
+        );
+        default -> List.<String>of();
+      })
+      .flatMap(List::stream)
+      .toList();
     long daysSinceCreation = ChronoUnit.DAYS.between(habit.getCreationDate(), LocalDate.now());
-    if (daysSinceCreation > 30) {
-      suggestions.add("- You've been working on this habit for over a month. Take a moment to reflect on how far you've come!");
-    } else {
-      suggestions.add("- This habit is still relatively new. Be patient and consistent, and you'll see results over time.");
+    List<String> timeBasedSuggestions = List.of(
+      daysSinceCreation > 30
+        ? "- You've been working on this habit for over a month. Take a moment to reflect on how far you've come!"
+        : "- This habit is still relatively new. Be patient and consistent, and you'll see results over time."
+    );
+    suggestions.addAll(performanceSuggestions);
+    suggestions.addAll(frequencySuggestions);
+    suggestions.addAll(categorySuggestions);
+    suggestions.addAll(timeBasedSuggestions);
+    return suggestions;
+  }
+  
+  private enum CompletionLevel {
+    LOW(0.0, 0.5),
+    MEDIUM(0.5, 0.8),
+    HIGH(0.8, 1.0);
+    
+    private final double min;
+    private final double max;
+    
+    CompletionLevel(double min, double max) {
+      this.min = min;
+      this.max = max;
     }
     
-    return suggestions;
+    public static CompletionLevel fromRate(double rate) {
+      if (rate < 0.5) return LOW;
+      if (rate < 0.8) return MEDIUM;
+      return HIGH;
+    }
   }
 }

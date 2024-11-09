@@ -20,7 +20,6 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 
 /**
  * Aspect for auditing method executions using Spring AOP.
@@ -67,9 +66,6 @@ public class AuditedAspect {
    */
   @Around(value = "@annotation(audited)", argNames = "joinPoint,audited")
   public Object writeAuditLog(ProceedingJoinPoint joinPoint, Audited audited) throws Throwable {
-    if (isTestEnvironment()) {
-      return joinPoint.proceed();
-    }
     log.debug("Starting audit logging for method: {}", joinPoint.getSignature().getName());
     long startTime = System.currentTimeMillis();
     MethodSignature signature = (MethodSignature) joinPoint.getSignature();
@@ -143,11 +139,5 @@ public class AuditedAspect {
       requestUri,
       requestMethod
     );
-  }
-  
-  private boolean isTestEnvironment() {
-    return Arrays.asList(environment.getActiveProfiles()).contains("test") ||
-           Arrays.stream(environment.getActiveProfiles())
-             .anyMatch(profile -> profile.contains("test"));
   }
 }

@@ -2,8 +2,8 @@ package tests;
 
 import com.mkhabibullin.application.mapper.HabitMapper;
 import com.mkhabibullin.application.service.HabitService;
-import com.mkhabibullin.application.validation.HabitMapperValidator;
-import com.mkhabibullin.domain.exception.AuthenticationException;
+import com.mkhabibullin.application.validation.HabitValidator;
+import com.mkhabibullin.domain.exception.CustomAuthenticationException;
 import com.mkhabibullin.domain.exception.ValidationException;
 import com.mkhabibullin.domain.model.Habit;
 import com.mkhabibullin.presentation.controller.HabitRestController;
@@ -32,7 +32,7 @@ class HabitRestControllerTest extends BaseTest {
   @Mock
   private HabitMapper habitMapper;
   @Mock
-  private HabitMapperValidator habitValidator;
+  private HabitValidator habitValidator;
   private HabitRestController habitController;
   
   @Override
@@ -52,11 +52,9 @@ class HabitRestControllerTest extends BaseTest {
       .content(toJson(createDTO)))
       .andExpect(status().isCreated())
       .andExpect(jsonPath("$.message").value("Habit created successfully"));
-    verify(habitService).createHabit(
+    verify(habitService).create(
       eq(TEST_USER_EMAIL),
-      eq(createDTO.name()),
-      eq(createDTO.description()),
-      eq(createDTO.frequency())
+      eq(createDTO)
     );
   }
   
@@ -86,7 +84,7 @@ class HabitRestControllerTest extends BaseTest {
       createTestHabitDTO(1L, "Habit 1"),
       createTestHabitDTO(2L, "Habit 2")
     );
-    given(habitService.viewHabits(TEST_USER_ID, filterDate, true))
+    given(habitService.getAll(TEST_USER_ID, filterDate, true))
       .willReturn(habits);
     given(habitMapper.habitsToResponseDtos(habits))
       .willReturn(habitDTOs);
@@ -101,21 +99,19 @@ class HabitRestControllerTest extends BaseTest {
   
   @Test
   void updateHabitWithValidDataShouldUpdateHabit() throws Exception {
-    String habitId = "1";
+    String habitId = "123";
     UpdateHabitDTO updateDTO = new UpdateHabitDTO(
-      "Updated Exercise",
-      "45 minutes of exercise",
-      Habit.Frequency.WEEKLY
+      "Morning Yoga",
+      "15 minutes of yoga routine",
+      Habit.Frequency.DAILY
     );
     performRequest(put("/api/habits/" + habitId)
       .content(toJson(updateDTO)))
       .andExpect(status().isOk())
       .andExpect(jsonPath("$.message").value("Habit updated successfully"));
-    verify(habitService).editHabit(
+    verify(habitService).edit(
       eq(habitId),
-      eq(updateDTO.name()),
-      eq(updateDTO.description()),
-      eq(updateDTO.frequency())
+      eq(updateDTO)
     );
   }
   
@@ -140,14 +136,14 @@ class HabitRestControllerTest extends BaseTest {
     Long habitId = 1L;
     performRequest(delete("/api/habits/" + habitId))
       .andExpect(status().isNoContent());
-    verify(habitService).deleteHabit(habitId);
+    verify(habitService).delete(habitId);
   }
   
   @Test
   void deleteHabitWhenNotAuthenticatedShouldReturnUnauthorized() throws Exception {
     Long habitId = 1L;
-    doThrow(new AuthenticationException("User not authenticated"))
-      .when(habitService).deleteHabit(habitId);
+    doThrow(new CustomAuthenticationException("User not authenticated"))
+      .when(habitService).delete(habitId);
     performRequest(delete("/api/habits/" + habitId))
       .andExpect(status().isUnauthorized())
       .andExpect(jsonPath("$.message").value("User not authenticated"));

@@ -1,6 +1,8 @@
 package com.mkhabibullin.application.service.implementation;
 
 import com.mkhabibullin.application.service.AuditLogService;
+import com.mkhabibullin.common.MessageConstants;
+import com.mkhabibullin.domain.exception.ValidationException;
 import com.mkhabibullin.domain.model.AuditLog;
 import com.mkhabibullin.domain.model.AuditStatistics;
 import com.mkhabibullin.infrastructure.persistence.repository.AuditLogRepository;
@@ -66,7 +68,7 @@ public class AuditLogServiceImpl implements AuditLogService {
   @Override
   public List<AuditLog> getRecentLogs(int limit) {
     if (limit <= 0) {
-      throw new IllegalArgumentException("Limit must be greater than 0");
+      throw new ValidationException(MessageConstants.LIMIT_MUST_BE_GREATER_THAN);
     }
     return auditLogRepository.findRecentLogs(limit);
   }
@@ -113,11 +115,9 @@ public class AuditLogServiceImpl implements AuditLogService {
     Map<String, Long> operationCounts = calculateOperationCounts(logs);
     Map<String, Long> userActivityCounts = calculateUserActivityCounts(logs);
     Map<String, Double> averageTimeByOperation = calculateAverageTimeByOperation(logs);
-    
     String mostActiveUser = findMostActiveUser(userActivityCounts);
     String mostCommonOperation = findMostCommonOperation(operationCounts);
     double averageExecutionTime = calculateAverageExecutionTime(logs);
-    
     return new AuditStatistics(
       logs.size(),
       averageExecutionTime,
@@ -135,8 +135,7 @@ public class AuditLogServiceImpl implements AuditLogService {
     Objects.requireNonNull(startDateTime, "startDateTime must not be null");
     Objects.requireNonNull(endDateTime, "endDateTime must not be null");
     if (startDateTime.isAfter(endDateTime)) {
-      throw new IllegalArgumentException(
-        "startDateTime must not be after endDateTime");
+      throw new ValidationException(MessageConstants.INVALID_DATE_RANGE);
     }
   }
   

@@ -1,5 +1,8 @@
 package com.mkhabibullin.infrastructure.persistence.repository.implementation;
 
+import com.mkhabibullin.common.MessageConstants;
+import com.mkhabibullin.domain.exception.EntityNotFoundException;
+import com.mkhabibullin.domain.exception.RepositoryException;
 import com.mkhabibullin.domain.model.Habit;
 import com.mkhabibullin.infrastructure.persistence.queries.HabitRepositoryQueries;
 import com.mkhabibullin.infrastructure.persistence.repository.HabitRepository;
@@ -11,8 +14,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Implementation of HabitRepository interface.
@@ -25,6 +28,7 @@ import java.util.List;
 @Transactional
 public class HabitRepositoryImpl implements HabitRepository {
   private static final Logger log = LoggerFactory.getLogger(HabitRepositoryImpl.class);
+  private static final String ENTITY_NAME = "habit";
   
   @PersistenceContext
   private EntityManager entityManager;
@@ -34,16 +38,22 @@ public class HabitRepositoryImpl implements HabitRepository {
    * Performs a flush operation to ensure the habit is persisted and ID is generated.
    *
    * @param habit the habit entity to create
-   * @throws RuntimeException if there is an error during creation
+   * @throws RepositoryException if there is an error during creation
    */
   @Override
   public void create(Habit habit) {
     try {
+      Objects.requireNonNull(habit, "Habit must not be null");
       entityManager.persist(habit);
       entityManager.flush();
+    } catch (NullPointerException e) {
+      throw e;
     } catch (Exception e) {
       log.error("Error creating habit: ", e);
-      throw new RuntimeException("Error creating habit", e);
+      throw new RepositoryException(
+        String.format(MessageConstants.ERROR_SAVING, ENTITY_NAME),
+        e
+      );
     }
   }
   
@@ -52,12 +62,15 @@ public class HabitRepositoryImpl implements HabitRepository {
    * If no habit is found with the given ID, a warning is logged.
    *
    * @param habit the habit entity containing updated information
-   * @throws RuntimeException if there is an error during update
+   * @throws RepositoryException if there is an error during update
    */
   @Override
   public void update(Habit habit) {
     try {
-      TypedQuery<Habit> query = entityManager.createQuery(HabitRepositoryQueries.UPDATE_HABIT, Habit.class);
+      TypedQuery<Habit> query = entityManager.createQuery(
+        HabitRepositoryQueries.UPDATE_HABIT,
+        Habit.class
+      );
       query.setParameter("name", habit.getName());
       query.setParameter("description", habit.getDescription());
       query.setParameter("frequency", habit.getFrequency());
@@ -66,11 +79,18 @@ public class HabitRepositoryImpl implements HabitRepository {
       
       int rowsAffected = query.executeUpdate();
       if (rowsAffected == 0) {
-        log.warn("No habit found with ID: {}", habit.getId());
+        throw new EntityNotFoundException(
+          String.format(MessageConstants.NOT_FOUND_WITH_ID, ENTITY_NAME, habit.getId())
+        );
       }
+    } catch (EntityNotFoundException e) {
+      throw e;
     } catch (Exception e) {
       log.error("Error updating habit: ", e);
-      throw new RuntimeException("Error updating habit", e);
+      throw new RepositoryException(
+        String.format(MessageConstants.ERROR_UPDATING, ENTITY_NAME),
+        e
+      );
     }
   }
   
@@ -79,7 +99,7 @@ public class HabitRepositoryImpl implements HabitRepository {
    * If no habit is found with the given ID, a warning is logged.
    *
    * @param id the unique identifier of the habit to delete
-   * @throws RuntimeException if there is an error during deletion
+   * @throws RepositoryException if there is an error during deletion
    */
   @Override
   public void delete(Long id) {
@@ -88,11 +108,18 @@ public class HabitRepositoryImpl implements HabitRepository {
       if (habit != null) {
         entityManager.remove(habit);
       } else {
-        log.warn("No habit found with ID: {}", id);
+        throw new EntityNotFoundException(
+          String.format(MessageConstants.NOT_FOUND_WITH_ID, ENTITY_NAME, id)
+        );
       }
+    } catch (EntityNotFoundException e) {
+      throw e;
     } catch (Exception e) {
       log.error("Error deleting habit: ", e);
-      throw new RuntimeException("Error deleting habit", e);
+      throw new RepositoryException(
+        String.format(MessageConstants.ERROR_DELETING, ENTITY_NAME),
+        e
+      );
     }
   }
   
@@ -111,7 +138,10 @@ public class HabitRepositoryImpl implements HabitRepository {
       return query.getResultList();
     } catch (Exception e) {
       log.error("Error reading all habits: ", e);
-      return new ArrayList<>();
+      throw new RepositoryException(
+        String.format(MessageConstants.ERROR_RETRIEVING, ENTITY_NAME),
+        e
+      );
     }
   }
   
@@ -132,7 +162,10 @@ public class HabitRepositoryImpl implements HabitRepository {
       return query.getResultList();
     } catch (Exception e) {
       log.error("Error getting habits by user ID: ", e);
-      return new ArrayList<>();
+      throw new RepositoryException(
+        String.format(MessageConstants.ERROR_RETRIEVING_BY_USER, ENTITY_NAME, userId),
+        e
+      );
     }
   }
   
@@ -151,10 +184,20 @@ public class HabitRepositoryImpl implements HabitRepository {
       );
       query.setParameter("id", id);
       List<Habit> results = query.getResultList();
-      return results.isEmpty() ? null : results.get(0);
+      if (results.isEmpty()) {
+        throw new EntityNotFoundException(
+          String.format(MessageConstants.NOT_FOUND_WITH_ID, ENTITY_NAME, id)
+        );
+      }
+      return results.get(0);
+    } catch (EntityNotFoundException e) {
+      throw e;
     } catch (Exception e) {
       log.error("Error getting habit by ID: ", e);
-      return null;
+      throw new RepositoryException(
+        String.format(MessageConstants.ERROR_RETRIEVING, ENTITY_NAME),
+        e
+      );
     }
   }
 }

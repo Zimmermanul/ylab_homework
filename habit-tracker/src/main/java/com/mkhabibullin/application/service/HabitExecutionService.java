@@ -5,6 +5,7 @@ import com.mkhabibullin.domain.model.HabitExecution;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Service interface for managing habit executions in a habit tracking application.
@@ -27,7 +28,7 @@ public interface HabitExecutionService {
    * @param habitId the ID of the habit
    * @return a list of HabitExecution objects representing the execution history
    */
-  List<HabitExecution> getHabitExecutionHistory(Long habitId);
+  List<HabitExecution> getAll(Long habitId);
   
   /**
    * Calculates the current streak (consecutive days of completion) for a habit.
@@ -53,10 +54,9 @@ public interface HabitExecutionService {
    * @param habitId   the ID of the habit
    * @param startDate the start date of the range
    * @param endDate   the end date of the range
-   * @return a string containing the progress report
-   * @throws IllegalArgumentException if the habit is not found
+   * @return a map of string containing the progress report
    */
-  String generateProgressReport(Long habitId, LocalDate startDate, LocalDate endDate);
+  Map<String, String> generateProgressReport(Long habitId, LocalDate startDate, LocalDate endDate);
   
   /**
    * Determines if there's an improving trend in habit execution.

@@ -3,13 +3,16 @@ package com.mkhabibullin.presentation.controller;
 
 import com.mkhabibullin.application.mapper.HabitExecutionMapper;
 import com.mkhabibullin.application.service.HabitExecutionService;
-import com.mkhabibullin.application.validation.HabitExecutionMapperValidator;
+import com.mkhabibullin.application.validation.HabitExecutionValidator;
 import com.mkhabibullin.common.Audited;
-import com.mkhabibullin.domain.exception.AuthenticationException;
-import com.mkhabibullin.domain.exception.EntityNotFoundException;
+import com.mkhabibullin.common.MessageConstants;
+import com.mkhabibullin.domain.exception.HabitNotFoundException;
+import com.mkhabibullin.domain.exception.InvalidDateRangeException;
 import com.mkhabibullin.domain.exception.ValidationException;
+import com.mkhabibullin.domain.model.Habit;
 import com.mkhabibullin.domain.model.HabitExecution;
 import com.mkhabibullin.domain.model.User;
+import com.mkhabibullin.infrastructure.persistence.repository.HabitRepository;
 import com.mkhabibullin.presentation.dto.ErrorDTO;
 import com.mkhabibullin.presentation.dto.MessageDTO;
 import com.mkhabibullin.presentation.dto.habitExecution.HabitExecutionRequestDTO;
@@ -23,14 +26,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -68,7 +69,8 @@ public class HabitExecutionRestController {
   private static final Logger log = LoggerFactory.getLogger(HabitExecutionRestController.class);
   private final HabitExecutionService executionService;
   private final HabitExecutionMapper executionMapper;
-  private final HabitExecutionMapperValidator executionValidator;
+  private final HabitExecutionValidator executionValidator;
+  private final HabitRepository habitRepository;
   
   /**
    * Constructs a new HabitExecutionRestController with required dependencies.
@@ -79,10 +81,12 @@ public class HabitExecutionRestController {
    */
   public HabitExecutionRestController(HabitExecutionService executionService,
                                       HabitExecutionMapper executionMapper,
-                                      HabitExecutionMapperValidator executionValidator) {
+                                      HabitExecutionValidator executionValidator,
+                                      HabitRepository habitRepository) {
     this.executionService = executionService;
     this.executionMapper = executionMapper;
     this.executionValidator = executionValidator;
+    this.habitRepository = habitRepository;
   }
   
   
@@ -194,7 +198,7 @@ public class HabitExecutionRestController {
     @PathVariable("habitId") Long habitId,
     @Parameter(hidden = true) @SessionAttribute("user") User currentUser) {
     log.debug("Retrieving execution history for habit {} by user {}", habitId, currentUser.getEmail());
-    List<HabitExecution> history = executionService.getHabitExecutionHistory(habitId);
+    List<HabitExecution> history = executionService.getAll(habitId);
     List<HabitExecutionResponseDTO> historyDTOs = executionMapper.executionsToResponseDtos(history);
     log.info("Retrieved {} execution records for habit {} by user {}",
       historyDTOs.size(), habitId, currentUser.getEmail());
@@ -261,7 +265,7 @@ public class HabitExecutionRestController {
     log.debug("Retrieving statistics for habit {} by user {} from {} to {}",
       habitId, currentUser.getEmail(), startDate, endDate);
     validateDateRange(startDate, endDate);
-    List<HabitExecution> history = executionService.getHabitExecutionHistory(habitId);
+    List<HabitExecution> history = executionService.getAll(habitId);
     List<HabitExecution> filteredHistory = filterHistoryByDateRange(history, startDate, endDate);
     int currentStreak = executionService.getCurrentStreak(habitId);
     double successPercentage = executionService.getSuccessPercentage(habitId, startDate, endDate);
@@ -334,18 +338,22 @@ public class HabitExecutionRestController {
     @RequestParam LocalDate startDate,
     @Parameter(description = "End date (YYYY-MM-DD)", required = true)
     @RequestParam LocalDate endDate,
-    @Parameter(hidden = true) @SessionAttribute("user") User currentUser) {
+    @Parameter(hidden = true) @SessionAttribute("user") User currentUser) throws ValidationException {
     log.debug("Generating progress report for habit {} by user {} from {} to {}",
       habitId, currentUser.getEmail(), startDate, endDate);
-    validateDateRange(startDate, endDate);
-    List<HabitExecution> history = executionService.getHabitExecutionHistory(habitId);
+    executionValidator.validateProgressReportRequest(startDate, endDate);
+    Habit habit = habitRepository.getById(habitId);
+    if (habit == null) {
+      throw new HabitNotFoundException(String.format(MessageConstants.HABIT_NOT_FOUND, habitId));
+    }
+    List<HabitExecution> history = executionService.getAll(habitId);
     List<HabitExecution> filteredHistory = filterHistoryByDateRange(history, startDate, endDate);
-    String report = executionService.generateProgressReport(habitId, startDate, endDate);
+    Map<String, String> detailedReport = executionService.generateProgressReport(habitId, startDate, endDate);
     boolean improving = executionService.isImprovingTrend(filteredHistory);
     int longestStreak = executionService.calculateLongestStreak(filteredHistory);
     List<String> suggestions = executionService.generateSuggestions(null, filteredHistory);
     HabitProgressReportDTO progressReport = executionMapper.createProgressReportDto(
-      report,
+      detailedReport,
       improving,
       longestStreak,
       suggestions
@@ -472,13 +480,12 @@ public class HabitExecutionRestController {
   
   private void validateDateRange(LocalDate startDate, LocalDate endDate) {
     if (startDate == null || endDate == null) {
-      throw new IllegalArgumentException("Start date and end date are required");
+      throw new InvalidDateRangeException(MessageConstants.DATES_REQUIRED);
     }
     if (endDate.isBefore(startDate)) {
-      throw new IllegalArgumentException("End date cannot be before start date");
+      throw new InvalidDateRangeException(MessageConstants.INVALID_DATE_RANGE);
     }
   }
-  
   private List<HabitExecution> filterHistoryByDateRange(
     List<HabitExecution> history,
     LocalDate startDate,
@@ -496,80 +503,5 @@ public class HabitExecutionRestController {
         e -> e.getDate().getDayOfWeek(),
         Collectors.counting()
       ));
-  }
-  
-  /**
-   * Handles illegal argument exceptions thrown during request processing.
-   *
-   * @param ex The illegal argument exception that was thrown
-   * @return ResponseEntity containing error details
-   */
-  @ExceptionHandler(IllegalArgumentException.class)
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
-  public ResponseEntity<ErrorDTO> handleIllegalArgumentException(IllegalArgumentException ex) {
-    log.error("Validation error: {}", ex.getMessage());
-    return ResponseEntity
-      .status(HttpStatus.BAD_REQUEST)
-      .body(new ErrorDTO(ex.getMessage(), System.currentTimeMillis()));
-  }
-  
-  /**
-   * Handles entity not found exceptions thrown during request processing.
-   *
-   * @param ex The entity not found exception that was thrown
-   * @return ResponseEntity containing error details
-   */
-  @ExceptionHandler(EntityNotFoundException.class)
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  public ResponseEntity<ErrorDTO> handleEntityNotFoundException(EntityNotFoundException ex) {
-    log.error("Entity not found: {}", ex.getMessage());
-    return ResponseEntity
-      .status(HttpStatus.NOT_FOUND)
-      .body(new ErrorDTO(ex.getMessage(), System.currentTimeMillis()));
-  }
-  
-  /**
-   * Handles authentication exceptions thrown during request processing.
-   *
-   * @param ex The authentication exception that was thrown
-   * @return ResponseEntity containing error details
-   */
-  @ExceptionHandler(AuthenticationException.class)
-  @ResponseStatus(HttpStatus.UNAUTHORIZED)
-  public ResponseEntity<ErrorDTO> handleAuthenticationException(AuthenticationException ex) {
-    log.error("Authentication error: {}", ex.getMessage());
-    return ResponseEntity
-      .status(HttpStatus.UNAUTHORIZED)
-      .body(new ErrorDTO(ex.getMessage(), System.currentTimeMillis()));
-  }
-  
-  /**
-   * Handles constraint violation exceptions thrown during request processing.
-   *
-   * @param ex The constraint violation exception that was thrown
-   * @return ResponseEntity containing error details
-   */
-  @ExceptionHandler(ConstraintViolationException.class)
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
-  public ResponseEntity<ErrorDTO> handleConstraintViolationException(ConstraintViolationException ex) {
-    log.error("Validation error: {}", ex.getMessage());
-    return ResponseEntity
-      .status(HttpStatus.BAD_REQUEST)
-      .body(new ErrorDTO(ex.getMessage(), System.currentTimeMillis()));
-  }
-  
-  /**
-   * Handles any unexpected exceptions thrown during request processing.
-   *
-   * @param ex The unexpected exception that was thrown
-   * @return ResponseEntity containing error details
-   */
-  @ExceptionHandler(Exception.class)
-  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-  public ResponseEntity<ErrorDTO> handleException(Exception ex) {
-    log.error("Unexpected error: ", ex);
-    return ResponseEntity
-      .status(HttpStatus.INTERNAL_SERVER_ERROR)
-      .body(new ErrorDTO("Internal server error", System.currentTimeMillis()));
   }
 }

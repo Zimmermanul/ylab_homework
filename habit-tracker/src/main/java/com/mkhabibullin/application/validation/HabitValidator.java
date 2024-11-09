@@ -1,5 +1,6 @@
 package com.mkhabibullin.application.validation;
 
+import com.mkhabibullin.common.MessageConstants;
 import com.mkhabibullin.domain.exception.ValidationException;
 import com.mkhabibullin.presentation.dto.habit.CreateHabitDTO;
 import com.mkhabibullin.presentation.dto.habit.UpdateHabitDTO;
@@ -8,16 +9,14 @@ import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 
+import java.util.Optional;
+
 /**
  * Spring Validator implementation for habit-related DTOs.
  * Provides validation for CreateHabitDTO and UpdateHabitDTO objects.
  */
 @Component
-public class HabitMapperValidator implements Validator {
-  
-  private static final String NAME_FIELD = "name";
-  private static final String FREQUENCY_FIELD = "frequency";
-  private static final String DESCRIPTION_FIELD = "description";
+public class HabitValidator implements Validator {
   
   /**
    * Determines if this validator can validate instances of the supplied class.
@@ -39,10 +38,6 @@ public class HabitMapperValidator implements Validator {
    */
   @Override
   public void validate(Object target, Errors errors) {
-    if (target == null) {
-      errors.reject("habit.null", "Habit DTO cannot be null");
-      return;
-    }
     if (target instanceof CreateHabitDTO) {
       validateCreateHabitDTO((CreateHabitDTO) target, errors);
     } else if (target instanceof UpdateHabitDTO) {
@@ -73,50 +68,80 @@ public class HabitMapperValidator implements Validator {
   public void validateUpdateHabitDTO(UpdateHabitDTO dto) throws ValidationException {
     BeanPropertyBindingResult errors = new BeanPropertyBindingResult(dto, "updateHabitDTO");
     validate(dto, errors);
-    
     if (errors.hasErrors()) {
       throw new ValidationException(buildValidationErrorMessage(errors));
     }
   }
   
   private void validateCreateHabitDTO(CreateHabitDTO dto, Errors errors) {
-    if (dto.name() == null || dto.name().trim().isEmpty()) {
-      errors.rejectValue(NAME_FIELD, "habit.name.required",
-        "Habit name is required");
-    } else if (dto.name().trim().length() < 2) {
-      errors.rejectValue(NAME_FIELD, "habit.name.tooShort",
-        "Habit name must be at least 2 characters long");
+    String name = Optional.ofNullable(dto.name())
+      .map(String::trim)
+      .orElse("");
+    if (name.isEmpty()) {
+      errors.rejectValue(
+        MessageConstants.FIELD_NAME,
+        MessageConstants.ERROR_NAME_REQUIRED,
+        MessageConstants.HABIT_NAME_REQUIRED
+      );
+    } else if (name.length() < 2) {
+      errors.rejectValue(
+        MessageConstants.FIELD_NAME,
+        MessageConstants.ERROR_NAME_TOO_SHORT,
+        MessageConstants.HABIT_NAME_TOO_SHORT
+      );
     }
-    if (dto.frequency() == null) {
-      errors.rejectValue(FREQUENCY_FIELD, "habit.frequency.required",
-        "Habit frequency is required");
-    }
-    if (dto.description() != null && dto.description().trim().length() > 500) {
-      errors.rejectValue(DESCRIPTION_FIELD, "habit.description.tooLong",
-        "Description must not exceed 500 characters");
-    }
+    Optional.ofNullable(dto.frequency())
+      .ifPresentOrElse(
+        frequency -> {
+        },
+        () -> errors.rejectValue(
+          MessageConstants.FIELD_FREQUENCY,
+          MessageConstants.ERROR_FREQUENCY_REQUIRED,
+          MessageConstants.HABIT_FREQUENCY_REQUIRED
+        )
+      );
+    Optional.ofNullable(dto.description())
+      .map(String::trim)
+      .filter(desc -> desc.length() > 500)
+      .ifPresent(desc -> errors.rejectValue(
+        MessageConstants.FIELD_DESCRIPTION,
+        MessageConstants.ERROR_DESCRIPTION_TOO_LONG,
+        MessageConstants.HABIT_DESCRIPTION_TOO_LONG
+      ));
   }
   
   private void validateUpdateHabitDTO(UpdateHabitDTO dto, Errors errors) {
-    if (dto.name() != null) {
-      if (dto.name().trim().isEmpty()) {
-        errors.rejectValue(NAME_FIELD, "habit.name.empty",
-          "Habit name cannot be empty");
-      } else if (dto.name().trim().length() < 2) {
-        errors.rejectValue(NAME_FIELD, "habit.name.tooShort",
-          "Habit name must be at least 2 characters long");
-      }
-    }
-    if (dto.description() != null && dto.description().trim().length() > 500) {
-      errors.rejectValue(DESCRIPTION_FIELD, "habit.description.tooLong",
-        "Description must not exceed 500 characters");
-    }
+    Optional.ofNullable(dto.name())
+      .map(String::trim)
+      .ifPresent(name -> {
+        if (name.isEmpty()) {
+          errors.rejectValue(
+            MessageConstants.FIELD_NAME,
+            MessageConstants.ERROR_NAME_EMPTY,
+            MessageConstants.HABIT_NAME_EMPTY
+          );
+        } else if (name.length() < 2) {
+          errors.rejectValue(
+            MessageConstants.FIELD_NAME,
+            MessageConstants.ERROR_NAME_TOO_SHORT,
+            MessageConstants.HABIT_NAME_TOO_SHORT
+          );
+        }
+      });
+    Optional.ofNullable(dto.description())
+      .map(String::trim)
+      .filter(desc -> desc.length() > 500)
+      .ifPresent(desc -> errors.rejectValue(
+        MessageConstants.FIELD_DESCRIPTION,
+        MessageConstants.ERROR_DESCRIPTION_TOO_LONG,
+        MessageConstants.HABIT_DESCRIPTION_TOO_LONG
+      ));
   }
   
   private String buildValidationErrorMessage(Errors errors) {
     StringBuilder message = new StringBuilder();
     errors.getAllErrors().forEach(error -> {
-      if (message.length() > 0) {
+      if (!message.isEmpty()) {
         message.append("; ");
       }
       message.append(error.getDefaultMessage());

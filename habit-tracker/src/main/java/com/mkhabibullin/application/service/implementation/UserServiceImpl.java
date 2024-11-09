@@ -1,14 +1,16 @@
 package com.mkhabibullin.application.service.implementation;
 
 import com.mkhabibullin.application.service.UserService;
+import com.mkhabibullin.common.MessageConstants;
+import com.mkhabibullin.domain.exception.AdminOperationException;
+import com.mkhabibullin.domain.exception.DuplicateEmailException;
+import com.mkhabibullin.domain.exception.InvalidEmailException;
+import com.mkhabibullin.domain.exception.UserNotFoundException;
 import com.mkhabibullin.domain.model.User;
 import com.mkhabibullin.infrastructure.persistence.repository.UserRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
@@ -24,7 +26,6 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
   
   private final UserRepository userRepository;
-  private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
   
   /**
    * Constructs a new UserServiceImpl with the specified UserRepository.
@@ -43,7 +44,7 @@ public class UserServiceImpl implements UserService {
    * @return the User object if found, null otherwise
    */
   @Override
-  public User getUserById(Long id) {
+  public User getById(Long id) {
     return userRepository.readUserById(id);
   }
   
@@ -54,7 +55,7 @@ public class UserServiceImpl implements UserService {
    * @return the User object if found, null otherwise
    */
   @Override
-  public User getUserByEmail(String email) throws IOException {
+  public User getByEmail(String email) {
     return userRepository.readUserByEmail(email);
   }
   
@@ -64,12 +65,12 @@ public class UserServiceImpl implements UserService {
    * @param user the User object to be created
    */
   @Override
-  public void createUser(User user) throws IOException {
+  public void create(User user) {
     if (!isValidEmail(user.getEmail())) {
-      throw new IllegalArgumentException("Invalid email format");
+      throw new InvalidEmailException(MessageConstants.EMAIL_INVALID);
     }
     if (userRepository.readUserByEmail(user.getEmail()) != null) {
-      throw new IllegalArgumentException("User with this email already exists");
+      throw new DuplicateEmailException(MessageConstants.EMAIL_ALREADY_IN_USE);
     }
     userRepository.createUser(user);
   }
@@ -80,7 +81,7 @@ public class UserServiceImpl implements UserService {
    * @return a List of all User objects
    */
   @Override
-  public List<User> getAllUsers() {
+  public List<User> getAll() {
     return userRepository.getAllUsers();
   }
   
@@ -90,16 +91,16 @@ public class UserServiceImpl implements UserService {
    * @param email the email address of the user to be blocked
    */
   @Override
-  public void blockUser(String email) {
+  public void block(String email) {
     if (!isValidEmail(email)) {
-      throw new IllegalArgumentException("Invalid email format");
+      throw new InvalidEmailException(MessageConstants.EMAIL_INVALID);
     }
     User user = userRepository.readUserByEmail(email);
     if (user == null) {
-      throw new IllegalArgumentException("User not found");
+      throw new UserNotFoundException(MessageConstants.USER_NOT_FOUND);
     }
     if (user.isAdmin()) {
-      throw new IllegalArgumentException("Admin user cannot be blocked");
+      throw new AdminOperationException(MessageConstants.ADMIN_USER_CANNOT_BE_MANAGED);
     }
     user.setBlocked(true);
     userRepository.updateUser(user);
@@ -111,16 +112,16 @@ public class UserServiceImpl implements UserService {
    * @param email the email address of the user to be unblocked
    */
   @Override
-  public void unblockUser(String email) {
+  public void unblock(String email) {
     if (!isValidEmail(email)) {
-      throw new IllegalArgumentException("Invalid email format");
+      throw new InvalidEmailException(MessageConstants.EMAIL_INVALID);
     }
     User user = userRepository.readUserByEmail(email);
     if (user == null) {
-      throw new IllegalArgumentException("User not found");
+      throw new UserNotFoundException(MessageConstants.USER_NOT_FOUND);
     }
     if (user.isAdmin()) {
-      throw new IllegalArgumentException("Admin user cannot be unblocked");
+      throw new AdminOperationException(MessageConstants.ADMIN_USER_CANNOT_BE_MANAGED);
     }
     user.setBlocked(false);
     userRepository.updateUser(user);
@@ -134,10 +135,10 @@ public class UserServiceImpl implements UserService {
    * @param name     the name of the new user
    */
   @Override
-  public void registerUser(String email, String password, String name) throws IOException {
+  public void register(String email, String password, String name) {
     User newUser = new User(email, name);
     newUser.setPassword(password);
-    createUser(newUser);
+    create(newUser);
   }
   
   /**
@@ -148,7 +149,7 @@ public class UserServiceImpl implements UserService {
    * @return true if authentication is successful, false otherwise
    */
   @Override
-  public boolean authenticateUser(String email, String password) {
+  public boolean authenticate(String email, String password) {
     if (!isValidEmail(email)) {
       return false;
     }
@@ -162,16 +163,16 @@ public class UserServiceImpl implements UserService {
    * @param email the email address of the user to be deleted
    */
   @Override
-  public void deleteUserAccount(String email) {
+  public void deleteAccount(String email) {
     if (!isValidEmail(email)) {
-      throw new IllegalArgumentException("Invalid email format");
+      throw new InvalidEmailException(MessageConstants.EMAIL_INVALID);
     }
     User user = userRepository.readUserByEmail(email);
     if (user == null) {
-      throw new IllegalArgumentException("User not found");
+      throw new UserNotFoundException(MessageConstants.USER_NOT_FOUND);
     }
     if (user.isAdmin()) {
-      throw new IllegalArgumentException("Admin user cannot be deleted");
+      throw new AdminOperationException(MessageConstants.ADMIN_USER_CANNOT_BE_MANAGED);
     }
     userRepository.deleteUser(email);
   }
@@ -183,16 +184,16 @@ public class UserServiceImpl implements UserService {
    * @param newEmail the new email address
    */
   @Override
-  public void updateUserEmail(Long userId, String newEmail) {
+  public void updateEmail(Long userId, String newEmail) {
     if (!isValidEmail(newEmail)) {
-      throw new IllegalArgumentException("Invalid email format");
+      throw new InvalidEmailException("Invalid email format");
     }
     User user = userRepository.readUserById(userId);
     if (user == null) {
-      throw new IllegalArgumentException("User not found");
+      throw new UserNotFoundException(MessageConstants.USER_NOT_FOUND);
     }
     if (userRepository.readUserByEmail(newEmail) != null) {
-      throw new IllegalArgumentException("Email already in use");
+      throw new DuplicateEmailException(MessageConstants.EMAIL_ALREADY_IN_USE);
     }
     user.setEmail(newEmail);
     userRepository.updateUser(user);
@@ -205,10 +206,10 @@ public class UserServiceImpl implements UserService {
    * @param newName the new name
    */
   @Override
-  public void updateUserName(Long userId, String newName) {
+  public void updateName(Long userId, String newName) {
     User user = userRepository.readUserById(userId);
     if (user == null) {
-      throw new IllegalArgumentException("User not found");
+      throw new UserNotFoundException(MessageConstants.USER_NOT_FOUND);
     }
     user.setName(newName);
     userRepository.updateUser(user);
@@ -221,31 +222,13 @@ public class UserServiceImpl implements UserService {
    * @param newPassword the new password
    */
   @Override
-  public void updateUserPassword(Long userId, String newPassword) {
+  public void updatePassword(Long userId, String newPassword) {
     User user = userRepository.readUserById(userId);
     if (user == null) {
-      throw new IllegalArgumentException("User not found");
+      throw new UserNotFoundException(MessageConstants.USER_NOT_FOUND);
     }
     user.setPassword(newPassword);
     userRepository.updateUser(user);
-  }
-  
-  /**
-   * Creates an admin user if it doesn't already exist in the system.
-   * This method is typically used for initializing the system with a default admin account.
-   */
-  @Override
-  public void createAdminUserIfNotExists() {
-    try {
-      if (getUserByEmail("admin@example.com") == null) {
-        User adminUser = new User("admin@example.com", "Admin");
-        adminUser.setPassword("adminpassword");
-        adminUser.setAdmin(true);
-        createUser(adminUser);
-      }
-    } catch (IOException e) {
-      logger.error("An error occurred while creating admin user", e);
-    }
   }
   
   private boolean isValidEmail(String email) {

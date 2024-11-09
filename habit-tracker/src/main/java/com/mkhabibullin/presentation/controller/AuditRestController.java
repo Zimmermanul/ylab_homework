@@ -2,8 +2,7 @@ package com.mkhabibullin.presentation.controller;
 
 import com.mkhabibullin.application.mapper.AuditMapper;
 import com.mkhabibullin.application.service.AuditLogService;
-import com.mkhabibullin.application.validation.AuditMapperValidator;
-import com.mkhabibullin.domain.exception.AuthenticationException;
+import com.mkhabibullin.application.validation.AuditValidator;
 import com.mkhabibullin.domain.exception.ValidationException;
 import com.mkhabibullin.domain.model.User;
 import com.mkhabibullin.presentation.dto.ErrorDTO;
@@ -16,19 +15,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.SessionAttribute;
 
@@ -57,7 +52,7 @@ public class AuditRestController {
   private static final Logger log = LoggerFactory.getLogger(AuditRestController.class);
   private final AuditLogService auditLogService;
   private final AuditMapper auditMapper;
-  private final AuditMapperValidator auditValidator;
+  private final AuditValidator auditValidator;
   
   /**
    * Constructs a new AuditRestController with required dependencies.
@@ -68,7 +63,7 @@ public class AuditRestController {
    */
   public AuditRestController(AuditLogService auditLogService,
                              AuditMapper auditMapper,
-                             AuditMapperValidator auditValidator) {
+                             AuditValidator auditValidator) {
     this.auditLogService = auditLogService;
     this.auditMapper = auditMapper;
     this.auditValidator = auditValidator;
@@ -312,65 +307,5 @@ public class AuditRestController {
     if (startDateTime.isAfter(LocalDateTime.now()) || endDateTime.isAfter(LocalDateTime.now())) {
       throw new ValidationException("Date range cannot be in the future");
     }
-  }
-  
-  /**
-   * Handles validation exceptions thrown during request processing.
-   *
-   * @param ex The validation exception that was thrown
-   * @return ResponseEntity containing error details
-   */
-  @ExceptionHandler(ValidationException.class)
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
-  public ResponseEntity<ErrorDTO> handleValidationException(ValidationException ex) {
-    log.error("Validation error: {}", ex.getMessage());
-    return ResponseEntity
-      .status(HttpStatus.BAD_REQUEST)
-      .body(new ErrorDTO(ex.getMessage(), System.currentTimeMillis()));
-  }
-  
-  /**
-   * Handles authentication exceptions thrown during request processing.
-   *
-   * @param ex The authentication exception that was thrown
-   * @return ResponseEntity containing error details
-   */
-  @ExceptionHandler(AuthenticationException.class)
-  @ResponseStatus(HttpStatus.UNAUTHORIZED)
-  public ResponseEntity<ErrorDTO> handleAuthenticationException(AuthenticationException ex) {
-    log.error("Authentication error: {}", ex.getMessage());
-    return ResponseEntity
-      .status(HttpStatus.UNAUTHORIZED)
-      .body(new ErrorDTO(ex.getMessage(), System.currentTimeMillis()));
-  }
-  
-  /**
-   * Handles constraint violation exceptions thrown during request processing.
-   *
-   * @param ex The constraint violation exception that was thrown
-   * @return ResponseEntity containing error details
-   */
-  @ExceptionHandler(ConstraintViolationException.class)
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
-  public ResponseEntity<ErrorDTO> handleConstraintViolationException(ConstraintViolationException ex) {
-    log.error("Validation error: {}", ex.getMessage());
-    return ResponseEntity
-      .status(HttpStatus.BAD_REQUEST)
-      .body(new ErrorDTO(ex.getMessage(), System.currentTimeMillis()));
-  }
-  
-  /**
-   * Handles any unexpected exceptions thrown during request processing.
-   *
-   * @param ex The unexpected exception that was thrown
-   * @return ResponseEntity containing error details
-   */
-  @ExceptionHandler(Exception.class)
-  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-  public ResponseEntity<ErrorDTO> handleException(Exception ex) {
-    log.error("Unexpected error: ", ex);
-    return ResponseEntity
-      .status(HttpStatus.INTERNAL_SERVER_ERROR)
-      .body(new ErrorDTO("Internal server error", System.currentTimeMillis()));
   }
 }

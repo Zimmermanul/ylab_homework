@@ -1,6 +1,6 @@
 package com.mkhabibullin.presentation.exception;
 
-import com.mkhabibullin.domain.exception.AuthenticationException;
+import com.mkhabibullin.domain.exception.CustomAuthenticationException;
 import com.mkhabibullin.domain.exception.ValidationException;
 import com.mkhabibullin.presentation.dto.ErrorDTO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,11 +9,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -42,7 +45,7 @@ public class GlobalExceptionHandler {
    * @param request The web request during which the exception occurred
    * @return ResponseEntity containing error details
    */
-  @ExceptionHandler(AuthenticationException.class)
+  @ExceptionHandler(CustomAuthenticationException.class)
   @ResponseStatus(HttpStatus.UNAUTHORIZED)
   @ResponseBody
   @Operation(summary = "Handle Authentication Errors",
@@ -56,7 +59,7 @@ public class GlobalExceptionHandler {
     )
   )
   public ResponseEntity<ErrorDTO> handleAuthenticationException(
-    AuthenticationException ex,
+    CustomAuthenticationException ex,
     WebRequest request) {
     log.error("Authentication error: {}", ex.getMessage());
     ErrorDTO errorDTO = new ErrorDTO(
@@ -218,5 +221,89 @@ public class GlobalExceptionHandler {
     return ResponseEntity
       .status(HttpStatus.BAD_REQUEST)
       .body(errorDTO);
+  }
+  
+  /**
+   * Handles constraint violation exceptions.
+   * Translates ConstraintViolationException into HTTP 400 Bad Request responses.
+   * Used when request data violates validation constraints.
+   *
+   * @param ex      The constraint violation exception that was thrown
+   * @param request The web request during which the exception occurred
+   * @return ResponseEntity containing error details
+   */
+  @ExceptionHandler(ConstraintViolationException.class)
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  @ResponseBody
+  @Operation(summary = "Handle Constraint Violation Errors",
+    description = "Handles violations of validation constraints")
+  @ApiResponse(
+    responseCode = "400",
+    description = "Bad Request - Validation constraints violated",
+    content = @Content(
+      mediaType = MediaType.APPLICATION_JSON_VALUE,
+      schema = @Schema(implementation = ErrorDTO.class)
+    )
+  )
+  public ResponseEntity<ErrorDTO> handleConstraintViolationException(
+    ConstraintViolationException ex,
+    WebRequest request) {
+    log.error("Constraint violation: {}", ex.getMessage());
+    ErrorDTO errorDTO = new ErrorDTO(
+      ex.getMessage(),
+      System.currentTimeMillis()
+    );
+    return ResponseEntity
+      .status(HttpStatus.BAD_REQUEST)
+      .body(errorDTO);
+  }
+  
+  /**
+   * Handles authentication exceptions thrown during request processing.
+   *
+   * @param ex The authentication exception that was thrown
+   * @return ResponseEntity containing error details
+   */
+  @ExceptionHandler(AuthenticationException.class)
+  @ResponseStatus(HttpStatus.UNAUTHORIZED)
+  public ResponseEntity<ErrorDTO> handleAuthenticationException(AuthenticationException ex) {
+    log.error("Authentication error: {}", ex.getMessage());
+    return ResponseEntity
+      .status(HttpStatus.UNAUTHORIZED)
+      .body(new ErrorDTO(ex.getMessage(), System.currentTimeMillis()));
+  }
+  
+  /**
+   * Handles illegal argument exceptions thrown during request processing.
+   *
+   * @param ex The illegal argument exception that was thrown
+   * @return ResponseEntity containing error details
+   */
+  @ExceptionHandler(IllegalArgumentException.class)
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  public ResponseEntity<ErrorDTO> handleIllegalArgumentException(IllegalArgumentException ex) {
+    log.error("Validation error: {}", ex.getMessage());
+    return ResponseEntity
+      .status(HttpStatus.BAD_REQUEST)
+      .body(new ErrorDTO(ex.getMessage(), System.currentTimeMillis()));
+  }
+  
+  /**
+   * Handles authentication exceptions thrown during request processing.
+   * Returns appropriate error response with authentication failure details.
+   *
+   * @param ex      The authentication exception that was thrown
+   * @param request The web request that triggered the exception
+   * @return ResponseEntity containing error details
+   */
+  @ExceptionHandler(AccessDeniedException.class)
+  @ResponseStatus(HttpStatus.UNAUTHORIZED)
+  public ResponseEntity<ErrorDTO> handleAuthenticationException(
+    AccessDeniedException ex,
+    WebRequest request) {
+    log.error("Authentication error: {}", ex.getMessage());
+    return ResponseEntity
+      .status(HttpStatus.UNAUTHORIZED)
+      .body(new ErrorDTO(ex.getMessage(), System.currentTimeMillis()));
   }
 }

@@ -3,8 +3,8 @@ package tests;
 import com.mkhabibullin.application.mapper.UserMapper;
 import com.mkhabibullin.application.service.UserService;
 import com.mkhabibullin.application.validation.AuthenticationValidator;
-import com.mkhabibullin.application.validation.UserMapperValidator;
-import com.mkhabibullin.domain.exception.AuthenticationException;
+import com.mkhabibullin.application.validation.UserValidator;
+import com.mkhabibullin.domain.exception.CustomAuthenticationException;
 import com.mkhabibullin.domain.model.User;
 import com.mkhabibullin.presentation.controller.UserRestController;
 import com.mkhabibullin.presentation.dto.user.LoginDTO;
@@ -36,7 +36,7 @@ class UserRestControllerTest extends BaseTest {
   @Mock
   private UserMapper userMapper;
   @Mock
-  private UserMapperValidator userValidator;
+  private UserValidator userValidator;
   @Mock
   private AuthenticationValidator authValidator;
   private UserRestController userController;
@@ -71,7 +71,7 @@ class UserRestControllerTest extends BaseTest {
       .andExpect(status().isCreated())
       .andExpect(jsonPath("$.email").value(TEST_USER_EMAIL))
       .andExpect(jsonPath("$.name").value(TEST_USER_NAME));
-    verify(userService).registerUser(
+    verify(userService).register(
       eq(TEST_USER_EMAIL),
       eq(TEST_PASSWORD),
       eq(TEST_USER_NAME)
@@ -89,9 +89,9 @@ class UserRestControllerTest extends BaseTest {
       false,
       false
     );
-    given(userService.authenticateUser(TEST_USER_EMAIL, TEST_PASSWORD))
+    given(userService.authenticate(TEST_USER_EMAIL, TEST_PASSWORD))
       .willReturn(true);
-    given(userService.getUserByEmail(TEST_USER_EMAIL)).willReturn(user);
+    given(userService.getByEmail(TEST_USER_EMAIL)).willReturn(user);
     given(userMapper.userToResponseDto(user)).willReturn(responseDTO);
     mockMvc.perform(post("/api/users/login")
         .contentType(MediaType.APPLICATION_JSON)
@@ -103,7 +103,7 @@ class UserRestControllerTest extends BaseTest {
   @Test
   void loginWithInvalidCredentialsShouldReturnUnauthorized() throws Exception {
     LoginDTO loginDTO = new LoginDTO(TEST_USER_EMAIL, "wrongpassword");
-    given(userService.authenticateUser(TEST_USER_EMAIL, "wrongpassword"))
+    given(userService.authenticate(TEST_USER_EMAIL, "wrongpassword"))
       .willReturn(false);
     mockMvc.perform(post("/api/users/login")
         .contentType(MediaType.APPLICATION_JSON)
@@ -140,7 +140,7 @@ class UserRestControllerTest extends BaseTest {
       .content(toJson(updateDTO)))
       .andExpect(status().isOk())
       .andExpect(jsonPath("$.email").value(newEmail));
-    verify(userService).updateUserEmail(eq(TEST_USER_ID), eq(newEmail));
+    verify(userService).updateEmail(eq(TEST_USER_ID), eq(newEmail));
   }
   
   @Test
@@ -153,7 +153,7 @@ class UserRestControllerTest extends BaseTest {
       new UserResponseDTO(1L, "user1@example.com", "User 1", false, false),
       new UserResponseDTO(2L, "user2@example.com", "User 2", false, false)
     );
-    given(userService.getAllUsers()).willReturn(users);
+    given(userService.getAll()).willReturn(users);
     given(userMapper.usersToResponseDtos(users)).willReturn(userDTOs);
     performAdminRequest(get("/api/users"))
       .andExpect(status().isOk())
@@ -168,13 +168,13 @@ class UserRestControllerTest extends BaseTest {
       .content(toJson(emailDTO)))
       .andExpect(status().isOk())
       .andExpect(jsonPath("$.message").value("User blocked successfully"));
-    verify(userService).blockUser(TEST_USER_EMAIL);
+    verify(userService).block(TEST_USER_EMAIL);
   }
   
   @Test
   void blockUserAsNonAdminShouldReturnForbidden() throws Exception {
     UserEmailDTO emailDTO = new UserEmailDTO(TEST_USER_EMAIL);
-    doThrow(new AuthenticationException("Admin privileges required"))
+    doThrow(new CustomAuthenticationException("Admin privileges required"))
       .when(authValidator).validateAdminPrivileges(any());
     performRequest(put("/api/users/block")
       .content(toJson(emailDTO)))

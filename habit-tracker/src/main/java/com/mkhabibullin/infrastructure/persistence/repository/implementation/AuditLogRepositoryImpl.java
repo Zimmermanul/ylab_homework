@@ -1,5 +1,8 @@
 package com.mkhabibullin.infrastructure.persistence.repository.implementation;
 
+import com.mkhabibullin.common.MessageConstants;
+import com.mkhabibullin.domain.exception.EntityNotFoundException;
+import com.mkhabibullin.domain.exception.RepositoryException;
 import com.mkhabibullin.domain.model.AuditLog;
 import com.mkhabibullin.infrastructure.persistence.queries.AuditLogQueries;
 import com.mkhabibullin.infrastructure.persistence.repository.AuditLogRepository;
@@ -12,7 +15,6 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -27,6 +29,7 @@ import java.util.Objects;
 @Transactional
 public class AuditLogRepositoryImpl implements AuditLogRepository {
   private static final Logger log = LoggerFactory.getLogger(AuditLogRepositoryImpl.class);
+  private static final String ENTITY_NAME = "audit log";
   
   @PersistenceContext
   private EntityManager entityManager;
@@ -35,17 +38,21 @@ public class AuditLogRepositoryImpl implements AuditLogRepository {
    * Persists a new audit log entry to the database.
    *
    * @param auditLog the audit log entry to save
-   * @throws NullPointerException if auditLog is null
-   * @throws RuntimeException     if there is an error during persistence
+   * @throws RepositoryException     if there is an error during persistence
    */
   @Override
   public void save(AuditLog auditLog) {
     try {
-      Objects.requireNonNull(auditLog, "auditLog must not be null");
+      Objects.requireNonNull(auditLog, MessageConstants.AUDIT_LOG_REQUIRED);
       entityManager.persist(auditLog);
+    } catch (NullPointerException e) {
+      throw e;
     } catch (Exception e) {
       log.error("Error saving audit log: ", e);
-      throw new RuntimeException("Error saving audit log", e);
+      throw new RepositoryException(
+        String.format(MessageConstants.ERROR_SAVING, ENTITY_NAME),
+        e
+      );
     }
   }
   
@@ -58,10 +65,21 @@ public class AuditLogRepositoryImpl implements AuditLogRepository {
   @Override
   public AuditLog findById(Long id) {
     try {
-      return entityManager.find(AuditLog.class, id);
+      AuditLog auditLog = entityManager.find(AuditLog.class, id);
+      if (auditLog == null) {
+        throw new EntityNotFoundException(
+          String.format(MessageConstants.NOT_FOUND_WITH_ID, ENTITY_NAME, id)
+        );
+      }
+      return auditLog;
+    } catch (EntityNotFoundException e) {
+      throw e;
     } catch (Exception e) {
       log.error("Error retrieving audit log by ID: ", e);
-      return null;
+      throw new RepositoryException(
+        String.format(MessageConstants.ERROR_RETRIEVING, ENTITY_NAME),
+        e
+      );
     }
   }
   
@@ -82,7 +100,10 @@ public class AuditLogRepositoryImpl implements AuditLogRepository {
       return query.getResultList();
     } catch (Exception e) {
       log.error("Error retrieving audit logs by username: ", e);
-      return new ArrayList<>();
+      throw new RepositoryException(
+        String.format(MessageConstants.ERROR_RETRIEVING_BY_USERNAME, ENTITY_NAME, username),
+        e
+      );
     }
   }
   
@@ -105,7 +126,10 @@ public class AuditLogRepositoryImpl implements AuditLogRepository {
       return query.getResultList();
     } catch (Exception e) {
       log.error("Error retrieving audit logs by timestamp range: ", e);
-      return new ArrayList<>();
+      throw new RepositoryException(
+        String.format(MessageConstants.ERROR_RETRIEVING_BY_DATE, ENTITY_NAME),
+        e
+      );
     }
   }
   
@@ -126,7 +150,10 @@ public class AuditLogRepositoryImpl implements AuditLogRepository {
       return query.getResultList();
     } catch (Exception e) {
       log.error("Error retrieving audit logs by operation: ", e);
-      return new ArrayList<>();
+      throw new RepositoryException(
+        String.format(MessageConstants.ERROR_RETRIEVING_BY_OPERATION, ENTITY_NAME, operation),
+        e
+      );
     }
   }
   
@@ -148,7 +175,10 @@ public class AuditLogRepositoryImpl implements AuditLogRepository {
       return query.getResultList();
     } catch (Exception e) {
       log.error("Error retrieving recent audit logs: ", e);
-      return new ArrayList<>();
+      throw new RepositoryException(
+        String.format(MessageConstants.ERROR_RETRIEVING_RECENT, ENTITY_NAME),
+        e
+      );
     }
   }
 }

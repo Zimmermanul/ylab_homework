@@ -20,10 +20,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.SessionAttribute;
 
@@ -250,19 +248,5 @@ public class SystemRestController {
       duration.toMinutesPart(),
       duration.toSecondsPart()
     );
-  }
-  
-  /**
-   * Global exception handler for the system controller.
-   * Handles any unexpected exceptions during request processing.
-   *
-   * @param ex The exception that was thrown
-   * @return ErrorDTO containing error details
-   */
-  @ExceptionHandler(Exception.class)
-  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-  public ErrorDTO handleException(Exception ex) {
-    log.error("Unexpected error: ", ex);
-    return new ErrorDTO("Internal server error", System.currentTimeMillis());
   }
 }

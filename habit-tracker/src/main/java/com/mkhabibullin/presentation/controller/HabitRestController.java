@@ -2,9 +2,8 @@ package com.mkhabibullin.presentation.controller;
 
 import com.mkhabibullin.application.mapper.HabitMapper;
 import com.mkhabibullin.application.service.HabitService;
-import com.mkhabibullin.application.validation.HabitMapperValidator;
+import com.mkhabibullin.application.validation.HabitValidator;
 import com.mkhabibullin.common.Audited;
-import com.mkhabibullin.domain.exception.AuthenticationException;
 import com.mkhabibullin.domain.exception.ValidationException;
 import com.mkhabibullin.domain.model.Habit;
 import com.mkhabibullin.domain.model.User;
@@ -29,7 +28,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -41,7 +39,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.SessionAttribute;
-import org.springframework.web.context.request.WebRequest;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -61,7 +58,7 @@ public class HabitRestController {
   private static final Logger log = LoggerFactory.getLogger(HabitRestController.class);
   private final HabitService habitService;
   private final HabitMapper habitMapper;
-  private final HabitMapperValidator habitValidator;
+  private final HabitValidator habitValidator;
   
   /**
    * Constructs a new HabitRestController with required dependencies.
@@ -72,7 +69,7 @@ public class HabitRestController {
    */
   public HabitRestController(HabitService habitService,
                              HabitMapper habitMapper,
-                             HabitMapperValidator habitValidator) {
+                             HabitValidator habitValidator) {
     this.habitService = habitService;
     this.habitMapper = habitMapper;
     this.habitValidator = habitValidator;
@@ -136,12 +133,7 @@ public class HabitRestController {
     @RequestBody CreateHabitDTO createDTO) throws ValidationException {
     log.debug("Creating new habit for user: {}", currentUser.getEmail());
     habitValidator.validateCreateHabitDTO(createDTO);
-    habitService.createHabit(
-      currentUser.getEmail(),
-      createDTO.name(),
-      createDTO.description(),
-      createDTO.frequency()
-    );
+    habitService.create(currentUser.getEmail(), createDTO);
     log.info("Habit created successfully for user: {}", currentUser.getEmail());
     return ResponseEntity.status(HttpStatus.CREATED)
       .body(new MessageDTO("Habit created successfully"));
@@ -189,7 +181,7 @@ public class HabitRestController {
     @Parameter(hidden = true) @SessionAttribute("user") User currentUser) {
     log.debug("Retrieving habits for user: {}, date: {}, active: {}",
       currentUser.getEmail(), date, active);
-    List<Habit> habits = habitService.viewHabits(currentUser.getId(), date, active);
+    List<Habit> habits = habitService.getAll(currentUser.getId(), date, active);
     List<HabitResponseDTO> habitDTOs = habitMapper.habitsToResponseDtos(habits);
     log.info("Retrieved {} habits for user: {}", habitDTOs.size(), currentUser.getEmail());
     return ResponseEntity.ok(habitDTOs);
@@ -252,12 +244,7 @@ public class HabitRestController {
     @Parameter(hidden = true) @SessionAttribute("user") User currentUser) throws ValidationException {
     log.debug("Updating habit {} for user: {}", id, currentUser.getEmail());
     habitValidator.validateUpdateHabitDTO(updateDTO);
-    habitService.editHabit(
-      id,
-      updateDTO.name(),
-      updateDTO.description(),
-      updateDTO.frequency()
-    );
+    habitService.edit(id, updateDTO);
     log.info("Habit {} updated successfully for user: {}", id, currentUser.getEmail());
     return ResponseEntity.ok(new MessageDTO("Habit updated successfully"));
   }
@@ -303,64 +290,7 @@ public class HabitRestController {
     @PathVariable("id") Long id,
     @Parameter(hidden = true) @SessionAttribute("user") User currentUser) {
     log.debug("Deleting habit {} for user: {}", id, currentUser.getEmail());
-    habitService.deleteHabit(id);
+    habitService.delete(id);
     log.info("Habit {} deleted successfully for user: {}", id, currentUser.getEmail());
-  }
-  
-  /**
-   * Handles authentication exceptions thrown during request processing.
-   * Returns appropriate error response with authentication failure details.
-   *
-   * @param ex The authentication exception that was thrown
-   * @param request The web request that triggered the exception
-   * @return ResponseEntity containing error details
-   */
-  @ExceptionHandler(AuthenticationException.class)
-  @ResponseStatus(HttpStatus.UNAUTHORIZED)
-  public ResponseEntity<ErrorDTO> handleAuthenticationException(
-    AuthenticationException ex,
-    WebRequest request) {
-    log.error("Authentication error: {}", ex.getMessage());
-    return ResponseEntity
-      .status(HttpStatus.UNAUTHORIZED)
-      .body(new ErrorDTO(ex.getMessage(), System.currentTimeMillis()));
-  }
-  
-  /**
-   * Handles validation exceptions thrown during request processing.
-   * Returns appropriate error response with validation failure details.
-   *
-   * @param ex The validation exception that was thrown
-   * @param request The web request that triggered the exception
-   * @return ResponseEntity containing error details
-   */
-  @ExceptionHandler(ValidationException.class)
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
-  public ResponseEntity<ErrorDTO> handleValidationException(
-    ValidationException ex,
-    WebRequest request) {
-    log.error("Validation error: {}", ex.getMessage());
-    return ResponseEntity
-      .status(HttpStatus.BAD_REQUEST)
-      .body(new ErrorDTO(ex.getMessage(), System.currentTimeMillis()));
-  }
-  
-  /**
-   * Handles any unexpected exceptions thrown during request processing.
-   * Returns a generic error response to avoid exposing internal details.
-   *
-   * @param ex The unexpected exception that was thrown
-   * @param request The web request that triggered the exception
-   * @return ResponseEntity containing error details
-   */
-  @ExceptionHandler(Exception.class)
-  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-  public ResponseEntity<ErrorDTO> handleGlobalException(
-    Exception ex,
-    WebRequest request) {
-    log.error("Unexpected error:", ex);
-    return ResponseEntity
-      .status(HttpStatus.INTERNAL_SERVER_ERROR)
-      .body(new ErrorDTO("Internal server error", System.currentTimeMillis()));
   }
 }

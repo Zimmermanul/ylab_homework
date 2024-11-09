@@ -1,5 +1,6 @@
 package com.mkhabibullin.application.validation;
 
+import com.mkhabibullin.common.MessageConstants;
 import com.mkhabibullin.domain.exception.ValidationException;
 import com.mkhabibullin.presentation.dto.user.LoginDTO;
 import com.mkhabibullin.presentation.dto.user.RegisterUserDTO;
@@ -8,19 +9,12 @@ import com.mkhabibullin.presentation.dto.user.UpdateNameDTO;
 import com.mkhabibullin.presentation.dto.user.UpdatePasswordDTO;
 import com.mkhabibullin.presentation.dto.user.UserEmailDTO;
 import org.springframework.stereotype.Component;
-
-import java.util.regex.Pattern;
 /**
  * Validator component for user-related DTOs.
  * Provides validation methods for ensuring data integrity during user operations.
  */
 @Component
-public class UserMapperValidator {
-  
-  private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@(.+)$");
-  private static final Pattern PASSWORD_PATTERN = Pattern.compile(
-    "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$"
-  );
+public class UserValidator {
   
   /**
    * Validates user registration data.
@@ -30,7 +24,7 @@ public class UserMapperValidator {
    */
   public void validateRegisterUserDTO(RegisterUserDTO dto) throws ValidationException {
     if (dto == null) {
-      throw new ValidationException("Registration data cannot be null");
+      throw new ValidationException(MessageConstants.REGISTER_DATA_NULL);
     }
     validateEmail(dto.email());
     validatePassword(dto.password());
@@ -45,11 +39,11 @@ public class UserMapperValidator {
    */
   public void validateLoginDTO(LoginDTO dto) throws ValidationException {
     if (dto == null) {
-      throw new ValidationException("Login data cannot be null");
+      throw new ValidationException(MessageConstants.LOGIN_DATA_NULL);
     }
     validateEmail(dto.email());
     if (dto.password() == null || dto.password().trim().isEmpty()) {
-      throw new ValidationException("Password is required");
+      throw new ValidationException(MessageConstants.PASSWORD_REQUIRED);
     }
   }
   
@@ -61,7 +55,7 @@ public class UserMapperValidator {
    */
   public void validateUpdateEmailDTO(UpdateEmailDTO dto) throws ValidationException {
     if (dto == null) {
-      throw new ValidationException("Email update data cannot be null");
+      throw new ValidationException(MessageConstants.EMAIL_UPDATE_NULL);
     }
     validateEmail(dto.newEmail());
   }
@@ -74,7 +68,7 @@ public class UserMapperValidator {
    */
   public void validateUpdateNameDTO(UpdateNameDTO dto) throws ValidationException {
     if (dto == null) {
-      throw new ValidationException("Name update data cannot be null");
+      throw new ValidationException(MessageConstants.NAME_UPDATE_NULL);
     }
     validateName(dto.newName());
   }
@@ -87,7 +81,7 @@ public class UserMapperValidator {
    */
   public void validateUpdatePasswordDTO(UpdatePasswordDTO dto) throws ValidationException {
     if (dto == null) {
-      throw new ValidationException("Password update data cannot be null");
+      throw new ValidationException(MessageConstants.PASSWORD_UPDATE_NULL);
     }
     validatePassword(dto.newPassword());
   }
@@ -100,36 +94,35 @@ public class UserMapperValidator {
    */
   public void validateUserEmailDTO(UserEmailDTO dto) throws ValidationException {
     if (dto == null) {
-      throw new ValidationException("Email data cannot be null");
+      throw new ValidationException(MessageConstants.EMAIL_DATA_NULL);
     }
     validateEmail(dto.email());
   }
   
   private void validateEmail(String email) throws ValidationException {
     if (email == null || email.trim().isEmpty()) {
-      throw new ValidationException("Email is required");
+      throw new ValidationException(MessageConstants.EMAIL_REQUIRED);
     }
-    if (!EMAIL_PATTERN.matcher(email).matches()) {
-      throw new ValidationException("Invalid email format");
+    if (!MessageConstants.EMAIL_PATTERN.matcher(email).matches()) {
+      throw new ValidationException(MessageConstants.EMAIL_INVALID);
     }
   }
   
   private void validatePassword(String password) throws ValidationException {
     if (password == null || password.trim().isEmpty()) {
-      throw new ValidationException("Password is required");
+      throw new ValidationException(MessageConstants.PASSWORD_REQUIRED);
     }
-    if (!PASSWORD_PATTERN.matcher(password).matches()) {
-      throw new ValidationException("Password must be at least 8 characters long and contain at least " +
-                                    "one digit, one lowercase letter, one uppercase letter, and one special character");
+    if (!MessageConstants.PASSWORD_PATTERN.matcher(password).matches()) {
+      throw new ValidationException(MessageConstants.PASSWORD_INVALID);
     }
   }
   
   private void validateName(String name) throws ValidationException {
     if (name == null || name.trim().isEmpty()) {
-      throw new ValidationException("Name is required");
+      throw new ValidationException(MessageConstants.NAME_REQUIRED);
     }
     if (name.length() < 2) {
-      throw new ValidationException("Name must be at least 2 characters long");
+      throw new ValidationException(MessageConstants.NAME_TOO_SHORT);
     }
   }
 }
