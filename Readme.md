@@ -8,3 +8,5 @@
 * [ДЗ №3](https://github.com/Zimmermanul/ylab_homework/pull/3)
 
 * [ДЗ №4](https://github.com/Zimmermanul/ylab_homework/pull/4)
+
+* [ДЗ №5](https://github.com/Zimmermanul/ylab_homework/pull/5)
