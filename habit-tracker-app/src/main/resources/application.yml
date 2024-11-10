@@ -4,22 +4,22 @@ spring:
     name: habit-tracker
   profiles:
     default: dev
-  mvc:
-    contentnegotiation:
-      media-types:
-        json: application/json
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/habit-tracker-db
-    username: ${DB_USER}
-    password: ${DB_PASSWORD}
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:habit-tracker-db}
+    username: ${DB_USER:habit-tracker-admin}
+    password: ${DB_PASSWORD:habittrackerpass123}
     hikari:
       auto-commit: true
       validation-query: SELECT 1
       connection-test-query: SELECT 1
-      connection-timeout: 30000  # 30 seconds
-      validation-timeout: 5000   # 5 seconds
-      max-lifetime: 1800000      # 30 minutes
+      connection-timeout: 30000
+      validation-timeout: 5000
+      max-lifetime: 1800000
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 300000
+      pool-name: HabitTrackerPool
   liquibase:
     enabled: true
     change-log: classpath:db/changelog/db.changelog-master.xml
@@ -28,6 +28,7 @@ spring:
       search-path: public,entity,audit
     contexts: default
   jpa:
+    open-in-view: false
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     show-sql: false
     hibernate:
@@ -37,43 +38,59 @@ spring:
         format_sql: true
         jdbc:
           batch_size: 25
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+          time_zone: UTC
+        order_inserts: true
+        order_updates: true
 
 server:
-  port: ${APP_PORT:18080}
+  port: ${SERVER_PORT:18080}
   servlet:
-    session:
-      timeout: 30m
-      cookie:
-        http-only: true
-        secure: true
     context-path: /
   error:
     whitelabel:
       enabled: false
-    path: /error
     include-message: always
     include-binding-errors: always
     include-stacktrace: never
     include-exception: false
-  forward-headers-strategy: framework
   compression:
     enabled: true
-  tomcat:
-    max-threads: 200
-    min-spare-threads: 20
-    max-connections: 10000
 
+# Actuator Configuration
 management:
   endpoints:
     web:
       exposure:
         include: health,info,metrics
+      base-path: /actuator
+      cors:
+        allowed-origins: "*"
+        allowed-methods: GET
   endpoint:
     health:
       show-details: when_authorized
+      probes:
+        enabled: true
+  info:
+    env:
+      enabled: true
+    git:
+      enabled: true
+    build:
+      enabled: true
+  server:
+    port: ${MANAGEMENT_SERVER_PORT:8081}
 
+# Logging Configuration
 logging:
+  file:
+    path: ${LOGGING_FILE_PATH:/app/logs}
+    name: ${LOGGING_FILE_NAME:habit-tracker.log}
+    max-size: 10MB
+    max-history: 30
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
   level:
     root: INFO
     com.mkhabibullin: DEBUG
@@ -81,10 +98,10 @@ logging:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
     com.zaxxer.hikari: INFO
-    org.springdoc: DEBUG
-    org.springframework.web: DEBUG
+    org.springframework.web: INFO
+    org.springframework.security: INFO
 
-# Swagger/OpenAPI Configuration (move to top level, before profiles)
+# OpenAPI Configuration
 springdoc:
   api-docs:
     path: /v3/api-docs
@@ -111,26 +128,14 @@ springdoc:
   packages-to-scan: com.mkhabibullin.presentation.controller
   show-actuator: false
 
-# Development profile configuration
+# Development profile
 ---
 spring:
   config:
     activate:
       on-profile: dev
-
-  datasource:
-    hikari:
-      maximum-pool-size: 10
-      minimum-idle: 5
-      idle-timeout: 300000
-      pool-name: DevHabitTrackerPool
-
   jpa:
     show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-
   devtools:
     restart:
       enabled: true
@@ -139,155 +144,80 @@ spring:
 
 logging:
   level:
-    com.zaxxer.hikari: DEBUG  # Only override hikari logging for dev
+    com.mkhabibullin: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 
 management:
   endpoints:
     web:
       exposure:
-        include: "*"  # Expose all endpoints in dev
+        include: "*"
   endpoint:
     health:
       show-details: always
 
-# Test profile configuration
+# Test profile
 ---
 spring:
   config:
     activate:
       on-profile: test
-
   datasource:
     hikari:
       maximum-pool-size: 5
       minimum-idle: 1
       idle-timeout: 30000
       pool-name: TestHabitTrackerPool
-      validation-timeout: 5000
-
   jpa:
     show-sql: true
     hibernate:
       ddl-auto: create-drop
-    properties:
-      hibernate:
-        format_sql: true
-        jdbc:
-          batch_size: 10
-          time_zone: UTC
-        order_inserts: true
-        order_updates: true
-    open-in-view: false
-
   liquibase:
-    enabled: true
     contexts: test
-    liquibase-schema: service
-    parameters:
-      search-path: public,service
-    test-rollback: true
+    enabled: false
 
 logging:
   level:
     org.springframework.test: DEBUG
     org.testcontainers: INFO
-    liquibase: INFO
     org.springframework.web: DEBUG
     org.springframework.security: DEBUG
-    org.springdoc: DEBUG
 
 server:
-  port: 0  # Random port for tests
+  port: 0
 
 management:
   endpoints:
-    enabled-by-default: false  # Disable actuator in tests
+    enabled-by-default: false
 
-# Test-specific configurations
-test:
-  containers:
-    postgres:
-      docker-image: postgres:13
-      init-script: db/init-test-db.sql
-  mocks:
-    enabled: true
-    endpoints:
-      base-url: http://localhost
-      port: 9561
-  data:
-    generation:
-      enabled: true
-      seed: 12345
-    cleanup:
-      enabled: true
-      strategy: AFTER_TEST
-
-security:
-  test:
-    enabled: false
-    mock-auth: true
-    test-user:
-      username: test-user
-      password: test-password
-      roles: ROLE_USER,ROLE_ADMIN
-  jwt:
-    enabled: false
-
-application:
-  test:
-    data:
-      users:
-        default-password: test123
-        batch-size: 10
-    timeouts:
-      global: 5000
-      db-operation: 1000
-      http: 5000
-    features:
-      use-test-email: true
-      mock-external-services: true
-      cleanup-after-test: true
-      disable-security: true
-
-# Production profile configuration
+# Production profile
 ---
 spring:
   config:
     activate:
       on-profile: prod
-
+  devtools:
+    restart:
+      enabled: false
+  jpa:
+    show-sql: false
   datasource:
     hikari:
       maximum-pool-size: 20
       minimum-idle: 10
-      idle-timeout: 300000
-      pool-name: ProdHabitTrackerPool
-      max-lifetime: 1800000  # 30 minutes
 
-  jpa:
-    show-sql: false
-    properties:
-      hibernate:
-        format_sql: false
-        jdbc:
-          batch_size: 50  # Increased for production
-
-  liquibase:
-    contexts: prod
-
-  devtools:
-    restart:
-      enabled: false
-    livereload:
-      enabled: false
-
-server:
-  tomcat:
-    max-threads: 400          # Increased for production
-    min-spare-threads: 40
-    max-connections: 20000
-    accept-count: 100
-    connection-timeout: 20000
+logging:
+  level:
+    root: WARN
+    com.mkhabibullin: INFO
+    org.springframework: WARN
+    org.hibernate: WARN
+  file:
+    max-size: 100MB
+    max-history: 60
 
 management:
   endpoints:
@@ -296,33 +226,16 @@ management:
         include: health,info,metrics
   endpoint:
     health:
-      show-details: never     # Hide details in production
+      show-details: never
   server:
-    port: 8081               # Separate port for actuator in production
-    address: 127.0.0.1       # Only allow local access to actuator
+    address: 127.0.0.1
 
-logging:
-  level:
-    root: WARN
-    com.mkhabibullin: INFO
-    org.springframework: WARN
-    org.hibernate: WARN
-    com.zaxxer.hikari: WARN
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-  file:
-    name: /logs/habit-tracker.log
-    max-size: 10MB
-    max-history: 30
-
-# Application Specific Configuration
+# Application specific configuration
 application:
-  name: Habit Tracker
-  version: 1.0.0
-  description: Application for tracking habits and personal development
   security:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:*}
     allowed-methods: GET,POST,PUT,DELETE,OPTIONS
     allowed-headers: "*"
     max-age: 3600
+  version: @project.version@
+  description: Application for tracking habits and personal development

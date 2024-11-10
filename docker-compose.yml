@@ -1,47 +1,79 @@
-version: '3.8'
+version: '3.9'
 
 services:
   postgres:
     image: postgres:13-alpine
     container_name: habit-tracker-db
     environment:
-      POSTGRES_DB: habit-tracker-db
-      POSTGRES_USER: habit-tracker-admin
-      POSTGRES_PASSWORD: habittrackerpass123
-      PGDATA: /var/lib/postgresql/data
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      PGDATA: ${PGDATA}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U habit-tracker-admin -d habit-tracker-db" ]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
     networks:
       - habit-tracker-network
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+    restart: unless-stopped
 
   app:
     build:
-      context: ..
-      dockerfile: habit-tracker-app/Dockerfile
+      context: .
+      dockerfile: Dockerfile
     container_name: habit-tracker-app
     depends_on:
       postgres:
         condition: service_healthy
     environment:
-      - SPRING_PROFILES_ACTIVE=dev
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/habit-tracker-db
-      - SPRING_DATASOURCE_USERNAME=habit-tracker-admin
-      - SPRING_DATASOURCE_PASSWORD=habittrackerpass123
+      - SERVER_PORT=18080
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+      - DB_HOST=postgres
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+      - SPRING_DATASOURCE_USERNAME=${DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - LOGGING_FILE_PATH=/app/logs
+      - MANAGEMENT_SERVER_PORT=8081
     ports:
-      - "18080:8080"
+      - "${SERVER_PORT}:18080"  # Map host port to container's port
+      - "8081:8081"  # Management port
+    volumes:
+      - app_logs:/app/logs
     networks:
       - habit-tracker-network
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:18080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
 
 volumes:
   postgres_data:
     name: habit-tracker-postgres-data
+  app_logs:
+    name: habit-tracker-app-logs
 
 networks:
   habit-tracker-network:
