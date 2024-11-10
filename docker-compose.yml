@@ -23,18 +23,17 @@ services:
 
   app:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..  # Changed to parent directory to access all modules
+      dockerfile: habit-tracker-app/Dockerfile
     container_name: habit-tracker-app
     depends_on:
       postgres:
         condition: service_healthy
     environment:
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_NAME=habit-tracker-db
-      - DB_USER=habit-tracker-admin
-      - DB_PASSWORD=habittrackerpass123
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/habit-tracker-db
+      - SPRING_DATASOURCE_USERNAME=habit-tracker-admin
+      - SPRING_DATASOURCE_PASSWORD=habittrackerpass123
     ports:
       - "18080:8080"
     networks:
