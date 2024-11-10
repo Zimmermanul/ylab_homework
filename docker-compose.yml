@@ -23,7 +23,7 @@ services:
 
   app:
     build:
-      context: ..  # Changed to parent directory to access all modules
+      context: ..
       dockerfile: habit-tracker-app/Dockerfile
     container_name: habit-tracker-app
     depends_on:
