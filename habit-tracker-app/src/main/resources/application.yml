@@ -1,0 +1,228 @@
+# Common Properties
+spring:
+  application:
+    name: habit-tracker
+  profiles:
+    default: dev
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:habit-tracker-db}
+    username: ${DB_USER:habit-tracker-admin}
+    password: ${DB_PASSWORD:habittrackerpass123}
+    hikari:
+      auto-commit: true
+      validation-query: SELECT 1
+      connection-test-query: SELECT 1
+      connection-timeout: 30000
+      validation-timeout: 5000
+      max-lifetime: 1800000
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 300000
+      pool-name: HabitTrackerPool
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.xml
+    default-schema: public
+    parameters:
+      search-path: public,entity,audit
+    contexts: default
+  jpa:
+    open-in-view: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          batch_size: 25
+          time_zone: UTC
+        order_inserts: true
+        order_updates: true
+
+server:
+  port: ${SERVER_PORT:18080}
+  servlet:
+    context-path: /
+  error:
+    whitelabel:
+      enabled: false
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: never
+    include-exception: false
+  compression:
+    enabled: true
+
+# Swagger Configuration
+swagger:
+  title: "Habit Tracker API"
+  description: "REST API for Habit Tracking Application"
+  version: "1.0.0"
+  base-package: "com.mkhabibullin.habitTracker"
+  paths-to-match: "/api/**"
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+      base-path: /actuator
+      cors:
+        allowed-origins: "*"
+        allowed-methods: GET
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+  info:
+    env:
+      enabled: true
+    git:
+      enabled: true
+    build:
+      enabled: true
+  server:
+    port: ${MANAGEMENT_SERVER_PORT:8081}
+
+# Logging Configuration
+logging:
+  file:
+    path: ${LOGGING_FILE_PATH:/app/logs}
+    name: ${LOGGING_FILE_NAME:habit-tracker.log}
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  level:
+    root: INFO
+    com.mkhabibullin: DEBUG
+    org.springframework: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    com.zaxxer.hikari: INFO
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+
+# Audit Configuration
+audit:
+  enabled: true
+  default-username: anonymous
+
+# Development profile
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  jpa:
+    show-sql: true
+  devtools:
+    restart:
+      enabled: true
+    livereload:
+      enabled: true
+
+logging:
+  level:
+    com.mkhabibullin: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+audit:
+  enabled: true
+
+# Test profile
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+      idle-timeout: 30000
+      pool-name: TestHabitTrackerPool
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: create-drop
+  liquibase:
+    contexts: test
+    enabled: false
+
+logging:
+  level:
+    org.springframework.test: DEBUG
+    org.testcontainers: INFO
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+
+server:
+  port: 0
+
+management:
+  endpoints:
+    enabled-by-default: false
+audit:
+  enabled: false
+
+# Production profile
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  devtools:
+    restart:
+      enabled: false
+  jpa:
+    show-sql: false
+  datasource:
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 10
+
+logging:
+  level:
+    root: WARN
+    com.mkhabibullin: INFO
+    org.springframework: WARN
+    org.hibernate: WARN
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: never
+  server:
+    address: 127.0.0.1
+audit:
+  enabled: true
+
+# Application specific configuration
+application:
+  security:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:*}
+    allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+    allowed-headers: "*"
+    max-age: 3600
+  version: @project.version@
+  description: Application for tracking habits and personal development

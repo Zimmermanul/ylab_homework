@@ -1,0 +1,46 @@
+{
+  "groups": [
+    {
+      "name": "swagger",
+      "type": "com.mkhabibullin.swagger.properties.SwaggerProperties",
+      "sourceType": "com.mkhabibullin.swagger.properties.SwaggerProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "swagger.title",
+      "type": "java.lang.String",
+      "description": "API title",
+      "sourceType": "com.mkhabibullin.swagger.properties.SwaggerProperties",
+      "defaultValue": "REST API"
+    },
+    {
+      "name": "swagger.description",
+      "type": "java.lang.String",
+      "description": "API description",
+      "sourceType": "com.mkhabibullin.swagger.properties.SwaggerProperties",
+      "defaultValue": "API Documentation"
+    },
+    {
+      "name": "swagger.version",
+      "type": "java.lang.String",
+      "description": "API version",
+      "sourceType": "com.mkhabibullin.swagger.properties.SwaggerProperties",
+      "defaultValue": "1.0.0"
+    },
+    {
+      "name": "swagger.base-package",
+      "type": "java.lang.String",
+      "description": "Base package to scan for API controllers",
+      "sourceType": "com.mkhabibullin.swagger.properties.SwaggerProperties"
+    },
+    {
+      "name": "swagger.paths-to-match",
+      "type": "java.lang.String",
+      "description": "Path patterns to include",
+      "sourceType": "com.mkhabibullin.swagger.properties.SwaggerProperties",
+      "defaultValue": "/api/**"
+    }
+  ],
+  "hints": []
+}

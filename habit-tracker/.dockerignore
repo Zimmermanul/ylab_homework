@@ -1,9 +1,0 @@
-.git
-.gitignore
-.env
-.idea
-*.iml
-target/*
-!target/habit-tracker.war
-logs/
-README.md
