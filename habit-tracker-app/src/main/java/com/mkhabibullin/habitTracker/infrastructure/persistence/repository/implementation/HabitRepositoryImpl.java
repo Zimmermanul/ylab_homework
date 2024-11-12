@@ -9,6 +9,7 @@ import com.mkhabibullin.habitTracker.infrastructure.persistence.repository.Habit
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
@@ -26,8 +27,8 @@ import java.util.Objects;
  */
 @Repository
 @Transactional
+@Slf4j
 public class HabitRepositoryImpl implements HabitRepository {
-  private static final Logger log = LoggerFactory.getLogger(HabitRepositoryImpl.class);
   private static final String ENTITY_NAME = "habit";
   
   @PersistenceContext

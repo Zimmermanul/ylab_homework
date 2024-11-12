@@ -13,6 +13,13 @@
       "description": "Whether audit logging is enabled.",
       "sourceType": "com.mkhabibullin.audit.properties.AuditProperties",
       "defaultValue": true
+    },
+    {
+      "name": "audit.default-username",
+      "type": "java.lang.String",
+      "description": "Default username to use when actual user cannot be determined.",
+      "sourceType": "com.mkhabibullin.audit.properties.AuditProperties",
+      "defaultValue": "anonymous"
     }
   ],
   "hints": []

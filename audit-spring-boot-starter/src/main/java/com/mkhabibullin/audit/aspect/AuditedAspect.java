@@ -3,14 +3,15 @@ package com.mkhabibullin.audit.aspect;
 import com.mkhabibullin.audit.annotation.Audited;
 import com.mkhabibullin.audit.domain.model.AuditLog;
 import com.mkhabibullin.audit.persistence.repository.AuditLogRepository;
+import com.mkhabibullin.audit.properties.AuditProperties;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
@@ -30,20 +31,31 @@ import java.time.LocalDateTime;
 @Order(2)
 @Profile("!test")
 @ConditionalOnClass(AuditLogRepository.class)
+@RequiredArgsConstructor
+@Slf4j
 public class AuditedAspect {
-  private static final Logger log = LoggerFactory.getLogger(AuditedAspect.class);
   private final AuditLogRepository auditLogRepository;
-  private final Environment environment;
+  private final AuditProperties auditProperties;
   
-  public AuditedAspect(AuditLogRepository auditLogRepository, Environment environment) {
-    this.auditLogRepository = auditLogRepository;
-    this.environment = environment;
-  }
-  
+  /**
+   * Pointcut definition for methods annotated with @Audited.
+   *
+   * @param audited the Audited annotation instance
+   */
   @Pointcut("@annotation(audited)")
   public void auditedMethod(Audited audited) {
   }
   
+  /**
+   * Around advice that handles the audit logging process for annotated methods.
+   * Records method execution time, user information, and operation details.
+   * Saves the audit log entry after method execution, including any failure information.
+   *
+   * @param joinPoint the join point representing the intercepted method
+   * @param audited   the Audited annotation instance containing audit configuration
+   * @return the result of the method execution
+   * @throws Throwable if the underlying method throws an exception
+   */
   @Around(value = "@annotation(audited)", argNames = "joinPoint,audited")
   public Object writeAuditLog(ProceedingJoinPoint joinPoint, Audited audited) throws Throwable {
     log.debug("Starting audit logging for method: {}", joinPoint.getSignature().getName());
@@ -54,7 +66,6 @@ public class AuditedAspect {
     String username = extractUsername();
     Object result = null;
     Throwable caughtThrowable = null;
-    
     try {
       result = joinPoint.proceed();
       return result;
@@ -89,16 +100,15 @@ public class AuditedAspect {
   }
   
   private String extractUsername() {
-    String username = "anonymous";
     try {
       Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
       if (authentication != null && authentication.isAuthenticated()) {
-        username = authentication.getName();
+        return authentication.getName();
       }
     } catch (Exception e) {
       log.warn("Error extracting username: ", e);
     }
-    return username;
+    return auditProperties.getDefaultUsername();
   }
   
   private AuditLog createAuditLog(

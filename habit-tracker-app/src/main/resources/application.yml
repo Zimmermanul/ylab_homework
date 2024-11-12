@@ -107,6 +107,11 @@ logging:
     org.springframework.web: INFO
     org.springframework.security: INFO
 
+# Audit Configuration
+audit:
+  enabled: true
+  default-username: anonymous
+
 # Development profile
 ---
 spring:
@@ -137,6 +142,8 @@ management:
   endpoint:
     health:
       show-details: always
+audit:
+  enabled: true
 
 # Test profile
 ---
@@ -171,6 +178,8 @@ server:
 management:
   endpoints:
     enabled-by-default: false
+audit:
+  enabled: false
 
 # Production profile
 ---
@@ -205,6 +214,8 @@ management:
       show-details: never
   server:
     address: 127.0.0.1
+audit:
+  enabled: true
 
 # Application specific configuration
 application:

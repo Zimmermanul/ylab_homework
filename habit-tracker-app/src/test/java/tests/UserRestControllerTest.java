@@ -12,6 +12,7 @@ import com.mkhabibullin.habitTracker.presentation.dto.user.RegisterUserDTO;
 import com.mkhabibullin.habitTracker.presentation.dto.user.UpdateEmailDTO;
 import com.mkhabibullin.habitTracker.presentation.dto.user.UserEmailDTO;
 import com.mkhabibullin.habitTracker.presentation.dto.user.UserResponseDTO;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.http.MediaType;
@@ -49,6 +50,7 @@ class UserRestControllerTest extends BaseTest {
   }
   
   @Test
+  @DisplayName("Register user with valid data should create user")
   void registerUserWithValidDataShouldCreateUser() throws Exception {
     RegisterUserDTO registerDTO = new RegisterUserDTO(
       TEST_USER_EMAIL,
@@ -79,6 +81,7 @@ class UserRestControllerTest extends BaseTest {
   }
   
   @Test
+  @DisplayName("Login with valid credentials should authenticate user")
   void loginWithValidCredentialsShouldAuthenticateUser() throws Exception {
     LoginDTO loginDTO = new LoginDTO(TEST_USER_EMAIL, TEST_PASSWORD);
     User user = createTestUser();
@@ -101,6 +104,7 @@ class UserRestControllerTest extends BaseTest {
   }
   
   @Test
+  @DisplayName("Login with invalid credentials should return unauthorized")
   void loginWithInvalidCredentialsShouldReturnUnauthorized() throws Exception {
     LoginDTO loginDTO = new LoginDTO(TEST_USER_EMAIL, "wrongpassword");
     given(userService.authenticate(TEST_USER_EMAIL, "wrongpassword"))
@@ -113,6 +117,7 @@ class UserRestControllerTest extends BaseTest {
   }
   
   @Test
+  @DisplayName("Logout with valid session should invalidate session")
   void logoutWithValidSessionShouldInvalidateSession() throws Exception {
     MockHttpSession session = new MockHttpSession();
     session.setAttribute("user", createTestUser());
@@ -123,6 +128,7 @@ class UserRestControllerTest extends BaseTest {
   }
   
   @Test
+  @DisplayName("Update email with valid data should update email")
   void updateEmailWithValidDataShouldUpdateEmail() throws Exception {
     String newEmail = "newemail@example.com";
     UpdateEmailDTO updateDTO = new UpdateEmailDTO(newEmail);
@@ -144,6 +150,7 @@ class UserRestControllerTest extends BaseTest {
   }
   
   @Test
+  @DisplayName("Get all users as admin should return all users")
   void getAllUsersAsAdminShouldReturnAllUsers() throws Exception {
     List<User> users = Arrays.asList(
       createTestUser(),
@@ -162,6 +169,7 @@ class UserRestControllerTest extends BaseTest {
   }
   
   @Test
+  @DisplayName("Block user as admin should block user")
   void blockUserAsAdminShouldBlockUser() throws Exception {
     UserEmailDTO emailDTO = new UserEmailDTO(TEST_USER_EMAIL);
     performAdminRequest(put("/api/users/block")
@@ -172,6 +180,7 @@ class UserRestControllerTest extends BaseTest {
   }
   
   @Test
+  @DisplayName("Block user as non-admin should return forbidden")
   void blockUserAsNonAdminShouldReturnForbidden() throws Exception {
     UserEmailDTO emailDTO = new UserEmailDTO(TEST_USER_EMAIL);
     doThrow(new CustomAuthenticationException("Admin privileges required"))

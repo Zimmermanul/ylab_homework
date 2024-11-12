@@ -10,6 +10,7 @@ import com.mkhabibullin.habitTracker.presentation.controller.HabitRestController
 import com.mkhabibullin.habitTracker.presentation.dto.habit.CreateHabitDTO;
 import com.mkhabibullin.habitTracker.presentation.dto.habit.HabitResponseDTO;
 import com.mkhabibullin.habitTracker.presentation.dto.habit.UpdateHabitDTO;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
@@ -42,6 +43,7 @@ class HabitRestControllerTest extends BaseTest {
   }
   
   @Test
+  @DisplayName("Should successfully create a habit when provided with valid data")
   void createHabitWithValidDataShouldCreateHabit() throws Exception {
     CreateHabitDTO createDTO = new CreateHabitDTO(
       "Morning Exercise",
@@ -59,6 +61,7 @@ class HabitRestControllerTest extends BaseTest {
   }
   
   @Test
+  @DisplayName("Should reject habit creation when provided with invalid data")
   void createHabitWithInvalidDataShouldReturnBadRequest() throws Exception {
     CreateHabitDTO createDTO = new CreateHabitDTO(
       "",  // Invalid empty name
@@ -74,6 +77,7 @@ class HabitRestControllerTest extends BaseTest {
   }
   
   @Test
+  @DisplayName("Should return filtered habits based on date and active status")
   void getHabitsShouldReturnFilteredHabits() throws Exception {
     LocalDate filterDate = LocalDate.now();
     List<Habit> habits = Arrays.asList(
@@ -98,6 +102,7 @@ class HabitRestControllerTest extends BaseTest {
   }
   
   @Test
+  @DisplayName("Should successfully update habit when provided with valid data")
   void updateHabitWithValidDataShouldUpdateHabit() throws Exception {
     String habitId = "123";
     UpdateHabitDTO updateDTO = new UpdateHabitDTO(
@@ -116,6 +121,7 @@ class HabitRestControllerTest extends BaseTest {
   }
   
   @Test
+  @DisplayName("Should reject habit update when provided with invalid data")
   void updateHabitWithInvalidDataShouldReturnBadRequest() throws Exception {
     String habitId = "1";
     UpdateHabitDTO updateDTO = new UpdateHabitDTO(
@@ -132,6 +138,7 @@ class HabitRestControllerTest extends BaseTest {
   }
   
   @Test
+  @DisplayName("Should successfully delete habit when provided with valid ID")
   void deleteHabitWithValidIdShouldDeleteHabit() throws Exception {
     Long habitId = 1L;
     performRequest(delete("/api/habits/" + habitId))
@@ -140,6 +147,7 @@ class HabitRestControllerTest extends BaseTest {
   }
   
   @Test
+  @DisplayName("Should reject habit deletion when user is not authenticated")
   void deleteHabitWhenNotAuthenticatedShouldReturnUnauthorized() throws Exception {
     Long habitId = 1L;
     doThrow(new CustomAuthenticationException("User not authenticated"))

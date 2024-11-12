@@ -5,6 +5,7 @@ import com.mkhabibullin.audit.persistence.queries.AuditLogQueries;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
@@ -14,15 +15,26 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Implementation of AuditLogRepository interface.
+ * Provides JPA-based implementation for managing audit log entries using EntityManager.
+ * This implementation includes error handling and logging for all database operations.
+ *
+ * @see AuditLogRepository
+ */
 @Repository
 @Transactional
+@Slf4j
 public class AuditLogRepositoryImpl implements AuditLogRepository {
-  private static final Logger log = LoggerFactory.getLogger(AuditLogRepositoryImpl.class);
-  private static final String ENTITY_NAME = "audit log";
   
   @PersistenceContext
   private EntityManager entityManager;
   
+  /**
+   * Persists a new audit log entry to the database.
+   *
+   * @param auditLog the audit log entry to save
+   */
   @Override
   public void save(AuditLog auditLog) {
     try {
@@ -37,6 +49,12 @@ public class AuditLogRepositoryImpl implements AuditLogRepository {
     }
   }
   
+  /**
+   * Retrieves an audit log entry by its ID.
+   *
+   * @param id the unique identifier of the audit log entry
+   * @return the found AuditLog entity, or null if not found or if an error occurs
+   */
   @Override
   public AuditLog findById(Long id) {
     try {
@@ -51,6 +69,12 @@ public class AuditLogRepositoryImpl implements AuditLogRepository {
     }
   }
   
+  /**
+   * Retrieves all audit log entries for a specific username.
+   *
+   * @param username the username to search for
+   * @return a list of matching AuditLog entries, or an empty list if none found or if an error occurs
+   */
   @Override
   public List<AuditLog> findByUsername(String username) {
     try {
@@ -66,6 +90,13 @@ public class AuditLogRepositoryImpl implements AuditLogRepository {
     }
   }
   
+  /**
+   * Retrieves audit log entries within a specified time range.
+   *
+   * @param startTimestamp the start of the time range (inclusive)
+   * @param endTimestamp the end of the time range (inclusive)
+   * @return a list of AuditLog entries within the specified range, or an empty list if none found or if an error occurs
+   */
   @Override
   public List<AuditLog> findByTimestampRange(LocalDateTime startTimestamp, LocalDateTime endTimestamp) {
     try {
@@ -82,6 +113,12 @@ public class AuditLogRepositoryImpl implements AuditLogRepository {
     }
   }
   
+  /**
+   * Retrieves all audit log entries for a specific operation type.
+   *
+   * @param operation the operation type to search for
+   * @return a list of matching AuditLog entries, or an empty list if none found or if an error occurs
+   */
   @Override
   public List<AuditLog> findByOperation(String operation) {
     try {
@@ -97,6 +134,13 @@ public class AuditLogRepositoryImpl implements AuditLogRepository {
     }
   }
   
+  /**
+   * Retrieves the most recent audit log entries, limited to a specified number.
+   * Results are typically ordered by timestamp in descending order.
+   *
+   * @param limit the maximum number of entries to retrieve
+   * @return a list of the most recent AuditLog entries, or an empty list if none found or if an error occurs
+   */
   @Override
   public List<AuditLog> findRecentLogs(int limit) {
     try {

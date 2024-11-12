@@ -19,6 +19,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -54,26 +56,12 @@ import java.util.List;
 @RequestMapping("/api/habits")
 @Tag(name = "Habit Management", description = "API endpoints for managing habits")
 @Validated
+@RequiredArgsConstructor
+@Slf4j
 public class HabitRestController {
-  private static final Logger log = LoggerFactory.getLogger(HabitRestController.class);
   private final HabitService habitService;
   private final HabitMapper habitMapper;
   private final HabitValidator habitValidator;
-  
-  /**
-   * Constructs a new HabitRestController with required dependencies.
-   *
-   * @param habitService   Service for handling habit operations
-   * @param habitMapper    Mapper for converting between domain models and DTOs
-   * @param habitValidator Validator for ensuring habit data integrity
-   */
-  public HabitRestController(HabitService habitService,
-                             HabitMapper habitMapper,
-                             HabitValidator habitValidator) {
-    this.habitService = habitService;
-    this.habitMapper = habitMapper;
-    this.habitValidator = habitValidator;
-  }
   
   /**
    * Initializes the WebDataBinder with the habit validator.

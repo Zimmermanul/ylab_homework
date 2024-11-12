@@ -26,6 +26,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -65,30 +67,13 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/habit-executions")
 @Tag(name = "Habit Execution Management", description = "API endpoints for tracking and analyzing habit execution progress")
 @Validated
+@RequiredArgsConstructor
+@Slf4j
 public class HabitExecutionRestController {
-  private static final Logger log = LoggerFactory.getLogger(HabitExecutionRestController.class);
   private final HabitExecutionService executionService;
   private final HabitExecutionMapper executionMapper;
   private final HabitExecutionValidator executionValidator;
   private final HabitRepository habitRepository;
-  
-  /**
-   * Constructs a new HabitExecutionRestController with required dependencies.
-   *
-   * @param executionService   Service for handling habit execution operations
-   * @param executionMapper    Mapper for converting between domain models and DTOs
-   * @param executionValidator Validator for ensuring execution data integrity
-   */
-  public HabitExecutionRestController(HabitExecutionService executionService,
-                                      HabitExecutionMapper executionMapper,
-                                      HabitExecutionValidator executionValidator,
-                                      HabitRepository habitRepository) {
-    this.executionService = executionService;
-    this.executionMapper = executionMapper;
-    this.executionValidator = executionValidator;
-    this.habitRepository = habitRepository;
-  }
-  
   
   /**
    * Records a new habit execution entry.

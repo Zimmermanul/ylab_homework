@@ -26,6 +26,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -62,30 +64,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/users")
 @Tag(name = "User Management", description = "API endpoints for user registration, authentication, and account management")
+@RequiredArgsConstructor
+@Slf4j
 public class UserRestController {
-  private static final Logger log = LoggerFactory.getLogger(UserRestController.class);
   private final UserService userService;
   private final UserMapper userMapper;
   private final UserValidator userValidator;
   private final AuthenticationValidator authValidator;
-  
-  /**
-   * Constructs a new UserRestController with required dependencies.
-   *
-   * @param userService   Service for handling user operations
-   * @param userMapper    Mapper for converting between user domain models and DTOs
-   * @param userValidator Validator for user-related data
-   * @param authValidator Validator for authentication and authorization
-   */
-  public UserRestController(UserService userService,
-                            UserMapper userMapper,
-                            UserValidator userValidator,
-                            AuthenticationValidator authValidator) {
-    this.userService = userService;
-    this.userMapper = userMapper;
-    this.userValidator = userValidator;
-    this.authValidator = authValidator;
-  }
   
   /**
    * Registers a new user account.

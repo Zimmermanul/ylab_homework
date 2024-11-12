@@ -4,6 +4,7 @@ import com.mkhabibullin.audit.annotation.Audited;
 import com.mkhabibullin.audit.domain.model.AuditLog;
 import com.mkhabibullin.audit.persistence.repository.AuditLogRepository;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -31,8 +32,8 @@ import java.time.LocalDateTime;
 @Component
 @Order(1)
 @Profile("test")
+@Slf4j
 public class TestAuditedAspect {
-  private static final Logger log = LoggerFactory.getLogger(TestAuditedAspect.class);
   private final AuditLogRepository auditLogRepository;
   
   /**

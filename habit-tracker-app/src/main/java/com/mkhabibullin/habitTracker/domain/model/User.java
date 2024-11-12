@@ -18,6 +18,11 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Base64;
 
+/**
+ * Represents a user in a habit tracking application.
+ * This class encapsulates all the information related to a single user.
+ * It implements Serializable to allow for easy saving and transmission of user objects.
+ */
 @Entity
 @Getter
 @Setter

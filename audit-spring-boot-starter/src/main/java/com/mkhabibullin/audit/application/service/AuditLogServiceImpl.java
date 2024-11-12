@@ -5,6 +5,7 @@ import com.mkhabibullin.audit.domain.model.AuditLog;
 import com.mkhabibullin.audit.domain.model.AuditStatistics;
 import com.mkhabibullin.audit.persistence.repository.AuditLogRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -24,10 +25,16 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class AuditLogServiceImpl implements AuditLogService {
-  private static final Logger log = LoggerFactory.getLogger(AuditLogServiceImpl.class);
   private final AuditLogRepository auditLogRepository;
   
+  /**
+   * Retrieves audit logs for a specific user.
+   *
+   * @param username the username whose logs to retrieve
+   * @return list of audit logs
+   */
   @Override
   public List<AuditLog> getUserLogs(String username) {
     log.debug("Retrieving audit logs for user: {}", username);
@@ -35,6 +42,12 @@ public class AuditLogServiceImpl implements AuditLogService {
     return auditLogRepository.findByUsername(username);
   }
   
+  /**
+   * Retrieves audit logs for a specific operation.
+   *
+   * @param operation the operation type to query
+   * @return list of audit logs
+   */
   @Override
   public List<AuditLog> getOperationLogs(String operation) {
     log.debug("Retrieving audit logs for operation: {}", operation);
@@ -42,6 +55,12 @@ public class AuditLogServiceImpl implements AuditLogService {
     return auditLogRepository.findByOperation(operation);
   }
   
+  /**
+   * Retrieves the most recent audit logs.
+   *
+   * @param limit maximum number of logs to retrieve
+   * @return list of recent audit logs
+   */
   @Override
   public List<AuditLog> getRecentLogs(int limit) {
     log.debug("Retrieving {} recent audit logs", limit);
@@ -51,6 +70,13 @@ public class AuditLogServiceImpl implements AuditLogService {
     return auditLogRepository.findRecentLogs(limit);
   }
   
+  /**
+   * Retrieves audit logs within a specified time range.
+   *
+   * @param startDateTime start of the time range
+   * @param endDateTime   end of the time range
+   * @return list of audit logs within the range
+   */
   @Override
   public List<AuditLog> getLogsByDateRange(LocalDateTime startDateTime, LocalDateTime endDateTime) {
     log.debug("Retrieving audit logs between {} and {}", startDateTime, endDateTime);
@@ -58,6 +84,11 @@ public class AuditLogServiceImpl implements AuditLogService {
     return auditLogRepository.findByTimestampRange(startDateTime, endDateTime);
   }
   
+  /**
+   * Records a new audit log entry.
+   *
+   * @param auditLog the audit log entry to save
+   */
   @Override
   @Transactional
   public void logAuditEvent(AuditLog auditLog) {
@@ -66,6 +97,21 @@ public class AuditLogServiceImpl implements AuditLogService {
     auditLogRepository.save(auditLog);
   }
   
+  /**
+   * Generates statistics for audit logs within a specified time range.
+   * The statistics include:
+   * - Total number of logs
+   * - Average execution time
+   * - Operation counts
+   * - User activity counts
+   * - Average time by operation
+   * - Most active user
+   * - Most common operation
+   *
+   * @param startDateTime start of the time range
+   * @param endDateTime   end of the time range
+   * @return statistics object containing various metrics
+   */
   @Override
   public AuditStatistics getStatistics(LocalDateTime startDateTime, LocalDateTime endDateTime) {
     log.debug("Generating audit statistics for period {} to {}", startDateTime, endDateTime);

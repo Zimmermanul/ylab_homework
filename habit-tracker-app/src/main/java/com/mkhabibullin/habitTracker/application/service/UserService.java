@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.validation.annotation.Validated;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.regex.Pattern;
 

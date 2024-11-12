@@ -11,6 +11,7 @@ import com.mkhabibullin.habitTracker.presentation.dto.habitExecution.HabitExecut
 import com.mkhabibullin.habitTracker.presentation.dto.habitExecution.HabitExecutionResponseDTO;
 import com.mkhabibullin.habitTracker.presentation.dto.habitExecution.HabitProgressReportDTO;
 import com.mkhabibullin.habitTracker.presentation.dto.habitExecution.HabitStatisticsDTO;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
@@ -55,6 +56,7 @@ class HabitExecutionRestControllerTest extends BaseTest {
   
   
   @Test
+  @DisplayName("Should successfully record habit execution when provided with valid data")
   void trackExecutionWithValidDataShouldRecordExecution() throws Exception {
     Long habitId = 1L;
     HabitExecutionRequestDTO requestDTO = new HabitExecutionRequestDTO(
@@ -76,6 +78,7 @@ class HabitExecutionRestControllerTest extends BaseTest {
   }
   
   @Test
+  @DisplayName("Should return complete execution history for a specific habit")
   void getExecutionHistoryShouldReturnHistory() throws Exception {
     Long habitId = 1L;
     List<HabitExecution> executions = Arrays.asList(
@@ -98,6 +101,7 @@ class HabitExecutionRestControllerTest extends BaseTest {
   }
   
   @Test
+  @DisplayName("Should return comprehensive statistics for specified habit and date range")
   void getStatisticsShouldReturnStatistics() throws Exception {
     Long habitId = 1L;
     LocalDate startDate = LocalDate.now().minusDays(7);
@@ -136,6 +140,7 @@ class HabitExecutionRestControllerTest extends BaseTest {
   }
   
   @Test
+  @DisplayName("Should return current streak count for specified habit")
   void getCurrentStreakShouldReturnCurrentStreak() throws Exception {
     Long habitId = 1L;
     int expectedStreak = 5;
@@ -147,6 +152,7 @@ class HabitExecutionRestControllerTest extends BaseTest {
   }
   
   @Test
+  @DisplayName("Should calculate and return success rate for specified date range")
   void getSuccessRateShouldReturnSuccessRate() throws Exception {
     Long habitId = 1L;
     LocalDate startDate = LocalDate.now().minusDays(30);
@@ -162,6 +168,7 @@ class HabitExecutionRestControllerTest extends BaseTest {
   }
   
   @Test
+  @DisplayName("Should generate detailed progress report with trends and suggestions")
   void getProgressReportShouldReturnReport() throws Exception {
     Long habitId = 1L;
     LocalDate startDate = LocalDate.now().minusDays(30);
@@ -220,6 +227,7 @@ class HabitExecutionRestControllerTest extends BaseTest {
   }
   
   @Test
+  @DisplayName("Should reject execution tracking for future dates")
   void trackExecutionWithFutureDateShouldReturnBadRequest() throws Exception {
     Long habitId = 1L;
     HabitExecutionRequestDTO requestDTO = new HabitExecutionRequestDTO(
@@ -237,6 +245,7 @@ class HabitExecutionRestControllerTest extends BaseTest {
   }
   
   @Test
+  @DisplayName("Should reject statistics request when end date is before start date")
   void getStatisticsWithInvalidDateRangeShouldReturnBadRequest() throws Exception {
     Long habitId = 1L;
     LocalDate endDate = LocalDate.now().minusDays(7);
@@ -250,6 +259,7 @@ class HabitExecutionRestControllerTest extends BaseTest {
   }
   
   @Test
+  @DisplayName("Should reject progress report request when dates are missing")
   void getProgressReportWithMissingDatesShouldReturnBadRequest() throws Exception {
     Long habitId = 1L;
     performRequest(get("/api/habit-executions/progress/" + habitId))

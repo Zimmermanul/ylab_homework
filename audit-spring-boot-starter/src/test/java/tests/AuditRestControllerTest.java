@@ -9,6 +9,7 @@ import com.mkhabibullin.audit.presentation.AuditRestController;
 import com.mkhabibullin.audit.presentation.dto.AuditLogResponseDTO;
 import com.mkhabibullin.audit.presentation.dto.AuditStatisticsDTO;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -57,6 +58,7 @@ class AuditRestControllerTest {
   }
   
   @Test
+  @DisplayName("Get recent logs should return logs")
   @WithMockUser(username = TEST_USER_EMAIL)
   void getRecentLogsShouldReturnLogs() throws Exception {
     int limit = 10;
@@ -78,12 +80,12 @@ class AuditRestControllerTest {
       .andExpect(jsonPath("$.length()").value(2))
       .andExpect(jsonPath("$[0].operation").value("User Login"))
       .andExpect(jsonPath("$[1].operation").value("Create Habit"));
-    
     verify(auditLogService).getRecentLogs(limit);
     verify(auditMapper).auditLogsToResponseDtos(auditLogs);
   }
   
   @Test
+  @DisplayName("Get recent logs with invalid limit should return bad request")
   @WithMockUser(username = TEST_USER_EMAIL)
   void getRecentLogsWithInvalidLimitShouldReturnBadRequest() throws Exception {
     performRequest(get("/api/audit-logs/recent")
@@ -94,6 +96,7 @@ class AuditRestControllerTest {
   }
   
   @Test
+  @DisplayName("Get user logs should return user-specific logs")
   @WithMockUser(username = TEST_USER_EMAIL)
   void getUserLogsShouldReturnUserSpecificLogs() throws Exception {
     String username = "testuser";
@@ -118,6 +121,7 @@ class AuditRestControllerTest {
   }
   
   @Test
+  @DisplayName("Get statistics should return audit statistics")
   @WithMockUser(username = TEST_USER_EMAIL)
   void getStatisticsShouldReturnAuditStatistics() throws Exception {
     LocalDateTime startDateTime = LocalDateTime.now().minusDays(7);
@@ -154,7 +158,6 @@ class AuditRestControllerTest {
       .andExpect(jsonPath("$.averageExecutionTime").value(135.0))
       .andExpect(jsonPath("$.mostActiveUser").value("user1"))
       .andExpect(jsonPath("$.mostCommonOperation").value("Create Habit"));
-    
     verify(auditLogService).getStatistics(startDateTime, endDateTime);
     verify(auditMapper).statisticsToDto(statistics);
   }

@@ -2,32 +2,23 @@ package com.mkhabibullin.habitTracker.infrastructure.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import jakarta.persistence.EntityManagerFactory;
-import liquibase.integration.spring.SpringLiquibase;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
-import org.springframework.orm.jpa.JpaTransactionManager;
-import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
-import java.util.Properties;
 /**
  * Configuration class for database-related setup in Spring Boot.
  * Configures the data source with HikariCP while leveraging Spring Boot's auto-configuration.
  */
 @Configuration
 @EnableTransactionManagement
+@Slf4j
 public class DatabaseConfig {
-  private static final Logger logger = LoggerFactory.getLogger(DatabaseConfig.class);
   
   /**
    * Creates DataSourceProperties to handle basic database connection properties.
@@ -54,7 +45,7 @@ public class DatabaseConfig {
     String username = System.getenv().getOrDefault("DB_USER", "habit-tracker-admin");
     String password = System.getenv().getOrDefault("DB_PASSWORD", "habittrackerpass123");
     String jdbcUrl = String.format("jdbc:postgresql://%s:%s/%s", host, port, dbName);
-    logger.info("Configuring DataSource with URL: {}", jdbcUrl);
+    log.info("Configuring DataSource with URL: {}", jdbcUrl);
     config.setJdbcUrl(jdbcUrl);
     config.setUsername(username);
     config.setPassword(password);

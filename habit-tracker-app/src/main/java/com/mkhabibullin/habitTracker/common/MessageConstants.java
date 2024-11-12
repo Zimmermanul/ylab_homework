@@ -8,37 +8,6 @@ import java.util.regex.Pattern;
 public final class MessageConstants {
   private MessageConstants() {
   }
-  
-  // Audit validation messages
-  public static final String AUDIT_LOG_NULL = "Audit log data cannot be null";
-  public static final String AUDIT_STATS_NULL = "Audit statistics data cannot be null";
-  public static final String ID_REQUIRED = "ID is required";
-  public static final String USERNAME_REQUIRED = "Username is required";
-  public static final String METHOD_NAME_REQUIRED = "Method name is required";
-  public static final String OPERATION_REQUIRED = "Operation is required";
-  public static final String TIMESTAMP_REQUIRED = "Timestamp is required";
-  public static final String TIMESTAMP_FUTURE = "Timestamp cannot be in the future";
-  public static final String EXECUTION_TIME_REQUIRED = "Execution time is required";
-  public static final String EXECUTION_TIME_NEGATIVE = "Execution time cannot be negative";
-  public static final String REQUEST_URI_REQUIRED = "Request URI is required";
-  public static final String REQUEST_METHOD_REQUIRED = "Request method is required";
-  public static final String TOTAL_OPERATIONS_INVALID = "Total operations must be non-negative";
-  public static final String AVG_EXECUTION_TIME_INVALID = "Average execution time must be non-negative";
-  public static final String OPERATION_COUNTS_REQUIRED = "Operation counts map is required";
-  public static final String OPERATION_NAME_EMPTY = "Operation name cannot be empty";
-  public static final String INVALID_OPERATION_COUNT = "Invalid operation count for: %s";
-  public static final String USER_ACTIVITY_COUNTS_REQUIRED = "User activity counts map is required";
-  public static final String USERNAME_EMPTY = "Username cannot be empty";
-  public static final String INVALID_USER_COUNT = "Invalid activity count for user: %s";
-  public static final String AVG_TIME_BY_OPERATION_REQUIRED = "Average time by operation map is required";
-  public static final String INVALID_AVG_TIME = "Invalid average time for operation: %s";
-  public static final String MOST_ACTIVE_USER_REQUIRED = "Most active user is required";
-  public static final String MOST_COMMON_OPERATION_REQUIRED = "Most common operation is required";
-  public static final String PERIOD_START_REQUIRED = "Period start is required";
-  public static final String PERIOD_START_FUTURE = "Period start cannot be in the future";
-  public static final String PERIOD_END_REQUIRED = "Period end is required";
-  public static final String PERIOD_END_FUTURE = "Period end cannot be in the future";
-  
   // Authentication validation messages
   public static final String NO_REQUEST_CONTEXT = "No request context found";
   public static final String USER_NOT_AUTHENTICATED = "User not authenticated";
@@ -94,8 +63,6 @@ public final class MessageConstants {
   public static final String NAME_REQUIRED = "Name is required";
   public static final String NAME_TOO_SHORT = "Name must be at least 2 characters long";
   public static final String HABIT_NOT_FOUND = "Habit not found with id: %d";
-  public static final String INVALID_HABIT_FORMAT = "Invalid habit ID format: %d";
-  public static final String LIMIT_MUST_BE_GREATER_THAN = "Limit must be greater than 0";
   public static final String USER_NOT_FOUND = "User not found";
   public static final String ADMIN_USER_CANNOT_BE_MANAGED = "Admin user cannot be deleted or blocked";
   
@@ -114,10 +81,6 @@ public final class MessageConstants {
   public static final String ERROR_RETRIEVING = "Error retrieving %s";
   public static final String ERROR_RETRIEVING_BY_DATE = "Error retrieving %s by date range";
   public static final String NOT_FOUND_WITH_ID = "%s not found with ID: %s";
-  public static final String AUDIT_LOG_REQUIRED = "Audit log must not be null";
-  public static final String ERROR_RETRIEVING_BY_USERNAME = "Error retrieving %s for username: %s";
-  public static final String ERROR_RETRIEVING_BY_OPERATION = "Error retrieving %s for operation: %s";
-  public static final String ERROR_RETRIEVING_RECENT = "Error retrieving recent %s";
   public static final String ERROR_RETRIEVING_BY_USER = "Error retrieving %s for user ID: %s";
   public static final String USER_REQUIRED = "User must not be null";
   public static final String EMAIL_IN_USE = "Email address already in use: %s";

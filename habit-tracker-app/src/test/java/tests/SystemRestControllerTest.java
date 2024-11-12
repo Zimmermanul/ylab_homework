@@ -2,6 +2,7 @@ package tests;
 
 import com.mkhabibullin.habitTracker.domain.model.User;
 import com.mkhabibullin.habitTracker.presentation.controller.SystemRestController;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
@@ -21,6 +22,7 @@ class SystemRestControllerTest extends BaseTest {
     mockMvc = buildMockMvc(systemController);
   }
   
+  @DisplayName("Should return full system status including user details for authenticated user")
   @Test
   void getStatusWithAuthenticatedUserShouldReturnFullStatus() throws Exception {
     User testUser = createTestUser();
@@ -42,6 +44,7 @@ class SystemRestControllerTest extends BaseTest {
       .andExpect(jsonPath("$.authenticated", is(true)));
   }
   
+  @DisplayName("Should return basic system status without user details for unauthenticated request")
   @Test
   void getStatusWithoutUserShouldReturnBasicStatus() throws Exception {
     mockMvc.perform(get("/api/system/status")
@@ -56,6 +59,7 @@ class SystemRestControllerTest extends BaseTest {
       .andExpect(jsonPath("$.authenticated", is(false)));
   }
   
+  @DisplayName("Should return health status with all component details")
   @Test
   void getHealthShouldReturnHealthStatus() throws Exception {
     performRequest(get("/api/system/health"))
@@ -71,6 +75,7 @@ class SystemRestControllerTest extends BaseTest {
       .andExpect(jsonPath("$.components.memory.details.max", notNullValue()));
   }
   
+  @DisplayName("Should return basic application information")
   @Test
   void getInfoShouldReturnApplicationInfo() throws Exception {
     performRequest(get("/api/system/info"))
@@ -80,6 +85,7 @@ class SystemRestControllerTest extends BaseTest {
       .andExpect(jsonPath("$.version", is("1.0")));
   }
   
+  @DisplayName("Should return identical responses for main and alternative status endpoints")
   @Test
   void alternativeStatusEndpointShouldReturnSameAsMainEndpoint() throws Exception {
     ResultActions mainEndpoint = performRequest(get("/api/system/status"));
