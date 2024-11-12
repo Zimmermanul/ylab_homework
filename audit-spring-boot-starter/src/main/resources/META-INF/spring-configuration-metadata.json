@@ -1,0 +1,19 @@
+{
+  "groups": [
+    {
+      "name": "audit",
+      "type": "com.mkhabibullin.audit.properties.AuditProperties",
+      "sourceType": "com.mkhabibullin.audit.properties.AuditProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "audit.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Whether audit logging is enabled.",
+      "sourceType": "com.mkhabibullin.audit.properties.AuditProperties",
+      "defaultValue": true
+    }
+  ],
+  "hints": []
+}

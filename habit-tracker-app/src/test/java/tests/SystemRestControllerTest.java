@@ -1,7 +1,7 @@
 package tests;
 
-import com.mkhabibullin.domain.model.User;
-import com.mkhabibullin.presentation.controller.SystemRestController;
+import com.mkhabibullin.habitTracker.domain.model.User;
+import com.mkhabibullin.habitTracker.presentation.controller.SystemRestController;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;

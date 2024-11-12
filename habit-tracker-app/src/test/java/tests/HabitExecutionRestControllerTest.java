@@ -1,16 +1,16 @@
 package tests;
 
-import com.mkhabibullin.application.mapper.HabitExecutionMapper;
-import com.mkhabibullin.application.service.HabitExecutionService;
-import com.mkhabibullin.application.validation.HabitExecutionValidator;
-import com.mkhabibullin.domain.exception.ValidationException;
-import com.mkhabibullin.domain.model.HabitExecution;
-import com.mkhabibullin.infrastructure.persistence.repository.HabitRepository;
-import com.mkhabibullin.presentation.controller.HabitExecutionRestController;
-import com.mkhabibullin.presentation.dto.habitExecution.HabitExecutionRequestDTO;
-import com.mkhabibullin.presentation.dto.habitExecution.HabitExecutionResponseDTO;
-import com.mkhabibullin.presentation.dto.habitExecution.HabitProgressReportDTO;
-import com.mkhabibullin.presentation.dto.habitExecution.HabitStatisticsDTO;
+import com.mkhabibullin.habitTracker.application.mapper.HabitExecutionMapper;
+import com.mkhabibullin.habitTracker.application.service.HabitExecutionService;
+import com.mkhabibullin.habitTracker.application.validation.HabitExecutionValidator;
+import com.mkhabibullin.habitTracker.domain.exception.ValidationException;
+import com.mkhabibullin.habitTracker.domain.model.HabitExecution;
+import com.mkhabibullin.habitTracker.infrastructure.persistence.repository.HabitRepository;
+import com.mkhabibullin.habitTracker.presentation.controller.HabitExecutionRestController;
+import com.mkhabibullin.habitTracker.presentation.dto.habitExecution.HabitExecutionRequestDTO;
+import com.mkhabibullin.habitTracker.presentation.dto.habitExecution.HabitExecutionResponseDTO;
+import com.mkhabibullin.habitTracker.presentation.dto.habitExecution.HabitProgressReportDTO;
+import com.mkhabibullin.habitTracker.presentation.dto.habitExecution.HabitStatisticsDTO;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;

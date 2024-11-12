@@ -56,6 +56,14 @@ server:
   compression:
     enabled: true
 
+# Swagger Configuration
+swagger:
+  title: "Habit Tracker API"
+  description: "REST API for Habit Tracking Application"
+  version: "1.0.0"
+  base-package: "com.mkhabibullin.habitTracker"
+  paths-to-match: "/api/**"
+
 # Actuator Configuration
 management:
   endpoints:
@@ -98,33 +106,6 @@ logging:
     com.zaxxer.hikari: INFO
     org.springframework.web: INFO
     org.springframework.security: INFO
-
-# OpenAPI Configuration
-springdoc:
-  api-docs:
-    path: /v3/api-docs
-    enabled: true
-    groups:
-      enabled: true
-  swagger-ui:
-    path: /swagger-ui.html
-    enabled: true
-    config-url: /v3/api-docs/swagger-config
-    urls:
-      - url: /v3/api-docs
-        name: Habit Tracker API v1
-    doc-expansion: none
-    tags-sorter: alpha
-    operations-sorter: alpha
-    disable-swagger-default-url: true
-    display-request-duration: true
-  cache:
-    disabled: true
-  default-produces-media-type: application/json
-  default-consumes-media-type: application/json
-  paths-to-match: /api/**
-  packages-to-scan: com.mkhabibullin.presentation.controller
-  show-actuator: false
 
 # Development profile
 ---

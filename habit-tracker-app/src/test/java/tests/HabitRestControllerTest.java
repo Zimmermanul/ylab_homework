@@ -1,15 +1,15 @@
 package tests;
 
-import com.mkhabibullin.application.mapper.HabitMapper;
-import com.mkhabibullin.application.service.HabitService;
-import com.mkhabibullin.application.validation.HabitValidator;
-import com.mkhabibullin.domain.exception.CustomAuthenticationException;
-import com.mkhabibullin.domain.exception.ValidationException;
-import com.mkhabibullin.domain.model.Habit;
-import com.mkhabibullin.presentation.controller.HabitRestController;
-import com.mkhabibullin.presentation.dto.habit.CreateHabitDTO;
-import com.mkhabibullin.presentation.dto.habit.HabitResponseDTO;
-import com.mkhabibullin.presentation.dto.habit.UpdateHabitDTO;
+import com.mkhabibullin.habitTracker.application.mapper.HabitMapper;
+import com.mkhabibullin.habitTracker.application.service.HabitService;
+import com.mkhabibullin.habitTracker.application.validation.HabitValidator;
+import com.mkhabibullin.habitTracker.domain.exception.CustomAuthenticationException;
+import com.mkhabibullin.habitTracker.domain.exception.ValidationException;
+import com.mkhabibullin.habitTracker.domain.model.Habit;
+import com.mkhabibullin.habitTracker.presentation.controller.HabitRestController;
+import com.mkhabibullin.habitTracker.presentation.dto.habit.CreateHabitDTO;
+import com.mkhabibullin.habitTracker.presentation.dto.habit.HabitResponseDTO;
+import com.mkhabibullin.habitTracker.presentation.dto.habit.UpdateHabitDTO;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 

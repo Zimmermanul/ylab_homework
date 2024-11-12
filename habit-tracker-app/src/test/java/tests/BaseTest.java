@@ -2,7 +2,7 @@ package tests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.mkhabibullin.domain.model.User;
+import com.mkhabibullin.habitTracker.domain.model.User;
 import jakarta.servlet.http.HttpSession;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mock;
